@@ -1,0 +1,12 @@
+.education-credentials {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem 0.6rem;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.education-credentials { display: grid; gap: 1rem; }
+.education-credentials > li { border-top: 1px solid var(--line); padding-top: 0.85rem; }
+.education-credentials p { margin-top: 0.3rem; }

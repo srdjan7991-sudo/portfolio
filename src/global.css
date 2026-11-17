@@ -24,6 +24,16 @@
   --line: #d5d8d1;
   --serif: 'Instrument Serif', Georgia, serif;
   --gutter: clamp(1.25rem, 5vw, 4.5rem);
+  --header-height: 4.5rem;
+  scroll-padding-block-start: var(--header-height);
+}
+
+@media (max-width: 48rem) {
+  :root { --header-height: 4rem; }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  :root { scroll-behavior: smooth; }
 }
 
 *, *::before, *::after { box-sizing: border-box; }
@@ -40,8 +50,8 @@ section[id] { scroll-margin-top: 1.5rem; }
 }
 
 .skip-link {
-  position: absolute;
-  z-index: 1;
+  position: fixed;
+  z-index: 2;
   inset: 0 auto auto 1rem;
   padding: 0.7rem 1rem;
   transform: translateY(-120%);

@@ -1,0 +1,8 @@
+.expertise-expertise-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.5rem clamp(1.25rem, 4vw, 3.5rem); }
+.expertise-expertise-grid > div { border-top: 2px solid #88a89d; padding-top: 0.9rem; }
+
+.expertise-expertise-grid p { margin-top: 0.45rem; }
+
+@media (max-width: 42rem) {
+  .expertise-expertise-grid { grid-template-columns: 1fr; }
+}

@@ -1,0 +1,19 @@
+.experience-entry-heading h4 {
+  font-size: clamp(1.2rem, 2.4vw, 1.65rem);
+  font-weight: 650;
+  letter-spacing: -0.045em;
+  line-height: 1.15;
+}
+
+.experience-employment { background: #e6eee9; padding: clamp(1.1rem, 4vw, 2.2rem); border-radius: 0.9rem; }
+.experience-entry-heading { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 0.25rem 1rem; }
+.experience-entry-heading p { font-variant-numeric: tabular-nums; }
+.experience-employment > p { margin-top: 0.7rem; max-width: 68ch; }
+.experience-project-heading { margin-top: clamp(1.75rem, 4vw, 3rem); }
+.experience-timeline { list-style: none; padding: 0; margin: 1.1rem 0 0 0.3rem; border-left: 1px solid #98b1a8; }
+.experience-timeline > li { position: relative; padding: 0.25rem 0 1.6rem clamp(1.2rem, 3.5vw, 2.6rem); }
+.experience-timeline > li:last-child { padding-bottom: 0; }
+.experience-timeline > li::before { content: ''; position: absolute; top: 0.65rem; left: -0.31rem; width: 0.56rem; height: 0.56rem; border-radius: 50%; background: var(--accent); }
+.experience-entry-heading h4 { margin: 0; }
+.experience-timeline .experience-role { margin-block: 0.2rem 0.45rem; color: var(--accent); font-weight: 650; }
+.experience-timeline .technology-tags { margin-top: 0.55rem; }

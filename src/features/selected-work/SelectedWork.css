@@ -1,0 +1,64 @@
+.portfolio-section .selected-work-eyebrow {
+  color: var(--accent);
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.selected-work-featured {
+  display: grid;
+  gap: clamp(1rem, 2.4vw, 1.75rem);
+}
+
+.selected-work-project-intro h3 { margin-top: 0.35rem; font-size: clamp(2rem, 5vw, 3.6rem); line-height: 1; }
+.selected-work-project-intro > p:last-child, .selected-work-secondary-project > p:last-child { margin-top: 0.55rem; max-width: 62ch; }
+
+.selected-work-preview { margin: 0; }
+.selected-work-preview figcaption { margin-top: 0.65rem; color: var(--muted); font-size: 0.85rem; }
+
+.selected-work-dashboard {
+  color: #ecf3ed;
+  background: #102422;
+  border-radius: clamp(0.75rem, 2vw, 1.35rem);
+  padding: clamp(0.85rem, 4vw, 3rem);
+}
+
+.selected-work-dashboard-header, .selected-work-chart-heading, .selected-work-legend, .selected-work-chart-months {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.45rem 1rem;
+}
+
+.selected-work-dashboard-header {
+  padding-bottom: clamp(0.75rem, 2vw, 1.35rem);
+  font-weight: 650;
+}
+
+.selected-work-sample-label { color: #bbd9cb; font-size: 0.78rem; font-weight: 500; }
+.selected-work-dashboard-body {
+  padding: clamp(0.8rem, 3vw, 2rem);
+  border: 1px solid #374c48;
+  border-radius: 0.7rem;
+  background: #172e2b;
+}
+
+.selected-work-dashboard-body p { color: #bbd9cb; font-size: 0.8rem; }
+.selected-work-chart-heading strong { display: block; margin-bottom: 0.35rem; font-size: clamp(1.15rem, 3vw, 2rem); letter-spacing: -0.045em; }
+.selected-work-legend, .selected-work-chart-months { color: #c5d4cd; font-size: 0.72rem; }
+.selected-work-legend span { display: inline-flex; gap: 0.4rem; align-items: center; }
+.selected-work-legend span::before { content: ''; width: 0.85rem; border-top: 2px solid #acdccc; }
+.selected-work-legend span + span::before { border-top: 2px dashed #e0b68e; }
+.selected-work-chart { display: block; width: 100%; height: auto; margin-block: 0.75rem 0.25rem; }
+
+.selected-work-case-study { border-block: 1px solid var(--line); }
+.selected-work-case-study summary { width: fit-content; padding: 0.8rem 0.35rem; color: var(--accent); font-weight: 650; cursor: pointer; }
+.selected-work-case-study summary:hover { text-decoration: underline; }
+.selected-work-case-details { padding: 0.5rem 0 1.5rem; display: grid; gap: 1rem; max-width: 68ch; }
+.selected-work-case-details dt { font-weight: 700; }
+.selected-work-case-details dd { margin-top: 0.2rem; }
+
+.selected-work-secondary-project { margin-top: clamp(1.75rem, 4vw, 3rem); padding-inline-start: clamp(0.85rem, 3vw, 1.75rem); border-inline-start: 2px solid #91aea1; }
+.selected-work-secondary-project h3 { margin-top: 0.25rem; }
