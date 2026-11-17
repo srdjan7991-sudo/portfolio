@@ -1,0 +1,52 @@
+@font-face {
+  font-family: 'Instrument Sans';
+  src: url('./fonts/instrument-sans.woff2') format('woff2');
+  font-weight: 400 700;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Instrument Serif';
+  src: url('./fonts/instrument-serif-italic.woff2') format('woff2');
+  font-style: italic;
+  font-display: swap;
+}
+
+:root {
+  font-family: 'Instrument Sans', system-ui, sans-serif;
+  color: #171b20;
+  background: #f7f6f2;
+  font-synthesis: none;
+  --paper: #f7f6f2;
+  --ink: #171b20;
+  --muted: #4d5656;
+  --accent: #075d5e;
+  --line: #d5d8d1;
+  --serif: 'Instrument Serif', Georgia, serif;
+  --gutter: clamp(1.25rem, 5vw, 4.5rem);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+body { margin: 0; }
+h1, h2, h3, p, dl, dd { margin: 0; }
+p, dd { line-height: 1.65; }
+a { color: inherit; text-underline-offset: 0.24em; }
+a:focus-visible { outline: 2px solid currentColor; outline-offset: 5px; }
+section[id] { scroll-margin-top: 1.5rem; }
+
+.container {
+  width: min(100% - var(--gutter) * 2, 70rem);
+  margin-inline: auto;
+}
+
+.skip-link {
+  position: absolute;
+  z-index: 1;
+  inset: 0 auto auto 1rem;
+  padding: 0.7rem 1rem;
+  transform: translateY(-120%);
+  background: var(--accent);
+  color: white;
+}
+
+.skip-link:focus { transform: translateY(0); }
