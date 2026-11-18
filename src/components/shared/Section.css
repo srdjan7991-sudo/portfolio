@@ -1,43 +1,42 @@
 .portfolio-section {
-  padding-block: clamp(3.25rem, 8vw, 7rem);
+  padding-block: var(--section-space);
   border-top: 1px solid var(--line);
 }
 
 .section-title {
-  margin-bottom: clamp(1.35rem, 3vw, 2.6rem);
-  font-size: clamp(2.45rem, 6vw, 4.85rem);
+  margin-bottom: clamp(1.9rem, 4vw, 3.5rem);
+  font-size: clamp(2.15rem, 5vw, 4.5rem);
   font-weight: 600;
-  letter-spacing: -0.07em;
-  line-height: 1;
+  letter-spacing: -0.056em;
+  line-height: 1.03;
   text-wrap: balance;
 }
 
-.section-title:has(+ .section-intro) { margin-bottom: 0.8rem; }
+.section-title:has(+ .section-intro) { margin-bottom: 0.9rem; }
 .portfolio-section:focus { outline: none; }
 .portfolio-section:focus-visible .section-title {
-  text-decoration: underline #88a89d 2px;
-  text-underline-offset: 0.15em;
+  text-decoration: underline var(--accent) 2px;
+  text-underline-offset: 0.16em;
 }
-.section-intro { max-width: 56ch; margin-bottom: clamp(1.5rem, 4vw, 3rem); font-size: clamp(1rem, 2vw, 1.22rem); }
-
+.section-intro { max-width: 56ch; margin-bottom: clamp(1.75rem, 4vw, 3.4rem); font-size: clamp(1rem, 1.8vw, 1.17rem); }
 .portfolio-section p, .portfolio-section dd { color: var(--muted); }
 .portfolio-section h3 {
-  font-size: clamp(1.2rem, 2.4vw, 1.65rem);
-  font-weight: 650;
+  font-size: clamp(1.2rem, 2.5vw, 1.8rem);
+  font-weight: 600;
   letter-spacing: -0.045em;
   line-height: 1.15;
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  [data-revealed] .section-title,
-  [data-revealed] .section-title ~ * {
-    animation: section-reveal 480ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  #main:not(:has([data-editing])) [data-revealed] .section-title,
+  #main:not(:has([data-editing])) [data-revealed] .section-title ~ * {
+    animation: section-reveal 480ms var(--ease-out) both;
   }
 
-  [data-revealed] .section-title ~ * { animation-delay: 65ms; }
+  #main:not(:has([data-editing])) [data-revealed] .section-title ~ * { animation-delay: 50ms; }
 
   @keyframes section-reveal {
-    from { opacity: 0.65; transform: translateY(10px); }
+    from { opacity: 0.76; transform: translateY(6px); }
     to { opacity: 1; transform: none; }
   }
 }

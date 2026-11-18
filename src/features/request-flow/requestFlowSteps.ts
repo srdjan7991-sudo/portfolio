@@ -1,0 +1,17 @@
+// The walkthrough holds the completed motion so the explanation stays readable.
+export const phaseReadingTime = 4000
+
+export const steps = [
+  { id: 'interaction', duration: 1500 },
+  { id: 'communication', duration: 2250 },
+  { id: 'processing', duration: 2300 },
+  { id: 'database', duration: 3100 },
+  { id: 'response', duration: 2350 },
+  { id: 'result', duration: 2400 },
+] as const
+
+export const systems = [
+  { id: 'browser', stack: 'React · TypeScript' },
+  { id: 'server', stack: 'ASP.NET Core · C#' },
+  { id: 'database', stack: 'SQL Server' },
+] as const

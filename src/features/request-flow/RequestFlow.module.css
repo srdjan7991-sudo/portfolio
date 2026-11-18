@@ -1,0 +1,179 @@
+.section {
+  padding-block: clamp(2.35rem, 5vw, 4.5rem);
+  border-block-start: 1px solid var(--line);
+  background: var(--surface-subtle);
+  overflow-anchor: none;
+}
+
+.section :where(h2, h3, h4, p) { overflow-wrap: anywhere; }
+
+.eyebrow,
+.stack,
+.progress > span,
+.mode > strong {
+  font-family: var(--mono);
+  font-size: 0.73rem;
+  font-weight: 550;
+}
+
+.eyebrow { color: var(--accent); text-transform: uppercase; letter-spacing: 0.09em; }
+.stack { color: var(--quiet); }
+.lead { max-width: 60ch; margin-block-start: 0.7rem; color: var(--muted); font-size: clamp(0.99rem, 1.45vw, 1.09rem); }
+
+.teaser {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+  gap: clamp(1.45rem, 5vw, 4.8rem);
+  align-items: center;
+}
+
+.teaser h2 {
+  max-width: 22ch;
+  margin-block-start: 0.65rem;
+  font-size: clamp(1.85rem, 3.8vw, 3.4rem);
+  font-weight: 600;
+  line-height: 1.08;
+  letter-spacing: -0.052em;
+  text-wrap: balance;
+}
+
+.teaserAction { min-inline-size: 0; }
+.route,
+.systems { margin: 0; padding: 0; list-style: none; }
+.route { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin-block-end: 0.65rem; }
+.route li {
+  display: grid;
+  grid-template-rows: 1.85rem 1fr;
+  align-items: center;
+  gap: 0.45rem;
+  position: relative;
+  padding-block: 0.85rem 0.6rem;
+  border-block-start: 1px solid var(--line-glass);
+  color: var(--ink);
+  font-size: clamp(0.76rem, 1.15vw, 0.9rem);
+  font-weight: 550;
+}
+.route li + li { padding-inline-start: 0.6rem; }
+.route li::before {
+  position: absolute;
+  inset: -3px auto auto 0.1rem;
+  inline-size: 5px;
+  block-size: 5px;
+  content: '';
+  border-radius: 50%;
+  background: var(--accent);
+}
+.route li + li::before { inset-inline-start: 0.75rem; }
+.route svg { inline-size: 1.85rem; color: var(--accent); }
+
+.teaserButton,
+.expand { display: grid; grid-template-rows: 0fr; opacity: 0; }
+.teaserButton { grid-template-rows: 1fr; opacity: 1; }
+.teaserButton > div,
+.expand > div { min-block-size: 0; overflow: clip; }
+.teaserButton button { margin: 0.7rem 0.4rem 0.4rem; }
+.section[data-expanded='true'] .teaserButton { grid-template-rows: 0fr; opacity: 0; }
+.section[data-expanded='true'] .expand { grid-template-rows: 1fr; opacity: 1; }
+.panel { margin-block-start: clamp(1.2rem, 4vw, 3rem); padding-block: 0.9rem 0.45rem; border-block-start: 1px solid var(--line-glass); }
+.close {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  inline-size: max-content;
+  margin: 0 0 0.75rem auto;
+  min-block-size: 2.75rem;
+  padding-inline: 0.6rem;
+  border: 0;
+  background: transparent;
+  color: var(--accent);
+  font: inherit;
+  font-size: 0.87rem;
+  font-weight: 570;
+  cursor: pointer;
+}
+.close span { font-size: 1.3em; }
+.close:hover { color: var(--accent-hover); background: var(--accent-soft); }
+.panel h3 {
+  max-width: 31ch;
+  margin-block-start: 0.45rem;
+  font-size: clamp(1.55rem, 3vw, 2.65rem);
+  line-height: 1.12;
+  letter-spacing: -0.045em;
+  font-weight: 620;
+  text-wrap: balance;
+}
+
+.systems { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(0.8rem, 3vw, 2.2rem); margin-block: 1.65rem; }
+.systems li { border-block-start: 1px solid var(--line); padding-block-start: 0.85rem; }
+.systems svg { display: block; inline-size: 2.4rem; color: var(--accent); margin-block-end: 0.55rem; }
+.systems h4 { margin: 0 0 0.2rem; font-size: 1.07rem; }
+.systems p:not(.stack) { color: var(--muted); font-size: 0.94rem; }
+.systems .stack { margin-block-start: 0.4rem; }
+
+.playerHeading {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(14rem, 20rem);
+  align-items: end;
+  gap: 1rem;
+}
+.playerHeading h3 { scroll-margin-block-start: 1.1rem; }
+.mode { border-inline-start: 1px solid var(--line-glass); padding-inline-start: 0.85rem; color: var(--muted); font-size: 0.84rem; }
+.mode strong { color: var(--accent); }
+
+.playback {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.9rem 1.5rem;
+  min-inline-size: 0;
+  margin: 1.2rem 0 1.45rem;
+  padding: 0.85rem 0;
+  border: 0;
+  border-block: 1px solid var(--line);
+}
+.buttons { display: flex; align-items: center; flex-wrap: wrap; gap: 0.4rem; }
+.buttons button { min-inline-size: 2.75rem; padding-inline: 0.72rem; }
+.buttons button:disabled { opacity: 0.65; cursor: default; }
+.playIcon { inline-size: 1em; text-align: center; }
+.phaseText { display: grid; min-inline-size: 0; }
+.phaseText > span { grid-area: 1 / 1; min-inline-size: 0; }
+.phaseText > [data-reserve] { visibility: hidden; }
+.phaseText > [data-reserve]::before { content: attr(data-reserve); }
+.progress {
+  display: grid;
+  grid-template-columns: auto minmax(6rem, 1fr);
+  gap: 0.75rem;
+  align-items: center;
+  min-inline-size: min(100%, 10rem);
+  color: var(--ink);
+}
+.segments { display: grid; grid-template-columns: repeat(6, 1fr); gap: 0.25rem; }
+.segments span { block-size: 0.2rem; background: var(--line-glass); border-radius: 1rem; }
+.segments span[data-progress='past'] { background: var(--accent-edge); }
+.segments span[data-progress='current'] { background: var(--accent); block-size: 0.32rem; align-self: center; }
+
+.chapter { min-block-size: 6.65rem; }
+.chapter h4 { margin: 0.22rem 0 0.3rem; font-size: clamp(1.23rem, 2.25vw, 1.72rem); font-weight: 620; letter-spacing: -0.035em; }
+.chapter > p:last-child { max-width: 70ch; color: var(--muted); font-size: 0.94rem; }
+
+.caption { max-inline-size: 70ch; padding-block: 0.85rem 0.5rem; }
+.caption h4 { margin: 0 0 0.25rem; font-size: 1.01rem; letter-spacing: -0.025em; }
+.caption p { color: var(--muted); font-size: 0.92rem; }
+
+@media (max-width: 46rem) {
+  .teaser, .playerHeading { grid-template-columns: minmax(0, 1fr); }
+  .systems { grid-template-columns: minmax(0, 1fr); gap: 0.75rem; }
+  .systems li { display: grid; grid-template-columns: 2.35rem minmax(0, 1fr); column-gap: 0.65rem; }
+  .systems svg { grid-row: span 3; inline-size: 2.15rem; }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .caption .phaseText > span:first-child { animation: explanation-in 160ms var(--ease-out) both; }
+  @keyframes explanation-in { from { opacity: 0.8; } to { opacity: 1; } }
+
+  .expand, .teaserButton { transition: grid-template-rows 820ms var(--ease-out), opacity 380ms ease; }
+  .section[data-expanded='true'][data-view='player'] :is(.expand, .teaserButton) {
+    transition-property: opacity;
+  }
+}

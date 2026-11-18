@@ -1,0 +1,167 @@
+import type { SectionKey } from '../sections'
+
+export const en = {
+  metadata: {
+    title: 'Srdjan Pajic | Frontend Engineer',
+    description: 'Srdjan Pajic, frontend engineer focused on React and TypeScript. Explore selected work, experience, and technical skills.',
+  },
+  layout: {
+    skip: 'Skip to content', navigation: 'Main navigation', menu: 'Menu', top: 'Back to top',
+    darkTheme: 'Dark theme', language: 'EN / SR, Serbian language',
+  },
+  sections: {
+    work: { title: 'Selected Work', label: 'Work' },
+    skills: { title: 'Technical Skills', label: 'Skills' },
+    expertise: { title: 'Engineering Expertise', label: 'Expertise' },
+    experience: { title: 'Professional Experience', label: 'Experience' },
+    education: { title: 'Education & Certifications', label: 'Education' },
+    contact: { title: 'Contact', label: 'Contact' },
+  } satisfies Record<SectionKey, { title: string; label: string }>,
+  hero: {
+    first: 'Frontend-focused', second: 'Software Engineer',
+    description: 'I build web applications with React, TypeScript, and JavaScript. I have over five years of professional experience in software development.',
+    work: 'View selected work', contact: 'Get in touch',
+  },
+  work: {
+    intro: 'Enterprise frontend work across healthcare analytics and building operations.',
+    medeCategory: 'Healthcare analytics', kterioCategory: 'Building data management',
+    mede: 'I built reporting features and reusable React components during the modernization of a legacy MVC application.',
+    kterio: 'I built React and Redux features for a cloud-based building data platform and integrated them with backend APIs. I also implemented REST endpoints and service logic in C# and .NET Core.',
+    technologies: (name: string) => `${name} technologies`,
+    read: 'Read the case study',
+    details: {
+      context: { label: 'Context', body: 'A healthcare analytics platform was transitioning from MVC to React with a shared component library.' },
+      contribution: { label: 'My contribution', body: 'I built React and TypeScript features and maintained reusable components based on Figma designs.' },
+      implementation: { label: 'Implementation', body: 'I built Highcharts dashboards and reporting workflows with filters, pagination, forms, and dialogs. I managed asynchronous data flows with Redux and integrated the frontend with .NET Web APIs.' },
+      validation: { label: 'Validation', body: 'I added and maintained automated tests with Vitest and React Testing Library.' },
+    },
+    preview: {
+      heading: 'Analytics overview', synthetic: 'Synthetic data', trends: 'Reporting trends', comparison: 'Monthly comparison',
+      seriesA: 'Series A', seriesB: 'Series B',
+      months: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+      caption: 'Illustrative reconstruction using synthetic data.',
+    },
+  },
+  skills: {
+    intro: 'React and TypeScript are my main tools, with practical experience across APIs, data, and testing.',
+    frontend: { title: 'Frontend Engineering', description: 'Reusable interfaces and predictable application state.' },
+    analytics: { title: 'Analytics & Visualization', description: 'Dashboards, reporting, and interactive charts.' },
+    testing: { title: 'Testing', description: 'Automated checks for frontend behavior and .NET code.' },
+    data: { title: 'APIs & Data', description: 'Web APIs, relational data access, and persistence.' },
+    delivery: { title: 'Delivery & Collaboration', description: 'Version control, delivery, and design collaboration.' },
+  },
+  expertise: {
+    frontend: { title: 'Enterprise Frontend', text: 'I help move legacy interfaces to React and build reusable components that follow shared UI patterns and Figma designs.' },
+    analytics: { title: 'Analytics & Data Visualization', text: 'I build dashboards and reporting workflows that let users filter results and explore data through interactive charts.' },
+    integration: { title: 'API Integration & Testing', text: 'I connect React features to .NET APIs, handle asynchronous state and errors, and write automated tests for user-facing behavior.' },
+  },
+  experience: {
+    frontend: 'Frontend Developer', fullstack: 'Full Stack Developer', since: 'September 2020 – Present',
+    description: 'I build and maintain enterprise web applications, working with designers and backend engineers from requirements through implementation and testing.',
+    assignments: 'Project assignments at Midenas',
+    mede: 'Built dashboard and reporting features, maintained shared React components, and added frontend tests during an MVC-to-React migration.',
+    kterio: 'Built frontend features for a building data management platform, integrated APIs, and contributed to REST endpoints and service-layer logic.',
+    alpha: 'Developed frontend functionality and .NET Web API features for an investment analytics and reporting platform.',
+  },
+  education: {
+    location: 'Belgrade, Serbia', courses: 'Selected Anthropic courses', date: 'August 2026',
+  },
+  contact: {
+    description: 'I’m interested in frontend engineering roles focused on React and TypeScript.',
+    email: 'Email', cv: 'Download CV', cvLanguage: 'English',
+  },
+  auth: {
+    signIn: 'Sign in', account: 'Account', signOut: 'Sign out', createAdmin: 'Create administrator',
+    signOutDescription: 'Finish signing out of this device.',
+    accountDescription: 'Manage your current portfolio session.',
+    setupDescription: 'Set up the owner account for this portfolio. This form closes after the first account is created.',
+    signInDescription: 'Sign in to manage your portfolio.',
+    close: 'Close', wait: 'Please wait…', retrySignOut: 'Retry sign out', retry: 'Retry',
+    email: 'Email', password: 'Password', hidePassword: 'Hide password', showPassword: 'Show password',
+    setupCode: 'Setup code', createAccount: 'Create account',
+    signedIn: 'You are signed in.', signedOut: 'You are signed out.',
+    created: 'Administrator account created. You are signed in.',
+    validation: {
+      email: 'Enter a valid email address.',
+      password: 'Enter your password.',
+      setupPassword: 'Use a password with at least 15 characters.',
+      setupKey: 'Enter the setup code.',
+    },
+    errors: {
+      unavailable: 'The authentication service is unavailable. Try again.',
+      invalidInput: 'Check the email and password requirements.',
+      invalidLogin: 'Invalid email or password.',
+      setupClosed: 'Setup is closed.',
+      rejected: 'This request was rejected. Check your setup code or connection.',
+      rateLimited: 'Too many attempts. Try again in a minute.',
+      expired: 'Your session expired. Sign in again.',
+      renewalFailed: 'Could not renew your session. Sign in again.',
+      superseded: 'The sign-in attempt was superseded.',
+      logoutFailed: 'Local access was cleared. Server sign-out failed. Retry to revoke the session.',
+    },
+  },
+  order: {
+    admin: 'Administrator controls', mode: 'Admin mode', editing: 'Editing mode', logout: 'Logout',
+    move: 'Move section', reorder: (title: string) => `Reorder ${title}`,
+    instructions: 'Drag to reorder. With a keyboard, press Space or Enter to pick up, use the arrow keys to move, then press Space or Enter to save. Escape cancels.',
+    picked: (title: string) => `${title} picked up.`,
+    moved: (title: string, position: number, total: number) => `${title} moved to position ${position} of ${total}.`,
+    cancelled: 'Move cancelled.',
+    status: {
+      idle: '', loading: 'Loading section order…', unsaved: 'Unsaved changes',
+      saving: 'Saving…', saved: 'Saved', failed: 'Could not save. Previous order restored.',
+    },
+  },
+  flow: {
+    eyebrow: 'A look behind the screen',
+    teaser: 'What happens when you click?',
+    lead: 'Follow a request from your browser through the server and database, then see the result come back.',
+    open: 'Explore the request', close: 'Close walkthrough',
+    name: 'Behind every request', intro: 'Follow one click.',
+    introDescription: 'See how the app gets the information you asked for and shows it on your screen.',
+    show: 'Open walkthrough', player: 'How does the page load its content?',
+    guided: 'Guided walkthrough', live: 'Live request',
+    guidedDescription: 'This walkthrough uses example content. The steps leave time to read.',
+    liveDescription: 'The steps leave time to read. Their timing is separate from the request.',
+    controls: 'Walkthrough controls', play: 'Play', pause: 'Pause', previous: 'Previous step',
+    next: 'Next step', replay: 'Replay', explanation: 'What’s happening now?',
+    failedTitle: 'The content couldn’t load.', pendingTitle: 'Waiting for the response.',
+    failedLookup: 'Where would the database look?',
+    failedDescription: 'The browser has no content to show. Try again when the server is available.',
+    pendingDescription: 'The request was sent. The result will appear when the server responds.',
+    systems: [
+      { name: 'Your browser', role: 'Where you use the application.' },
+      { name: 'Application server', role: 'Processes requests and applies the rules of the app.' },
+      { name: 'Database', role: 'Stores and retrieves data.' },
+    ],
+    phases: [
+      { label: 'Interaction', title: 'You ask for content.', description: 'The browser registers your click and prepares a request for the information you need.', explanation: 'Your click tells the browser what content to load.' },
+      { label: 'Communication', title: 'The request is on its way.', description: 'The browser sends the request to the application server.', explanation: 'The browser asks the server for the data it needs to display.' },
+      { label: 'Processing', title: 'The server decides what to read.', description: 'The server applies the rules of the app to decide which information to retrieve.', explanation: 'The server recognizes the request and decides what to look up.' },
+      { label: 'Database', title: 'The database looks up the records.', description: 'The application asks the database for the records it needs to answer the request.', explanation: 'The database retrieves the records the application needs.' },
+      { label: 'Response', title: 'The server prepares a response.', description: 'The server packages the data in a format the browser can read.', explanation: 'The server prepares the data and sends the response back.' },
+      { label: 'Result', title: 'The browser displays the result.', description: 'The browser reads the response and updates the content on your screen.', explanation: 'The browser shows the requested content or reports a loading error.' },
+    ],
+    screen: {
+      heading: 'My portfolio content', label: 'Browser content', load: 'Load content', reload: 'Load content again',
+      loading: 'Loading content…', following: 'Following the request…', idle: 'The content is ready to load.',
+      failed: 'The content couldn’t load. You can try again.',
+      waiting: 'Waiting for the application server.',
+      example: 'Portfolio section titles', empty: 'The server returned an empty list. No sections are enabled.',
+      shown: (total: number) => `Showing 3 of ${total} sections.`,
+    },
+    jobs: ['Receives request', 'Chooses action', 'Reads data'],
+    response: {
+      label: 'Server response', first: 'First record', unavailable: 'Content is unavailable.',
+      notArrived: 'The response hasn’t arrived yet.', jsonList: 'JSON array',
+      count: (count: number) => `${count} ${count === 1 ? 'record' : 'records'}`,
+      found: (count: number) => `Records found: ${count}`,
+    },
+  },
+} as const
+
+type Translate<T> = T extends string ? string
+  : T extends (...args: infer Args) => string ? (...args: Args) => string
+  : { [K in keyof T]: Translate<T[K]> }
+
+export type Messages = Translate<typeof en>

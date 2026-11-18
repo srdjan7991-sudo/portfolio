@@ -1,73 +1,75 @@
 import { domAnimation, LazyMotion, useReducedMotion } from 'motion/react'
 import * as m from 'motion/react-m'
 
+import limestoneSmall from '../../assets/hero-limestone-480.webp'
+import limestoneLarge from '../../assets/hero-limestone-960.webp'
 import './Hero.css'
+import { useLanguage } from '../../i18n/language'
 
-const headlineEase = [0.16, 1, 0.3, 1] as const
+const headlineSpring = { type: 'spring', stiffness: 155, damping: 25 } as const
 const detailEase = [0.22, 1, 0.36, 1] as const
 
 export function Hero() {
+  const { text: { hero } } = useLanguage()
   const reduceMotion = useReducedMotion()
-  const hiddenLine = reduceMotion ? false : { y: '108%' }
-  const visibleLine = { y: '0%' }
-  const hiddenDetail = reduceMotion ? false : { opacity: 0, y: 14 }
-  const visibleDetail = { opacity: 1, y: 0 }
+  const hiddenLine = reduceMotion ? false : { opacity: 0.68, y: 18 }
+  const visibleLine = { opacity: 1, y: 0 }
+  const hiddenDetail = reduceMotion ? false : { opacity: 0.8, y: 8 }
 
   return (
     <LazyMotion features={domAnimation} strict>
       <section id="top" className="hero" aria-labelledby="intro-title">
-        <div className="hero-content">
-          <h1 id="intro-title" className="hero-title">
-            <span className="hero-line">
-              <m.span
-                initial={hiddenLine}
-                animate={visibleLine}
-                transition={{ duration: 0.88, ease: headlineEase }}
-              >
-                Frontend-focused
-              </m.span>
-            </span>{' '}
-            <span className="hero-line">
-              <m.em
-                initial={hiddenLine}
-                animate={visibleLine}
-                transition={{ duration: 0.98, delay: 0.12, ease: headlineEase }}
-              >
-                Software Engineer
+        <div className="hero-content container">
+          <div className="hero-copy">
+            <h1 id="intro-title" className="hero-title">
+              <m.span initial={hiddenLine} animate={visibleLine} transition={headlineSpring}>
+                {hero.first}
+              </m.span>{' '}
+              <m.em initial={hiddenLine} animate={visibleLine} transition={{ ...headlineSpring, delay: 0.08 }}>
+                {hero.second}
               </m.em>
-            </span>
-          </h1>
-          <m.p
-            className="hero-lead"
-            initial={hiddenDetail}
-            animate={visibleDetail}
-            transition={{ duration: 0.54, delay: 0.38, ease: detailEase }}
-          >
-            I build web applications with React, TypeScript, and JavaScript.
-            I have over five years of professional experience in software development.
-          </m.p>
-          <div className="hero-actions">
-            <m.a
-              className="hero-work"
-              href="#work"
-              initial={reduceMotion ? false : { '--entrance': 12 }}
-              animate={{ '--entrance': 0 }}
-              transition={{ duration: 0.55, delay: 0.48, ease: detailEase }}
+            </h1>
+            <m.p
+              className="hero-lead"
+              initial={hiddenDetail}
+              animate={visibleLine}
+              transition={{ duration: 0.46, delay: 0.16, ease: detailEase }}
             >
-              <span>View selected work</span>
-              <span className="hero-arrow" aria-hidden="true">↓</span>
-            </m.a>
-            <m.a
-              className="hero-contact"
-              href="#contact"
-              initial={reduceMotion ? false : { '--entrance': 12 }}
-              animate={{ '--entrance': 0 }}
-              transition={{ duration: 0.55, delay: 0.57, ease: detailEase }}
+              {hero.description}
+            </m.p>
+            <m.div
+              className="hero-actions"
+              initial={hiddenDetail}
+              animate={visibleLine}
+              transition={{ duration: 0.46, delay: 0.22, ease: detailEase }}
             >
-              <span>Get in touch</span>
-              <span className="hero-arrow" aria-hidden="true">↗</span>
-            </m.a>
+              <a className="hero-work ui-pill ui-pill--accent" href="#work">
+                <span>{hero.work}</span>
+                <span className="hero-arrow" aria-hidden="true">↓</span>
+              </a>
+              <a className="hero-contact" href="#contact">
+                <span>{hero.contact}</span>
+                <span className="hero-arrow" aria-hidden="true">↗</span>
+              </a>
+            </m.div>
           </div>
+          <m.div
+            className="hero-visual"
+            initial={reduceMotion ? false : { opacity: 0.82, scale: 1.025 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.8, ease: detailEase }}
+            aria-hidden="true"
+          >
+            <img
+              src={limestoneLarge}
+              srcSet={`${limestoneSmall} 480w, ${limestoneLarge} 960w`}
+              sizes="(max-width: 47.5rem) calc(100vw - clamp(2.5rem, 9.6vw, 9rem)), (max-width: 87.5rem) 36vw, 511px"
+              width={960}
+              height={1200}
+              fetchPriority="high"
+              alt=""
+            />
+          </m.div>
         </div>
       </section>
     </LazyMotion>

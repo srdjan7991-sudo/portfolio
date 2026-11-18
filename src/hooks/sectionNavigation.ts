@@ -1,20 +1,15 @@
 import { useEffect, useLayoutEffect, useState } from 'react'
+import { defaultSectionOrder, isSectionKey } from '../sections'
+import { useLanguage } from '../i18n/language'
 
-export const sectionLinks = [
-  { id: 'work', label: 'Work' },
-  { id: 'skills', label: 'Skills' },
-  { id: 'expertise', label: 'Expertise' },
-  { id: 'experience', label: 'Experience' },
-  { id: 'education', label: 'Education' },
-  { id: 'contact', label: 'Contact' },
-]
-
-export function useActiveSection(header: { readonly current: HTMLElement | null }) {
+export function useActiveSection(header: { readonly current: HTMLElement | null }, order: readonly string[] = defaultSectionOrder) {
+  const { language } = useLanguage()
   const [activeSection, setActiveSection] = useState<string>()
 
   useEffect(() => {
-    const sections = sectionLinks
-      .map(({ id }) => document.getElementById(id))
+    const sections = order
+      .filter(isSectionKey)
+      .map(id => document.getElementById(id))
       .filter((section) => section !== null)
     let frame = 0
 
@@ -56,13 +51,14 @@ export function useActiveSection(header: { readonly current: HTMLElement | null 
       window.removeEventListener('resize', scheduleUpdate)
       window.removeEventListener('hashchange', scheduleUpdate)
     }
-  }, [header])
+  }, [header, order, language])
 
   return activeSection
 }
 
-export function useSectionNavigation() {
+export function useSectionNavigation(orderReady = true) {
   useLayoutEffect(() => {
+    if (!orderReady) return
     // A deep link can arrive before React has inserted the target into the document.
     const hash = location.hash
     const target = document.getElementById(hash.slice(1))
@@ -79,7 +75,7 @@ export function useSectionNavigation() {
       }
     })
     return () => { cancelled = true }
-  }, [])
+  }, [orderReady])
 
   useEffect(() => {
     if (!('IntersectionObserver' in window)) return
@@ -95,7 +91,7 @@ export function useSectionNavigation() {
       }
     }, { threshold: 0.08 })
 
-    for (const { id } of sectionLinks) {
+    for (const id of defaultSectionOrder) {
       const section = document.getElementById(id)
       // Preserve the initial view, including direct links and restored scroll positions.
       if (section && section.getBoundingClientRect().top >= window.innerHeight) {
