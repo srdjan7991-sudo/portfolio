@@ -26,12 +26,18 @@ function issueForResponse(route: string, status: number): AuthIssue {
 }
 
 async function request(route: string, options: RequestInit = {}): Promise<unknown> {
-  const response = await fetch(`/api/auth/${route}`, { ...options, credentials: 'same-origin', cache: 'no-store' })
-  if (!response.ok) {
-    throw new AuthError(response.status, issueForResponse(route, response.status))
+  const controller = new AbortController()
+  const deadline = setTimeout(() => controller.abort(), 10000)
+  try {
+    const response = await fetch(`/api/auth/${route}`, {
+      ...options, signal: controller.signal, credentials: 'same-origin', cache: 'no-store',
+    })
+    if (!response.ok) throw new AuthError(response.status, issueForResponse(route, response.status))
+    if (response.status === 204) return
+    return await response.json().catch(() => { throw new AuthError(response.status, 'unavailable') })
+  } finally {
+    clearTimeout(deadline)
   }
-  if (response.status === 204) return
-  return response.json().catch(() => { throw new AuthError(response.status, 'unavailable') })
 }
 
 function post(route: string, body?: { email: string; password: string }, setupKey?: string) {

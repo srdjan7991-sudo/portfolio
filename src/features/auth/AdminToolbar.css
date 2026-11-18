@@ -28,14 +28,15 @@
 
 @media (max-width: 38rem) {
   :root:has(.portfolio-admin-toolbar[data-reordering]) { --admin-toolbar-height: 4.35rem; }
+  :root:has(.portfolio-admin-toolbar[data-order-unavailable]) { --admin-toolbar-height: 5rem; }
   .portfolio-order-status { display: none; }
-  .portfolio-admin-toolbar[data-reordering] .portfolio-admin-toolbar-inner {
+  .portfolio-admin-toolbar:is([data-reordering], [data-order-unavailable]) .portfolio-admin-toolbar-inner {
     display: grid;
     grid-template-columns: 1fr auto;
     align-content: start;
     row-gap: 0;
   }
-  .portfolio-admin-toolbar[data-reordering] .portfolio-order-status {
+  .portfolio-admin-toolbar:is([data-reordering], [data-order-unavailable]) .portfolio-order-status {
     display: block;
     grid-area: 2 / 1 / 3 / 3;
     min-height: 1.2rem;

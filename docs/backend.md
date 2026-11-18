@@ -60,7 +60,7 @@ Open **Sign in**. On a fresh database, **Create administrator** asks for an emai
 | `GET /health` | Public | Returns `{"status":"healthy"}` when the process responds. |
 | `GET /api/sections` | Public | Returns enabled rows with `key`, `title`, and `body`, ordered by `SortOrder` and then key. Returns 503 when the sections database is unavailable. |
 | `GET /api/sections/order` | Public | Returns `{"keys":[...]}`. Uses the default order if the database has no valid saved order. Returns 503 when the database is unavailable. |
-| `PUT /api/sections/order` | Administrator bearer token | Accepts `{"keys":[...]}` with each supported key exactly once. Returns the saved order. |
+| `PUT /api/sections/order` | Administrator bearer token | Accepts `{"keys":[...],"expectedKeys":[...]}` with each supported key exactly once in each supplied list. If the optional previous order has changed, returns 409 with the current order. On success, returns the saved order. |
 | `GET /api/auth/setup-status` | Public in the configured API | Returns `{"setupRequired":true}` only when a setup key is configured and setup has yet to complete. |
 | `POST /api/auth/signup` | Configured HTTPS origin and setup code | Creates the first administrator and starts a session. Completed setup returns 409 for an otherwise valid setup request. |
 | `POST /api/auth/login` | Configured HTTPS origin and valid credentials | Starts an administrator session. |
@@ -73,6 +73,8 @@ Open **Sign in**. On a fresh database, **Create administrator** asks for an emai
 ## Sessions and Swagger
 
 [`AuthEndpoints.cs`](../backend/Portfolio.Api/Auth/AuthEndpoints.cs) requires the exact configured browser origin and `X-Portfolio-Auth: 1` on session POST requests. Signup also requires `X-Portfolio-Setup`. The frontend keeps access tokens in memory. Access tokens last up to five minutes. The seven-day session uses a rotating refresh cookie with `Secure`, `HttpOnly`, `SameSite=Strict`, and the `/api/auth` path. The server stores hashes of refresh credentials. Reuse of a rotated credential revokes its session.
+
+Setup status, credential attempts, refresh, and logout have separate request limits. For an HTTPS deployment with a reverse proxy, have the same-host proxy connect over loopback and replace incoming `X-Forwarded-For` with the actual client address. ASP.NET Core accepts one forwarded address from its default trusted loopback proxies. Keep the backend listener private. [ASP.NET Core proxy guidance](https://learn.microsoft.com/en-us/aspnet/core/host-and-deploy/proxy-load-balancer?view=aspnetcore-10.0)
 
 Use the HTTPS frontend to verify sign-in, refresh, and sign-out. Swagger over the loopback HTTP address is for browsing the contract and sending public requests or requests with an existing bearer token. The browser cookie flow requires the configured HTTPS origin. Keep tokens, setup codes, and certificate passwords out of logs and shared examples.
 

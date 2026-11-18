@@ -27,12 +27,8 @@ internal static class SectionOrderEndpoints
         try
         {
             var rows = await db.Sections.AsNoTracking().Where(section => Keys.Contains(section.Key))
-                .OrderBy(section => section.SortOrder).ThenBy(section => section.Key)
                 .Select(section => new { section.Key, section.SortOrder }).ToListAsync(ct);
-            var keys = rows.Select(row => Keys.FirstOrDefault(key =>
-                string.Equals(key, row.Key, StringComparison.OrdinalIgnoreCase)) ?? row.Key).ToArray();
-            var hasOrder = Valid(keys) && rows.Select(row => row.SortOrder).Distinct().Count() == Keys.Length;
-            return Results.Ok(new SectionOrder(hasOrder ? keys : Keys));
+            return Results.Ok(new SectionOrder(EffectiveOrder(rows.Select(row => (row.Key, row.SortOrder)))));
         }
         catch (SqlException ex) when (!ct.IsCancellationRequested)
         {
@@ -41,7 +37,7 @@ internal static class SectionOrderEndpoints
         }
     }
 
-    internal static async Task<IResult> Save(SectionOrder request, ClaimsPrincipal principal,
+    internal static async Task<IResult> Save(SetSectionOrder request, ClaimsPrincipal principal,
         UserManager<IdentityUser> users, PortfolioDbContext db, ILogger<PortfolioDbContext> logger, CancellationToken ct)
     {
         var keys = request.Keys;
@@ -49,6 +45,11 @@ internal static class SectionOrderEndpoints
             return Results.ValidationProblem(new Dictionary<string, string[]>
             {
                 ["keys"] = ["Provide each of the six reorderable portfolio section keys exactly once."]
+            });
+        if (request.ExpectedKeys is { } expected && !Valid(expected))
+            return Results.ValidationProblem(new Dictionary<string, string[]>
+            {
+                ["expectedKeys"] = ["Provide the previously read order with each of the six keys exactly once."]
             });
 
         if (string.IsNullOrWhiteSpace(db.Database.GetConnectionString())) return Unavailable();
@@ -66,6 +67,12 @@ internal static class SectionOrderEndpoints
                 IF @result < 0 THROW 51002, 'Portfolio section order lock unavailable.', 1;
                 """, ct);
             var existing = await db.Sections.Where(section => Keys.Contains(section.Key)).ToListAsync(ct);
+            if (request.ExpectedKeys is { } previous)
+            {
+                var current = EffectiveOrder(existing.Select(section => (section.Key, section.SortOrder)));
+                if (!current.SequenceEqual(previous, StringComparer.Ordinal))
+                    return Results.Conflict(new SectionOrder(current));
+            }
             var byKey = existing.ToDictionary(section => section.Key, StringComparer.OrdinalIgnoreCase);
             for (var index = 0; index < keys.Length; index++)
             {
@@ -88,6 +95,14 @@ internal static class SectionOrderEndpoints
         }
     }
 
+    private static string[] EffectiveOrder(IEnumerable<(string Key, int SortOrder)> rows)
+    {
+        var ordered = rows.OrderBy(row => row.SortOrder).ToArray();
+        var keys = ordered.Select(row => Keys.FirstOrDefault(key =>
+            string.Equals(key, row.Key, StringComparison.OrdinalIgnoreCase)) ?? row.Key).ToArray();
+        return Valid(keys) && ordered.Select(row => row.SortOrder).Distinct().Count() == Keys.Length ? keys : Keys;
+    }
+
     private static bool Valid(string[] keys) =>
         keys.Length == Keys.Length && Keys.ToHashSet(StringComparer.Ordinal).SetEquals(keys);
 
@@ -96,3 +111,4 @@ internal static class SectionOrderEndpoints
 }
 
 internal sealed record SectionOrder(string[]? Keys);
+internal sealed record SetSectionOrder(string[]? Keys, string[]? ExpectedKeys);

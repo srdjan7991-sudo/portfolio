@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useLayoutEffect, useState } from 'react'
 import type { FormEventHandler, RefObject } from 'react'
 import type { Account } from './authSession'
 import { useLanguage } from '../../i18n/language'
@@ -32,6 +32,13 @@ export function AuthDialog({
   const description = logoutPending ? auth.signOutDescription : showAccount ? auth.accountDescription
     : setup ? auth.setupDescription : auth.signInDescription
   const validation = invalidField && auth.validation[invalidField === 'password' && setup ? 'setupPassword' : invalidField]
+
+  useLayoutEffect(() => {
+    const dialog = dialogRef.current
+    if (dialog?.open && !dialog.contains(document.activeElement)) {
+      dialog.querySelector<HTMLElement>('[data-auth-form-focus]')?.focus()
+    }
+  }, [dialogRef, setup, showAccount])
 
   const validate: FormEventHandler<HTMLFormElement> = event => {
     const input = event.currentTarget.querySelector<HTMLInputElement>('input:invalid')
@@ -73,12 +80,12 @@ export function AuthDialog({
       ) : showAccount ? (
         <>
           {account && <p className="portfolio-auth-account">{account.email}</p>}
-          <button className="portfolio-auth-action" type="button" disabled={busy} onClick={onLogout}>{auth.signOut}</button>
+          <button className="portfolio-auth-action" type="button" data-auth-form-focus disabled={busy} onClick={onLogout}>{auth.signOut}</button>
         </>
       ) : setup !== null ? (
         <form onSubmit={validate} aria-busy={busy} noValidate>
           {validation && <p className="portfolio-auth-error" id="portfolio-auth-validation" role="alert">{validation}</p>}
-          <label>{auth.email}<input type="email" name="email" autoComplete="username" required maxLength={254} {...invalidProps('email')} /></label>
+          <label>{auth.email}<input type="email" name="email" data-auth-form-focus autoComplete="username" required maxLength={254} {...invalidProps('email')} /></label>
           <div className="portfolio-auth-password">
             <label htmlFor="portfolio-password">{auth.password}</label>
             <input id="portfolio-password" type={visible ? 'text' : 'password'} name="password"

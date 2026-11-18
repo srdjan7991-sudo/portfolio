@@ -20,7 +20,8 @@ internal static class SectionEndpoints
         endpoints.MapPut("/api/sections/order", SectionOrderEndpoints.Save)
             .RequireAuthorization(AuthSettings.Admin)
             .WithSummary("Set the order of the six reorderable portfolio sections")
-            .Produces<SectionOrder>().ProducesValidationProblem().Produces(401).Produces(403).ProducesProblem(503);
+            .Produces<SectionOrder>().ProducesValidationProblem().Produces(401).Produces(403)
+            .Produces<SectionOrder>(409).ProducesProblem(503);
     }
 
     private static async Task<Results<Ok<List<PublicSection>>, ProblemHttpResult>> List(

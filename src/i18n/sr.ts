@@ -112,6 +112,9 @@ export const sr = {
     status: {
       idle: '', loading: 'Učitava se redosled sekcija…', unsaved: 'Nesačuvane izmene',
       saving: 'Čuvanje…', saved: 'Sačuvano', failed: 'Čuvanje nije uspelo. Vraćen je prethodni redosled.',
+      loadFailed: 'Sačuvani redosled nije učitan. Osveži stranicu pre uređivanja.',
+      saveUnknown: 'Sačuvani redosled nije potvrđen. Osveži stranicu pre uređivanja.',
+      conflict: 'Redosled je u međuvremenu promenjen. Prikazan je poslednji sačuvani redosled.',
     },
   },
   flow: {
@@ -129,6 +132,7 @@ export const sr = {
     next: 'Sledeći korak', replay: 'Ponovi', explanation: 'Šta se trenutno dešava?',
     failedTitle: 'Učitavanje nije uspelo.', pendingTitle: 'Čekamo odgovor.',
     failedLookup: 'Gde bi baza potražila podatke?',
+    failedLookupDescription: 'Kada zahtev uspe, baza u ovom koraku traži zapise koje je aplikacija zatražila.',
     failedDescription: 'Pregledač nema podatke za prikaz. Pokušaj ponovo kada server bude dostupan.',
     pendingDescription: 'Zahtev je poslat. Rezultat će se pojaviti kada odgovor stigne.',
     systems: [

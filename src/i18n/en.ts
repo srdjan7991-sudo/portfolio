@@ -110,6 +110,9 @@ export const en = {
     status: {
       idle: '', loading: 'Loading section order…', unsaved: 'Unsaved changes',
       saving: 'Saving…', saved: 'Saved', failed: 'Could not save. Previous order restored.',
+      loadFailed: 'Could not load the saved order. Reload before editing.',
+      saveUnknown: 'Could not confirm the saved order. Reload before editing.',
+      conflict: 'The order changed elsewhere. The latest order is shown.',
     },
   },
   flow: {
@@ -127,6 +130,7 @@ export const en = {
     next: 'Next step', replay: 'Replay', explanation: 'What’s happening now?',
     failedTitle: 'The content couldn’t load.', pendingTitle: 'Waiting for the response.',
     failedLookup: 'Where would the database look?',
+    failedLookupDescription: 'On a successful request, the database would look for the requested records here.',
     failedDescription: 'The browser has no content to show. Try again when the server is available.',
     pendingDescription: 'The request was sent. The result will appear when the server responds.',
     systems: [

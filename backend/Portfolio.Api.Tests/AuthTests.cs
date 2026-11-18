@@ -132,6 +132,43 @@ public sealed class AuthTests
         Assert.Equal(HttpStatusCode.TooManyRequests, limited.StatusCode);
     }
 
+    [Fact]
+    public async Task Session_and_setup_limits_keep_a_separate_budget_from_login()
+    {
+        using var app = new AuthApplication(setupEnabled: false);
+        using var client = app.Client();
+        for (var attempt = 0; attempt < 30; attempt++)
+        {
+            using var status = await client.GetAsync("/api/auth/setup-status");
+            using var refresh = await Send(client, "refresh");
+            using var logout = await Send(client, "logout");
+            Assert.Equal(HttpStatusCode.OK, status.StatusCode);
+            Assert.Equal(HttpStatusCode.Unauthorized, refresh.StatusCode);
+            Assert.Equal(HttpStatusCode.NoContent, logout.StatusCode);
+        }
+
+        using var limitedStatus = await client.GetAsync("/api/auth/setup-status");
+        using var limitedRefresh = await Send(client, "refresh");
+        using var limitedLogout = await Send(client, "logout");
+        using var login = await Send(client, "login", new { email = "invalid", password = "" });
+        Assert.Equal(HttpStatusCode.TooManyRequests, limitedStatus.StatusCode);
+        Assert.Equal(HttpStatusCode.TooManyRequests, limitedRefresh.StatusCode);
+        Assert.Equal(HttpStatusCode.TooManyRequests, limitedLogout.StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, login.StatusCode);
+    }
+
+    [Fact]
+    public async Task An_incomplete_auth_configuration_rejects_signed_bearers_before_the_database_lookup()
+    {
+        using var app = new AuthApplication(authEnabled: false);
+        using var client = app.Client();
+        var now = DateTime.UtcNow;
+        var token = app.CreateToken(app.SigningKey, now.AddMinutes(-1), now.AddMinutes(1));
+
+        using var response = await Me(client, token);
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
     [SqlFact]
     public async Task Sql_server_allows_only_one_signup_across_concurrent_requests()
     {
@@ -176,14 +213,15 @@ public sealed class AuthTests
         await using var fixture = await SqlFixture.Create();
         var app = fixture.App;
         using var client = app.Client();
-        using var signup = await Send(client, "signup", Credentials("owner@example.com"), setup: app.SetupKey);
+        const string email = "o'neil@example.com";
+        using var signup = await Send(client, "signup", Credentials(email), setup: app.SetupKey);
         Assert.Equal(HttpStatusCode.OK, signup.StatusCode);
-        using var wrong = await Send(client, "login", new { email = "owner@example.com", password = "wrong" });
+        using var wrong = await Send(client, "login", new { email, password = "wrong" });
         using var missing = await Send(client, "login", new { email = "missing@example.com", password = "wrong" });
         Assert.Equal(HttpStatusCode.Unauthorized, wrong.StatusCode);
         Assert.Equal(HttpStatusCode.Unauthorized, missing.StatusCode);
         Assert.Equal(await wrong.Content.ReadAsStringAsync(), await missing.Content.ReadAsStringAsync());
-        using var login = await Send(client, "login", Credentials("owner@example.com"));
+        using var login = await Send(client, "login", Credentials(email));
         Assert.Equal(HttpStatusCode.OK, login.StatusCode);
         var cookie = RefreshCookie(login);
         var access = (await login.Content.ReadFromJsonAsync<Access>())!.AccessToken;
@@ -212,7 +250,8 @@ public sealed class AuthTests
         using var revokedAccess = await Me(client, access);
         Assert.Equal(HttpStatusCode.Unauthorized, revokedAccess.StatusCode);
 
-        using var nextLogin = await Send(client, "login", Credentials("owner@example.com"));
+        using var nextLogin = await Send(client, "login", Credentials(email));
+        Assert.Equal(HttpStatusCode.OK, nextLogin.StatusCode);
         var nextCookie = RefreshCookie(nextLogin);
         using var logout = await Send(client, "logout", cookie: nextCookie);
         Assert.Equal(HttpStatusCode.NoContent, logout.StatusCode);
@@ -279,11 +318,15 @@ public sealed class AuthTests
             Key = "top", Title = "Existing hero", Body = "Hero body", IsEnabled = true, SortOrder = 55,
         });
         await db.SaveChangesAsync();
-        Assert.Equal(DefaultSectionOrder.Skip(1).Append("work"), (await client.GetFromJsonAsync<OrderResponse>("/api/sections/order"))!.Keys);
+        var previous = DefaultSectionOrder.Skip(1).Append("work").ToArray();
+        Assert.Equal(previous, (await client.GetFromJsonAsync<OrderResponse>("/api/sections/order"))!.Keys);
 
         string[] saved = ["skills", "work", ..DefaultSectionOrder.Skip(2)];
-        using var success = await SaveOrder(client, saved, access);
+        using var success = await SaveOrder(client, saved, access, previous);
         Assert.Equal(HttpStatusCode.OK, success.StatusCode);
+        using var conflict = await SaveOrder(client, DefaultSectionOrder, access, previous);
+        Assert.Equal(HttpStatusCode.Conflict, conflict.StatusCode);
+        Assert.Equal(saved, (await conflict.Content.ReadFromJsonAsync<OrderResponse>())!.Keys);
         Assert.Equal(saved, (await client.GetFromJsonAsync<OrderResponse>("/api/sections/order"))!.Keys);
         var preserved = await db.Sections.AsNoTracking().SingleAsync(section => section.Key == "work");
         Assert.Equal("Existing title", preserved.Title);
@@ -305,11 +348,12 @@ public sealed class AuthTests
     private static readonly string[] DefaultSectionOrder = ["work", "skills", "expertise", "experience", "education", "contact"];
     private sealed record OrderResponse(string[] Keys);
 
-    private static async Task<HttpResponseMessage> SaveOrder(HttpClient client, string[] keys, string? access = null)
+    private static async Task<HttpResponseMessage> SaveOrder(HttpClient client, string[] keys,
+        string? access = null, string[]? expectedKeys = null)
     {
         using var request = new HttpRequestMessage(HttpMethod.Put, "/api/sections/order");
         if (access is not null) request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", access);
-        request.Content = JsonContent.Create(new { keys });
+        request.Content = JsonContent.Create(new { keys, expectedKeys });
         return await client.SendAsync(request);
     }
 
@@ -347,7 +391,7 @@ public sealed class AuthTests
     private sealed record Access(string AccessToken);
     private sealed record SetupStatus(bool SetupRequired);
 
-    private sealed class AuthApplication(string? connection = null) : WebApplicationFactory<Program>
+    private sealed class AuthApplication(string? connection = null, bool authEnabled = true, bool setupEnabled = true) : WebApplicationFactory<Program>
     {
         public const string Origin = "https://localhost:5173";
         public byte[] SigningKey { get; } = RandomNumberGenerator.GetBytes(48);
@@ -363,9 +407,9 @@ public sealed class AuthTests
                 new Dictionary<string, string?>
                 {
                     ["ConnectionStrings:Portfolio"] = connection ?? "",
-                    ["Auth:Origin"] = Origin,
+                    ["Auth:Origin"] = authEnabled ? Origin : null,
                     ["Auth:SigningKey"] = Convert.ToBase64String(SigningKey),
-                    ["Auth:SetupKey"] = SetupKey,
+                    ["Auth:SetupKey"] = setupEnabled ? SetupKey : null,
                 }));
 
         public string CreateToken(byte[] key, DateTime start, DateTime end, string audience = "portfolio-admin",

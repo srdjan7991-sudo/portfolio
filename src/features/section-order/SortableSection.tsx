@@ -44,11 +44,11 @@ export function SortableSection({
       onDragEnd={event => onPointerEnd(event.type !== 'pointercancel')}>
       {children}
       {editing && (
-        <button className="portfolio-order-handle" type="button" disabled={saving}
+        <button className="portfolio-order-handle" type="button" data-admin-control aria-disabled={saving || undefined}
           aria-label={text.order.reorder(text.sections[sectionKey].title)} aria-pressed={pickedUp}
           aria-describedby="section-order-instructions"
           onPointerDown={event => { if (!saving) controls.start(event) }}
-          onKeyDown={onKeyDown} onClick={onClick}>
+          onKeyDown={event => { if (!saving) onKeyDown(event) }} onClick={event => { if (!saving) onClick(event) }}>
           <span className="portfolio-order-grip" aria-hidden="true" />
           {text.order.move}
         </button>

@@ -55,16 +55,23 @@ internal static class AuthConfiguration
             options.Events = new JwtBearerEvents { OnTokenValidated = ValidateSession };
         });
         builder.Services.AddOptions<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme)
-            .Configure<AuthSettings>((options, settings) => options.TokenValidationParameters.IssuerSigningKey = settings.SigningKey);
+            .Configure<AuthSettings>((options, settings) =>
+                options.TokenValidationParameters.IssuerSigningKey = settings.Enabled ? settings.SigningKey : null);
 
         builder.Services.AddAuthorizationBuilder().AddPolicy(AuthSettings.Admin,
             policy => policy.RequireAuthenticatedUser().RequireRole(AuthSettings.Admin));
         builder.Services.AddRateLimiter(options =>
         {
             options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
-            options.AddPolicy("auth-attempts", context => RateLimitPartition.GetFixedWindowLimiter(
-                context.Connection.RemoteIpAddress?.ToString() ?? "local",
-                _ => new FixedWindowRateLimiterOptions { PermitLimit = 10, Window = TimeSpan.FromMinutes(1) }));
+            foreach (var (policy, limit) in new[]
+            {
+                ("auth-attempts", 10), ("auth-setup-status", 30), ("auth-refresh", 30), ("auth-logout", 30),
+            })
+            {
+                options.AddPolicy(policy, context => RateLimitPartition.GetFixedWindowLimiter(
+                    context.Connection.RemoteIpAddress?.ToString() ?? "local",
+                    _ => new FixedWindowRateLimiterOptions { PermitLimit = limit, Window = TimeSpan.FromMinutes(1) }));
+            }
         });
     }
 

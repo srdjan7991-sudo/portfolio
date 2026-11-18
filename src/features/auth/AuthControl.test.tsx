@@ -216,10 +216,15 @@ test('renews access before expiry and clears the session when the renewal fails'
     expect(screen.getByRole('button', { name: 'Account' })).toBeInTheDocument()
     expect(request).toHaveBeenCalledTimes(3)
 
+    screen.getByRole('button', { name: 'Editing mode' }).focus()
     await act(async () => { await vi.advanceTimersByTimeAsync(270_000) })
-    expect(screen.getByRole('button', { name: 'Sign in' })).toBeInTheDocument()
+    const trigger = screen.getByRole('button', { name: 'Sign in' })
+    expect(trigger).toHaveFocus()
     expect(request.mock.calls.filter(([path]) => path === '/api/auth/refresh')).toHaveLength(3)
     expect(screen.queryByRole('complementary', { name: 'Administrator controls' })).not.toBeInTheDocument()
+    request.mockResolvedValueOnce(Response.json({ setupRequired: false }))
+    await act(async () => { fireEvent.click(trigger) })
+    expect(screen.getByRole('alert')).toHaveTextContent('Your session expired. Sign in again.')
   } finally {
     vi.useRealTimers()
   }
@@ -374,35 +379,59 @@ test('a late account rejection does not renew an already cleared session again',
   ])
 })
 
-test('a failed submission leaves a concurrently restored session scheduled for renewal', async () => {
+test('shows the restored account in a dialog opened before restoration finishes', async () => {
   let completeRestore!: (response: Response) => void
   const restored = session()
   request.mockResolvedValueOnce(Response.json(restored))
     .mockImplementationOnce(() => new Promise(resolve => { completeRestore = resolve }))
     .mockResolvedValueOnce(Response.json({ setupRequired: false }))
-    .mockResolvedValueOnce(Response.json({ message: 'Invalid email or password.' }, { status: 401 }))
-    .mockResolvedValueOnce(unauthorized())
   const user = userEvent.setup()
   renderAuth()
   await waitFor(() => expect(request).toHaveBeenCalledTimes(2))
   await user.click(screen.getByRole('button', { name: 'Sign in' }))
-  const email = await screen.findByLabelText('Email')
-  await user.type(email, 'owner@example.com')
-  await user.type(screen.getByLabelText('Password'), 'a long test passphrase')
+  expect(await screen.findByLabelText('Email')).toBeInTheDocument()
+  await act(async () => { completeRestore(account()) })
+  const dialog = within(screen.getByRole('dialog', { name: 'Account' }))
+  expect(dialog.getByText('owner@example.com')).toBeInTheDocument()
+  expect(dialog.getByRole('button', { name: 'Sign out' })).toBeInTheDocument()
+  expect(screen.queryByLabelText('Email')).not.toBeInTheDocument()
+})
 
+test('releases the cookie operation queue after a stalled response times out', async () => {
+  vi.stubGlobal('navigator', { locks: undefined })
   vi.useFakeTimers()
   try {
-    await act(async () => { completeRestore(account()) })
-    expect(screen.getByRole('button', { name: 'Account' })).toBeInTheDocument()
-    await act(async () => { fireEvent.submit(email.closest('form')!) })
-    expect(screen.getByRole('alert')).toHaveTextContent('Invalid email or password.')
-
-    await act(async () => { await vi.advanceTimersByTimeAsync(270_000) })
-    expect(request.mock.calls.map(([path]) => path)).toEqual([
-      '/api/auth/refresh', '/api/auth/me', '/api/auth/setup-status', '/api/auth/login', '/api/auth/refresh',
-    ])
-    expect(screen.queryByRole('complementary', { name: 'Administrator controls' })).not.toBeInTheDocument()
+    request.mockImplementationOnce((_path, options) => new Promise((_resolve, reject) => {
+      options?.signal?.addEventListener('abort', () => reject(new DOMException('Aborted', 'AbortError')), { once: true })
+    })).mockResolvedValueOnce(new Response(null, { status: 204 }))
+    const stalled = refreshSession()
+    await vi.advanceTimersByTimeAsync(0)
+    const queued = signOut()
+    await vi.advanceTimersByTimeAsync(10000)
+    expect(await stalled).toBeNull()
+    await queued
+    expect(request.mock.calls[0][1]?.signal?.aborted).toBe(true)
+    expect(request.mock.calls.map(([path]) => path)).toEqual(['/api/auth/refresh', '/api/auth/logout'])
   } finally {
     vi.useRealTimers()
   }
+})
+
+test('returns to sign-in and clears setup credentials if setup closes during signup', async () => {
+  request.mockResolvedValueOnce(unauthorized())
+    .mockResolvedValueOnce(Response.json({ setupRequired: true }))
+    .mockResolvedValueOnce(new Response(null, { status: 409 }))
+  const user = userEvent.setup()
+  renderAuth()
+  await user.click(screen.getByRole('button', { name: 'Sign in' }))
+  const setup = within(await screen.findByRole('dialog', { name: 'Create administrator' }))
+  fireEvent.input(setup.getByLabelText('Email'), { target: { value: 'owner@example.com' } })
+  fireEvent.input(setup.getByLabelText('Password'), { target: { value: 'a long test passphrase' } })
+  fireEvent.input(setup.getByLabelText('Setup code'), { target: { value: 'test setup code' } })
+  await user.click(setup.getByRole('button', { name: 'Create account' }))
+
+  const dialog = within(await screen.findByRole('dialog', { name: 'Sign in' }))
+  expect(dialog.getByRole('alert')).toHaveTextContent('Setup is closed.')
+  expect(dialog.getByLabelText('Password')).toHaveValue('')
+  expect(dialog.queryByLabelText('Setup code')).not.toBeInTheDocument()
 })

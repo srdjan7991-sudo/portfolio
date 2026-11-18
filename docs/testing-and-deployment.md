@@ -17,14 +17,14 @@ Vitest uses jsdom and the setup in [`src/setupTests.ts`](../src/setupTests.ts). 
 npm test -- src/features/request-flow/RequestFlow.test.tsx
 ```
 
-Run `npm run test:coverage` to generate the V8 report. Open `coverage/index.html` for file-level results. The local run on 18 November 2026 passed 69 tests across 15 files.
+Run `npm run test:coverage` to generate the V8 report. Open `coverage/index.html` for file-level results. The local run on 18 November 2026 passed 76 tests across 15 files.
 
 | Metric | Local snapshot |
 | --- | ---: |
-| Statements | 86.62% |
-| Branches | 81.91% |
-| Functions | 87.95% |
-| Lines | 90.05% |
+| Statements | 86.37% |
+| Branches | 81.29% |
+| Functions | 86.89% |
+| Lines | 90.27% |
 
 The simulated DOM tests cover state, controls, and response handling. SVG geometry, rendered CSS timing, and pointer dragging require browser checks.
 

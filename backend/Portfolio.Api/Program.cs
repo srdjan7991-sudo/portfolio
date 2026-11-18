@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using Portfolio.Api.Auth;
 using Portfolio.Api.Data;
@@ -6,6 +7,8 @@ using Portfolio.Api.Sections;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddProblemDetails();
+builder.Services.AddExceptionHandler<SqlUnavailableHandler>();
+builder.Services.Configure<ForwardedHeadersOptions>(options => options.ForwardedHeaders = ForwardedHeaders.XForwardedFor);
 builder.Services.AddDbContext<PortfolioDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("Portfolio")));
 builder.AddPortfolioAuth();
@@ -13,6 +16,7 @@ if (builder.Environment.IsDevelopment()) builder.Services.AddPortfolioSwagger();
 
 var app = builder.Build();
 app.UseExceptionHandler();
+app.UseForwardedHeaders();
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();

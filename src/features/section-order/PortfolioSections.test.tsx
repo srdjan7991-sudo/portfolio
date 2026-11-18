@@ -16,14 +16,14 @@ const sections = Object.fromEntries(defaults.map(key => [
   key, <section key={key} id={key}><h2>{en.sections[key].title}</h2></section>,
 ])) as Record<SectionKey, React.JSX.Element>
 
-function Editor() {
+function Editor({ renew }: { renew?: () => Promise<string | undefined> }) {
   const state = useSectionOrder(true)
   return (
     <main>
       <output>{state.status}</output>
-      <PortfolioSections sections={sections} order={state.order} editing={state.ready}
+      <PortfolioSections sections={sections} order={state.order} editing={state.orderLoaded}
         saving={state.saving} onPreview={state.preview} onCancel={state.cancel}
-        onSave={() => void state.save('test-access')} />
+        onSave={() => void state.save('test-access', renew)} />
     </main>
   )
 }
@@ -57,13 +57,16 @@ test('saves only the confirmed final order, then reloads that order from the API
   expect(fetcher).toHaveBeenCalledTimes(1)
   await user.keyboard('{Enter}')
   expect(screen.getByText('Saving…')).toBeInTheDocument()
+  expect(handle).toHaveFocus()
+  expect(handle).toHaveAttribute('aria-disabled', 'true')
   expect(fetcher).toHaveBeenCalledTimes(2)
   expect(fetcher.mock.calls[1]).toEqual(['/api/sections/order', {
     method: 'PUT', headers: { Authorization: 'Bearer test-access', 'Content-Type': 'application/json' },
-    body: JSON.stringify({ keys: moved }),
+    body: JSON.stringify({ keys: moved, expectedKeys: defaults }), signal: expect.any(AbortSignal),
   }])
   complete(Response.json({ keys: moved }))
   expect(await screen.findByText('Saved')).toBeInTheDocument()
+  expect(handle).toHaveFocus()
   view.unmount()
   render(<Editor />)
   await waitFor(() => expect(visibleOrder()).toEqual(moved))
@@ -72,7 +75,7 @@ test('saves only the confirmed final order, then reloads that order from the API
 test('cancels with Escape and rolls back a rejected save without changing section content', async () => {
   const fetcher = vi.fn<typeof fetch>()
     .mockResolvedValueOnce(Response.json({ keys: defaults }))
-    .mockResolvedValueOnce(new Response(null, { status: 503 }))
+    .mockResolvedValueOnce(new Response(null, { status: 400 }))
   vi.stubGlobal('fetch', fetcher)
   const user = userEvent.setup()
   render(<Editor />)
@@ -142,10 +145,11 @@ test('uses the saved order for both the public sections and navigation', async (
     .toEqual(moved.map(key => `#${key}`))
 })
 
-test('restores the confirmed order when a successful save returns a different order', async () => {
+test('locks editing if a read after an uncertain save cannot confirm the submitted order', async () => {
   vi.stubGlobal('fetch', vi.fn<typeof fetch>()
     .mockResolvedValueOnce(Response.json({ keys: defaults }))
-    .mockResolvedValueOnce(Response.json({ keys: [...defaults].reverse() })))
+    .mockResolvedValueOnce(Response.json({ keys: [...defaults].reverse() }))
+    .mockResolvedValueOnce(Response.json({ keys: defaults })))
   const user = userEvent.setup()
   render(<Editor />)
   const handle = await screen.findByRole('button', { name: 'Reorder Selected Work' })
@@ -155,7 +159,8 @@ test('restores the confirmed order when a successful save returns a different or
   expect(visibleOrder()).toEqual(moved)
   await user.click(handle)
 
-  expect(await screen.findByText('Could not save. Previous order restored.')).toBeInTheDocument()
+  expect(await screen.findByText('Could not confirm the saved order. Reload before editing.')).toBeInTheDocument()
+  expect(screen.queryByRole('button', { name: 'Reorder Selected Work' })).not.toBeInTheDocument()
   expect(visibleOrder()).toEqual(defaults)
 })
 
@@ -176,8 +181,66 @@ test.each([
 ])('keeps the bundled order when the server returns %s', async (_label, keys) => {
   vi.stubGlobal('fetch', vi.fn<typeof fetch>().mockResolvedValue(Response.json({ keys })))
   render(<Editor />)
-  await screen.findByRole('button', { name: 'Reorder Selected Work' })
+  expect(await screen.findByText('Could not load the saved order. Reload before editing.')).toBeInTheDocument()
+  expect(screen.queryByRole('button', { name: 'Reorder Selected Work' })).not.toBeInTheDocument()
   expect(visibleOrder()).toEqual(defaults)
+})
+
+test('reads back a write whose response was lost before classifying it as saved', async () => {
+  const fetcher = vi.fn<typeof fetch>()
+    .mockResolvedValueOnce(Response.json({ keys: defaults }))
+    .mockRejectedValueOnce(new TypeError('Response interrupted'))
+    .mockResolvedValueOnce(Response.json({ keys: moved }))
+  vi.stubGlobal('fetch', fetcher)
+  const user = userEvent.setup()
+  render(<Editor />)
+  const handle = await screen.findByRole('button', { name: 'Reorder Selected Work' })
+  handle.focus()
+  await user.keyboard('{Enter}{ArrowDown}{Enter}')
+
+  expect(await screen.findByText('Saved')).toBeInTheDocument()
+  expect(visibleOrder()).toEqual(moved)
+  expect(fetcher.mock.calls.map(([, options]) => options?.method ?? 'GET')).toEqual(['GET', 'PUT', 'GET'])
+})
+
+test('renews a rejected access token and retries the same order only once', async () => {
+  const fetcher = vi.fn<typeof fetch>()
+    .mockResolvedValueOnce(Response.json({ keys: defaults }))
+    .mockResolvedValueOnce(new Response(null, { status: 401 }))
+    .mockResolvedValueOnce(Response.json({ keys: moved }))
+  vi.stubGlobal('fetch', fetcher)
+  const renew = vi.fn(async () => 'renewed-token')
+  const user = userEvent.setup()
+  render(<Editor renew={renew} />)
+  const handle = await screen.findByRole('button', { name: 'Reorder Selected Work' })
+  handle.focus()
+  await user.keyboard('{Enter}{ArrowDown}{Enter}')
+
+  expect(await screen.findByText('Saved')).toBeInTheDocument()
+  expect(renew).toHaveBeenCalledOnce()
+  expect(fetcher.mock.calls[2][1]).toEqual({
+    method: 'PUT', headers: { Authorization: 'Bearer renewed-token', 'Content-Type': 'application/json' },
+    body: JSON.stringify({ keys: moved, expectedKeys: defaults }), signal: expect.any(AbortSignal),
+  })
+  expect(fetcher).toHaveBeenCalledTimes(3)
+})
+
+test('shows the latest order when another editor saves first', async () => {
+  const otherOrder = [...defaults].reverse()
+  const fetcher = vi.fn<typeof fetch>()
+    .mockResolvedValueOnce(Response.json({ keys: defaults }))
+    .mockResolvedValueOnce(Response.json({ keys: otherOrder }, { status: 409 }))
+  vi.stubGlobal('fetch', fetcher)
+  const user = userEvent.setup()
+  render(<Editor />)
+  const handle = await screen.findByRole('button', { name: 'Reorder Selected Work' })
+  handle.focus()
+  await user.keyboard('{Enter}{ArrowDown}{Enter}')
+
+  expect(await screen.findByText('The order changed elsewhere. The latest order is shown.')).toBeInTheDocument()
+  expect(visibleOrder()).toEqual(otherOrder)
+  expect(handle).toHaveFocus()
+  expect(fetcher).toHaveBeenCalledTimes(2)
 })
 
 test('keeps the header, hero, request walkthrough and footer outside the reorderable area', async () => {

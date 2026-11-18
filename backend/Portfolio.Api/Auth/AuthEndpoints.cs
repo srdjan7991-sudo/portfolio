@@ -30,7 +30,7 @@ internal static class AuthEndpoints
             return await next(invocation);
         });
 
-        auth.MapGet("/setup-status", SetupStatus).RequireRateLimiting("auth-attempts")
+        auth.MapGet("/setup-status", SetupStatus).RequireRateLimiting("auth-setup-status")
             .WithSummary("Check whether the first administrator can be created")
             .Produces<SetupResponse>().Produces(429).Produces(503);
         auth.MapPost("/signup", Signup).RequireRateLimiting("auth-attempts")
@@ -44,15 +44,15 @@ internal static class AuthEndpoints
             .WithDescription("Returns an access token and sets the refresh cookie. Incorrect credentials and locked accounts return the same status and message.")
             .Produces<TokenResponse>().Produces<CredentialError>(400).Produces<CredentialError>(401)
             .Produces(403).Produces(429).Produces(503);
-        auth.MapPost("/refresh", Refresh)
+        auth.MapPost("/refresh", Refresh).RequireRateLimiting("auth-refresh")
             .WithSummary("Renew the access token")
             .WithDescription("The browser sends the HttpOnly, Secure, SameSite=Strict refresh cookie scoped to /api/auth. " +
                 "A successful response rotates the cookie. Reusing an already rotated token revokes its session.")
-            .Produces<TokenResponse>().Produces(401).Produces(403).Produces(503);
-        auth.MapPost("/logout", Logout)
+            .Produces<TokenResponse>().Produces(401).Produces(403).Produces(429).Produces(503);
+        auth.MapPost("/logout", Logout).RequireRateLimiting("auth-logout")
             .WithSummary("Revoke the session and clear the refresh cookie")
             .WithDescription("The browser sends the refresh cookie. A successful response clears it and has no response body.")
-            .Produces(204).Produces(403).Produces(503);
+            .Produces(204).Produces(403).Produces(429).Produces(503);
         auth.MapGet("/me", Me).RequireAuthorization(AuthSettings.Admin)
             .WithSummary("Get the current administrator")
             .Produces<AccountResponse>().Produces(401).Produces(403).Produces(503);
@@ -72,7 +72,7 @@ internal static class AuthEndpoints
         if (await db.AdminSetups.AnyAsync(ct)) return Results.Conflict(new CredentialError("Setup is closed."));
 
         var email = input.Email!.Trim();
-        var user = new IdentityUser { UserName = email, Email = email };
+        var user = new IdentityUser { UserName = Guid.NewGuid().ToString("N"), Email = email };
         if (!(await users.CreateAsync(user, input.Password!)).Succeeded) return InvalidInput();
         if (!await roles.RoleExistsAsync(AuthSettings.Admin) &&
             !(await roles.CreateAsync(new IdentityRole(AuthSettings.Admin))).Succeeded)
@@ -109,7 +109,7 @@ internal static class AuthEndpoints
 
         var now = time.GetUtcNow();
         await using var transaction = await LockAuth(db, ct);
-        var oldCredential = await FindRefresh(context, db, ct);
+        var oldCredential = await FindRefresh(db, ReadRefreshHash(context), ct);
         if (oldCredential is not null) oldCredential.Session.RevokedAt ??= now;
         var (session, token) = NewSession(db, user.Id, now);
         await db.SaveChangesAsync(ct);
@@ -121,9 +121,16 @@ internal static class AuthEndpoints
         HttpContext context, AuthSettings settings, PortfolioDbContext db, UserManager<IdentityUser> users,
         TimeProvider time, CancellationToken ct)
     {
-        if (!TryReadRefresh(context, out _)) return Results.Unauthorized();
+        var hash = ReadRefreshHash(context);
+        if (hash is null) return Results.Unauthorized();
+        if (!await HasActiveRefresh(db, hash, time.GetUtcNow(), ct))
+        {
+            ClearCookie(context);
+            return Results.Unauthorized();
+        }
+
         await using var transaction = await LockAuth(db, ct);
-        var credential = await FindRefresh(context, db, ct);
+        var credential = await FindRefresh(db, hash, ct);
         var now = time.GetUtcNow();
         if (credential is null || credential.Session.RevokedAt is not null || credential.Session.ExpiresAt <= now)
         {
@@ -149,10 +156,11 @@ internal static class AuthEndpoints
 
     private static async Task<IResult> Logout(HttpContext context, PortfolioDbContext db, TimeProvider time, CancellationToken ct)
     {
-        if (TryReadRefresh(context, out _))
+        var hash = ReadRefreshHash(context);
+        if (hash is not null && await HasActiveRefresh(db, hash, time.GetUtcNow(), ct))
         {
             await using var transaction = await LockAuth(db, ct);
-            var credential = await FindRefresh(context, db, ct);
+            var credential = await FindRefresh(db, hash, ct);
             if (credential is not null)
             {
                 credential.Session.RevokedAt ??= time.GetUtcNow();
@@ -206,17 +214,20 @@ internal static class AuthEndpoints
         return token;
     }
 
-    private static bool TryReadRefresh(HttpContext context, out string value)
+    private static string? ReadRefreshHash(HttpContext context)
     {
-        value = context.Request.Cookies[AuthSettings.Cookie] ?? "";
-        return value.Length == 64 && value.All(character => char.IsAsciiLetterOrDigit(character) || character is '-' or '_');
+        var value = context.Request.Cookies[AuthSettings.Cookie];
+        return value is { Length: 64 } && value.All(character => char.IsAsciiLetterOrDigit(character) || character is '-' or '_')
+            ? AuthTokens.Hash(value) : null;
     }
 
-    private static Task<RefreshCredential?> FindRefresh(HttpContext context, PortfolioDbContext db, CancellationToken ct) =>
-        TryReadRefresh(context, out var token)
-            ? db.RefreshCredentials.Include(credential => credential.Session)
-                .SingleOrDefaultAsync(credential => credential.Hash == AuthTokens.Hash(token), ct)
-            : Task.FromResult<RefreshCredential?>(null);
+    private static Task<bool> HasActiveRefresh(PortfolioDbContext db, string hash, DateTimeOffset now, CancellationToken ct) =>
+        db.RefreshCredentials.AnyAsync(credential => credential.Hash == hash &&
+            credential.Session.RevokedAt == null && credential.Session.ExpiresAt > now, ct);
+
+    private static Task<RefreshCredential?> FindRefresh(PortfolioDbContext db, string? hash, CancellationToken ct) =>
+        hash is null ? Task.FromResult<RefreshCredential?>(null) : db.RefreshCredentials
+            .Include(credential => credential.Session).SingleOrDefaultAsync(credential => credential.Hash == hash, ct);
 
     private static IResult SessionResponse(HttpContext context, AuthSettings settings, AuthSession session, string token, DateTimeOffset now)
     {

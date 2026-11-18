@@ -32,10 +32,14 @@ function PortfolioApp() {
   const { theme, toggleTheme } = useTheme()
   const authEnabled = location.protocol === 'https:' &&
     (import.meta.env.DEV || import.meta.env.VITE_PORTFOLIO_AUTH_ENABLED === 'true')
-  const sectionOrder = useSectionOrder(authEnabled)
+  const sectionOrder = useSectionOrder(authEnabled, () => {
+    if (document.activeElement?.matches('.portfolio-order-handle')) {
+      document.getElementById('portfolio-order-status')?.focus()
+    }
+  })
   useSectionNavigation(sectionOrder.ready)
 
-  function renderPortfolio({ control, toolbar, editToken }: Partial<AuthPresentation>) {
+  function renderPortfolio({ control, toolbar, editToken, prepareEditTokenRetry }: Partial<AuthPresentation>) {
     return (
       <>
         <a className="skip-link" href="#main">{text.layout.skip}</a>
@@ -45,9 +49,9 @@ function PortfolioApp() {
           <Hero />
           <RequestFlow live={authEnabled} />
           <PortfolioSections sections={sections} order={sectionOrder.order} saving={sectionOrder.saving}
-            editing={Boolean(editToken) && sectionOrder.ready}
+            editing={Boolean(editToken) && sectionOrder.orderLoaded}
             onPreview={sectionOrder.preview} onCancel={sectionOrder.cancel}
-            onSave={() => { if (editToken) void sectionOrder.save(editToken) }} />
+            onSave={() => { if (editToken) void sectionOrder.save(editToken, prepareEditTokenRetry?.()) }} />
         </main>
         <Footer />
       </>
@@ -55,7 +59,8 @@ function PortfolioApp() {
   }
 
   return authEnabled ? (
-    <AuthControl orderStatus={sectionOrder.ready ? sectionOrder.status : text.order.status.loading}>
+    <AuthControl editingAvailable={sectionOrder.orderLoaded}
+      orderStatus={sectionOrder.ready ? sectionOrder.status : text.order.status.loading}>
       {renderPortfolio}
     </AuthControl>
   ) : renderPortfolio({})

@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { defaultSectionOrder, isSectionKey } from '../sections'
 import { useLanguage } from '../i18n/language'
 
@@ -57,8 +57,9 @@ export function useActiveSection(header: { readonly current: HTMLElement | null 
 }
 
 export function useSectionNavigation(orderReady = true) {
+  const realign = useRef<() => void>(null)
+  const waitingForOrder = useRef(!orderReady)
   useLayoutEffect(() => {
-    if (!orderReady) return
     // A deep link can arrive before React has inserted the target into the document.
     const hash = location.hash
     const target = document.getElementById(hash.slice(1))
@@ -67,14 +68,24 @@ export function useSectionNavigation(orderReady = true) {
     target.focus({ preventScroll: true })
     target.scrollIntoView({ behavior: 'instant' })
 
-    const initialScroll = window.scrollY
+    let initialScroll = window.scrollY
     let cancelled = false
-    void document.fonts.ready.then(() => {
-      if (!cancelled && location.hash === hash && window.scrollY === initialScroll) {
+    function alignWhileUntouched() {
+      if (target && !cancelled && location.hash === hash && document.activeElement === target && window.scrollY === initialScroll) {
         target.scrollIntoView({ behavior: 'instant' })
+        initialScroll = window.scrollY
       }
-    })
-    return () => { cancelled = true }
+    }
+    realign.current = alignWhileUntouched
+    void document.fonts?.ready.then(alignWhileUntouched)
+    return () => { cancelled = true; realign.current = null }
+  }, [])
+
+  useLayoutEffect(() => {
+    if (orderReady && waitingForOrder.current) {
+      waitingForOrder.current = false
+      realign.current?.()
+    }
   }, [orderReady])
 
   useEffect(() => {

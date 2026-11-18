@@ -14,7 +14,9 @@ const titles = flows.flatMap(flow => flow.phases.map(phase => phase.title))
 const descriptions = flows.flatMap(flow => flow.phases.map(phase => phase.description))
 const explanations = flows.flatMap(flow => flow.phases.map(phase => phase.explanation))
 const liveTitles = [...titles, ...flows.flatMap(flow => [flow.failedTitle, flow.pendingTitle, flow.failedLookup])]
-const liveDescriptions = [...descriptions, ...flows.flatMap(flow => [flow.failedDescription, flow.pendingDescription])]
+const liveMessages = flows.flatMap(flow => [flow.failedDescription, flow.failedLookupDescription, flow.pendingDescription])
+const liveDescriptions = [...descriptions, ...liveMessages]
+const liveExplanations = [...explanations, ...liveMessages]
 const playLabels = flows.flatMap(flow => [flow.play, flow.pause])
 const playerTitles = flows.map(flow => flow.player)
 const liveModeDescriptions = flows.map(flow => flow.liveDescription)
@@ -37,10 +39,12 @@ export function RequestFlowPlayer({ active, live }: { active: boolean; live: boo
   const started = run.result.kind !== 'idle'
   const hasResult = run.index === steps.length - 1
   const failed = run.result.kind === 'error'
-  const waiting = hasResult && run.result.kind === 'pending'
-  const title = hasResult && failed ? flow.failedTitle : waiting ? flow.pendingTitle
-    : failed && run.index === 3 ? flow.failedLookup : phase.title
-  const description = hasResult && failed ? flow.failedDescription : waiting ? flow.pendingDescription : phase.description
+  const waiting = run.index >= 3 && run.result.kind === 'pending'
+  const showFailure = failed && run.index >= 3
+  const failedLookup = showFailure && run.index === 3
+  const title = failedLookup ? flow.failedLookup : showFailure ? flow.failedTitle : waiting ? flow.pendingTitle : phase.title
+  const outcome = failedLookup ? flow.failedLookupDescription : showFailure ? flow.failedDescription
+    : waiting ? flow.pendingDescription : undefined
 
   useEffect(() => {
     heading.current?.focus({ preventScroll: true })
@@ -84,7 +88,7 @@ export function RequestFlowPlayer({ active, live }: { active: boolean; live: boo
       <div aria-live="polite" aria-atomic="true" className={styles.chapter}>
         <p className={styles.eyebrow}>{String(run.index + 1).padStart(2, '0')} · {phase.label}</p>
         <h4><PhaseText text={title} variants={live ? liveTitles : titles} /></h4>
-        <p><PhaseText text={description} variants={live ? liveDescriptions : descriptions} /></p>
+        <p><PhaseText text={outcome ?? phase.description} variants={live ? liveDescriptions : descriptions} /></p>
       </div>
       <div style={{ '--phase-duration': steps[run.index].duration + 'ms' } as CSSProperties}>
         <RequestFlowDiagram index={run.index} result={run.result} revision={run.revision} finished={run.finished}
@@ -92,7 +96,7 @@ export function RequestFlowPlayer({ active, live }: { active: boolean; live: boo
       </div>
       <section className={styles.caption} aria-labelledby="request-flow-explanation">
         <h4 id="request-flow-explanation">{flow.explanation}</h4>
-        <p><PhaseText key={run.index} text={phase.explanation} variants={explanations} /></p>
+        <p><PhaseText key={run.index} text={outcome ?? phase.explanation} variants={live ? liveExplanations : explanations} /></p>
       </section>
     </div>
   )

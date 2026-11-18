@@ -118,6 +118,25 @@ test('leaves focus alone when a deep link points at an element that is missing',
   expect(button).toHaveFocus()
 })
 
+test('opens the deep link before the order loads and respects focus the reader moves afterwards', () => {
+  window.history.replaceState(null, '', '#work')
+  render(createElement('main', null,
+    createElement('section', { id: 'work', tabIndex: -1, 'aria-label': 'Selected Work' }),
+    createElement('button', null, 'Dark theme'),
+  ))
+  const section = screen.getByRole('region', { name: 'Selected Work' })
+  section.scrollIntoView = vi.fn()
+  const { rerender } = renderHook(({ ready }) => useSectionNavigation(ready), { initialProps: { ready: false } })
+  expect(section).toHaveFocus()
+  const control = screen.getByRole('button', { name: 'Dark theme' })
+  control.focus()
+
+  rerender({ ready: true })
+
+  expect(control).toHaveFocus()
+  expect(section.scrollIntoView).toHaveBeenCalledOnce()
+})
+
 test.each([
   { preference: 'normal motion', reducedMotion: false },
   { preference: 'reduced motion', reducedMotion: true },

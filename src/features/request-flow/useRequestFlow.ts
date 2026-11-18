@@ -53,10 +53,16 @@ export function useRequestFlow(active: boolean, live: boolean) {
     const controller = new AbortController()
     request.current = controller
     // The clock describes the walkthrough. The fetch has its own deadline.
-    const signal = AbortSignal.any([controller.signal, AbortSignal.timeout(10000)])
-    void readPublicSections(signal)
+    const deadline = setTimeout(() => {
+      if (controller.signal.aborted) return
+      controller.abort()
+      setResult({ kind: 'error' })
+    }, 10000)
+    controller.signal.addEventListener('abort', () => clearTimeout(deadline), { once: true })
+    void readPublicSections(controller.signal)
       .then(value => { if (!controller.signal.aborted) setResult(value) })
       .catch(() => { if (!controller.signal.aborted) setResult({ kind: 'error' }) })
+      .finally(() => clearTimeout(deadline))
   }
 
   function toggle() {
