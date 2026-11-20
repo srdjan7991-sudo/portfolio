@@ -105,7 +105,9 @@ export const sr = {
   order: {
     admin: 'Administratorske kontrole', mode: 'Administracija', editing: 'Uređivanje', logout: 'Odjava',
     move: 'Pomeri sekciju', reorder: (title: string) => `Pomeri sekciju „${title}”`,
-    instructions: 'Prevuci sekciju da promeniš redosled. Na tastaturi pritisni razmak ili Enter za izbor, koristi strelice za pomeranje, pa pritisni razmak ili Enter za čuvanje. Escape otkazuje pomeranje.',
+    moveUp: (title: string) => `Pomeri sekciju „${title}” gore`,
+    moveDown: (title: string) => `Pomeri sekciju „${title}” dole`,
+    instructions: 'Prevuci sekciju ili koristi dugmad sa strelicama gore i dole. Na tastaturi pritisni razmak ili Enter na ručici za izbor, koristi strelice za pomeranje, pa pritisni razmak ili Enter za čuvanje. Escape otkazuje pomeranje.',
     picked: (title: string) => `Sekcija „${title}” je izabrana za pomeranje.`,
     moved: (title: string, position: number, total: number) => `Sekcija „${title}” je na mestu ${position} od ${total}.`,
     cancelled: 'Pomeranje je otkazano.',

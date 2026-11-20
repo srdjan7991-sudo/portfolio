@@ -103,7 +103,9 @@ export const en = {
   order: {
     admin: 'Administrator controls', mode: 'Admin mode', editing: 'Editing mode', logout: 'Logout',
     move: 'Move section', reorder: (title: string) => `Reorder ${title}`,
-    instructions: 'Drag to reorder. With a keyboard, press Space or Enter to pick up, use the arrow keys to move, then press Space or Enter to save. Escape cancels.',
+    moveUp: (title: string) => `Move ${title} up`,
+    moveDown: (title: string) => `Move ${title} down`,
+    instructions: 'Drag to reorder or use the up and down buttons. With a keyboard, press Space or Enter on the handle to pick up, use the arrow keys to move, then press Space or Enter to save. Escape cancels.',
     picked: (title: string) => `${title} picked up.`,
     moved: (title: string, position: number, total: number) => `${title} moved to position ${position} of ${total}.`,
     cancelled: 'Move cancelled.',

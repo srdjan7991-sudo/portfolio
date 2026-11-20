@@ -2,11 +2,22 @@ import { render, screen } from '@testing-library/react'
 import { expect, test } from 'vitest'
 import { Contact } from './Contact'
 
-test('links to the public contact channels', () => {
+test('uses the default mail handler for the email link', () => {
   render(<Contact />)
-  expect(screen.getByRole('link', { name: 'Email' })).toHaveAttribute('href', 'mailto:srdjan.7991@gmail.com')
-  expect(screen.getByRole('link', { name: 'LinkedIn' })).toHaveAttribute('href', 'https://www.linkedin.com/in/srdjan-pajic-6a8911281/')
-  expect(screen.getByRole('link', { name: 'GitHub' })).toHaveAttribute('href', 'https://github.com/srdjan7991-sudo')
+  const email = screen.getByRole('link', { name: 'Email' })
+  expect(email).toHaveAttribute('href', 'mailto:srdjan.7991@gmail.com')
+  expect(email).not.toHaveAttribute('target')
+})
+
+test.each([
+  ['LinkedIn', 'https://www.linkedin.com/in/srdjan-pajic-6a8911281/'],
+  ['GitHub', 'https://github.com/srdjan7991-sudo'],
+])('opens %s in a new tab without an opener or referrer', (name, href) => {
+  render(<Contact />)
+  const profile = screen.getByRole('link', { name })
+  expect(profile).toHaveAttribute('href', href)
+  expect(profile).toHaveAttribute('target', '_blank')
+  expect(profile).toHaveAttribute('rel', 'noopener noreferrer')
 })
 
 test('offers the DOCX CV as a download under the configured base URL', () => {

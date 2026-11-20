@@ -40,6 +40,63 @@ beforeEach(() => {
 
 afterEach(() => localStorage.removeItem(languageStorageKey))
 
+test.each([
+  { button: 'Move Selected Work down', announcement: 'Selected Work moved to position 2 of 6.', atBoundary: false },
+  { button: 'Move Technical Skills up', announcement: 'Technical Skills moved to position 1 of 6.', atBoundary: true },
+])('saves the new order after a single click on $button', async ({ button, announcement, atBoundary }) => {
+  let complete!: (response: Response) => void
+  const fetcher = vi.fn<typeof fetch>()
+    .mockResolvedValueOnce(Response.json({ keys: defaults }))
+    .mockImplementationOnce(() => new Promise(resolve => { complete = resolve }))
+  vi.stubGlobal('fetch', fetcher)
+  const user = userEvent.setup()
+  render(<Editor />)
+
+  const moveButton = await screen.findByRole('button', { name: button })
+  await user.click(moveButton)
+
+  expect(visibleOrder()).toEqual(moved)
+  expect(screen.getByText(announcement)).toHaveRole('status')
+  expect(screen.getByText('Saving…')).toBeInTheDocument()
+  expect(moveButton).toHaveAttribute('aria-disabled', 'true')
+  expect(moveButton).toHaveFocus()
+  expect(fetcher).toHaveBeenCalledTimes(2)
+  expect(fetcher).toHaveBeenLastCalledWith('/api/sections/order', expect.objectContaining({
+    method: 'PUT',
+    body: JSON.stringify({ keys: moved, expectedKeys: defaults }),
+  }))
+
+  await user.click(moveButton)
+  expect(visibleOrder()).toEqual(moved)
+  expect(fetcher).toHaveBeenCalledTimes(2)
+
+  complete(Response.json({ keys: moved }))
+  expect(await screen.findByText('Saved')).toBeInTheDocument()
+  expect(moveButton).toHaveFocus()
+  if (atBoundary) expect(moveButton).toHaveAttribute('aria-disabled', 'true')
+  else expect(moveButton).not.toHaveAttribute('aria-disabled', 'true')
+})
+
+test('disables moves past the first and last sections', async () => {
+  const fetcher = vi.fn<typeof fetch>().mockResolvedValueOnce(Response.json({ keys: defaults }))
+  vi.stubGlobal('fetch', fetcher)
+  const user = userEvent.setup()
+  render(<Editor />)
+
+  const firstUp = await screen.findByRole('button', { name: 'Move Selected Work up' })
+  const lastDown = screen.getByRole('button', { name: 'Move Contact down' })
+  expect(firstUp).toHaveAttribute('aria-disabled', 'true')
+  expect(lastDown).toHaveAttribute('aria-disabled', 'true')
+  expect(screen.getByRole('button', { name: 'Move Selected Work down' })).not.toHaveAttribute('aria-disabled', 'true')
+  expect(screen.getByRole('button', { name: 'Move Contact up' })).not.toHaveAttribute('aria-disabled', 'true')
+
+  await user.click(firstUp)
+  await user.click(lastDown)
+
+  expect(visibleOrder()).toEqual(defaults)
+  expect(fetcher).toHaveBeenCalledTimes(1)
+})
+
 test('saves only the confirmed final order, then reloads that order from the API', async () => {
   let complete!: (response: Response) => void
   const fetcher = vi.fn<typeof fetch>()
@@ -129,6 +186,7 @@ test('renders the bundled public portfolio when no API is configured', () => {
   render(<App />)
   expect(visibleOrder()).toEqual([...fixed, ...defaults])
   expect(screen.queryByRole('button', { name: /Reorder/ })).not.toBeInTheDocument()
+  expect(screen.queryByRole('button', { name: 'Move Selected Work down' })).not.toBeInTheDocument()
   expect(fetcher).not.toHaveBeenCalled()
 })
 

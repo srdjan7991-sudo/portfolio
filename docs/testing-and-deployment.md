@@ -49,7 +49,7 @@ Run the static build locally with `npm run build` followed by `npm run preview`.
 | Guided walkthrough | Start the request, advance through all six stages, pause and resume, step manually, replay, and close. Check that the outgoing and returning fills meet their SVG endpoints, the server rotates, and the three database slots seat in order. Switch languages mid-stage to verify that the scene keeps its size and the animation keeps its place. |
 | Reduced motion | Emulate `prefers-reduced-motion: reduce`. Check that the walkthrough can still start, pause, and step through each stage while the illustrations show the current state. |
 | Live walkthrough | In the HTTPS frontend, run the demonstration and check `GET /api/sections` in the browser Network panel. Compare the HTTP status and row count with the player. An empty response should show the empty state. A failed request should show an error with a replay option. |
-| Administration | Check sign-in, reload with the session intact, and sign-out. In **Editing mode**, start a keyboard move, switch languages, and return to the handle to save. Repeat and cancel by leaving the handle and switch. Check pointer sorting, the saved order after reloading, and the fixed positions of Header, Hero, the walkthrough, and Footer. |
+| Administration | Check sign-in, reload with the session intact, and sign-out. In **Editing mode**, click or tap the up and down buttons, check the controls at both ends of the list, and reload to confirm the saved order. Start a keyboard move, switch languages, and return to the handle to save. Repeat and cancel by leaving the handle and switch. Check drag sorting and the fixed positions of Header, Hero, the walkthrough, and Footer. |
 
 ## GitHub Actions and Pages
 

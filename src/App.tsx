@@ -33,7 +33,7 @@ function PortfolioApp() {
   const authEnabled = location.protocol === 'https:' &&
     (import.meta.env.DEV || import.meta.env.VITE_PORTFOLIO_AUTH_ENABLED === 'true')
   const sectionOrder = useSectionOrder(authEnabled, () => {
-    if (document.activeElement?.matches('.portfolio-order-handle')) {
+    if (document.activeElement?.matches('[data-section-order-control]')) {
       document.getElementById('portfolio-order-status')?.focus()
     }
   })
