@@ -34,3 +34,39 @@ jobs:
           dotnet-version: '10.0.x'
       - run: dotnet build backend/Portfolio.sln --configuration Release
       - run: dotnet test backend/Portfolio.sln --configuration Release --no-build --no-restore
+
+  backend-sql:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73 # v6.1.0
+        with:
+          dotnet-version: '10.0.x'
+      - run: dotnet build backend/Portfolio.sln --configuration Release
+      - name: Run isolated SQL Server integration tests
+        shell: bash
+        run: |
+          sql_password="CI!a1$(openssl rand -hex 24)"
+          printf '::add-mask::%s\n' "$sql_password"
+          docker run --detach --name portfolio-test-sql --publish 127.0.0.1:1433:1433 \
+            --env ACCEPT_EULA=Y --env MSSQL_PID=Developer --env "MSSQL_SA_PASSWORD=$sql_password" \
+            mcr.microsoft.com/mssql/server:2022-CU28-ubuntu-22.04@sha256:4525e3efac9f3e241cb003bb2ff2a82818b502f37e12049d788b1a9fa7e13b7f
+          trap 'docker rm --force portfolio-test-sql >/dev/null 2>&1 || true' EXIT
+
+          for attempt in {1..30}; do
+            if docker exec --env "SQLCMDPASSWORD=$sql_password" portfolio-test-sql \
+              /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -C -b -l 2 -Q 'SELECT 1' >/dev/null 2>&1; then
+              export PORTFOLIO_TEST_SQL="Server=tcp:127.0.0.1,1433;Database=master;User ID=sa;Password=$sql_password;Encrypt=True;TrustServerCertificate=True;Connect Timeout=10"
+              dotnet test backend/Portfolio.sln --configuration Release --no-build --no-restore \
+                --filter 'FullyQualifiedName~Sql_server_'
+              exit 0
+            fi
+            sleep 2
+          done
+
+          docker logs --tail 50 portfolio-test-sql
+          echo '::error::SQL Server did not become ready.'
+          exit 1

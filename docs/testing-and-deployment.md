@@ -37,7 +37,7 @@ dotnet build backend/Portfolio.sln --configuration Release
 dotnet test backend/Portfolio.sln --configuration Release --no-build --no-restore
 ```
 
-The xUnit suite uses ASP.NET Core TestServer. It covers HTTP responses, validation, authorization, rate limiting, and the development Swagger contract. Four SQL tests opt in through `PORTFOLIO_TEST_SQL` and cover first administrator setup, refresh and logout behavior, account lockout, and section order persistence. Supply a connection string for an isolated test SQL Server environment with permission to create and remove test databases. The fixture creates, migrates, and attempts to remove its own uniquely named `PortfolioAuthTests_*` database. Run the same test command after setting the variable in the test terminal.
+The xUnit suite uses ASP.NET Core TestServer. It covers HTTP responses, validation, authorization, rate limiting, and the development Swagger contract. Five SQL tests opt in through `PORTFOLIO_TEST_SQL` and cover first administrator setup, refresh and logout behavior, account lockout, published section responses, and section order persistence. Supply a connection string for an isolated test SQL Server environment with permission to create and remove test databases. The fixture creates, migrates, and attempts to remove its own uniquely named `PortfolioAuthTests_*` database. Run the same test command after setting the variable in the test terminal.
 
 ## Browser verification
 
@@ -53,7 +53,7 @@ Run the static build locally with `npm run build` followed by `npm run preview`.
 
 ## GitHub Actions and Pages
 
-The [pull request workflow](../.github/workflows/ci.yml) runs the frontend tests, lint, TypeScript checks, and production build on Linux with Node.js 24. Its backend job uses .NET 10, builds the solution in Release mode, and runs the tests with SQL integration disabled.
+The [pull request workflow](../.github/workflows/ci.yml) runs the frontend tests, lint, TypeScript checks, and production build on Linux with Node.js 24. Its backend job uses .NET 10, builds the solution in Release mode, and runs the tests that need no database. A separate `backend-sql` job runs the five integration tests against a temporary SQL Server 2022 container on the runner.
 
 The [Pages workflow](../.github/workflows/pages.yml) runs on pushes to `main` and supports manual dispatch. Select **GitHub Actions** as the Pages source in the repository settings. The workflow runs `npm ci`, lint, and the production build, then uploads `dist/` and deploys it. The production asset base is `/portfolio/`.
 

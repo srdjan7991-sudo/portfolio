@@ -13,7 +13,7 @@ import { sr } from '../../i18n/sr'
 
 function SectionLinks({ links, activeSection, onNavigate }: {
   links: readonly SectionKey[]
-  activeSection?: string
+  activeSection?: SectionKey
   onNavigate?: () => void
 }) {
   const { text } = useLanguage()
@@ -25,8 +25,10 @@ function SectionLinks({ links, activeSection, onNavigate }: {
   ))
 }
 
-export function Header({ auth, adminToolbar, sectionOrder, themeControl, languageControl, homeTarget = '#top' }: {
-  auth?: ReactNode; adminToolbar?: ReactNode; sectionOrder?: readonly string[]; themeControl?: ReactNode
+export function Header({
+  auth, adminToolbar, sectionOrder = defaultSectionOrder, themeControl, languageControl, homeTarget = '#top',
+}: {
+  auth?: ReactNode; adminToolbar?: ReactNode; sectionOrder?: readonly SectionKey[]; themeControl?: ReactNode
   languageControl?: ReactNode; homeTarget?: string
 }) {
   const { text } = useLanguage()
@@ -35,8 +37,6 @@ export function Header({ auth, adminToolbar, sectionOrder, themeControl, languag
   const headerRef = useRef<HTMLElement>(null)
   const trigger = useRef<HTMLButtonElement>(null)
   const activeSection = useActiveSection(headerRef, sectionOrder)
-  const links = sectionOrder ? [...defaultSectionOrder].sort((a, b) => sectionOrder.indexOf(a) - sectionOrder.indexOf(b))
-    : defaultSectionOrder
 
   useEffect(() => {
     const headerElement = headerRef.current
@@ -84,7 +84,7 @@ export function Header({ auth, adminToolbar, sectionOrder, themeControl, languag
           Srdjan Pajic
         </a>
         <nav aria-label={text.layout.navigation} className={header.desktopNav}>
-          <SectionLinks links={links} activeSection={activeSection} />
+          <SectionLinks links={sectionOrder} activeSection={activeSection} />
         </nav>
         <Collapsible.Root
           className={header.mobile}
@@ -96,7 +96,7 @@ export function Header({ auth, adminToolbar, sectionOrder, themeControl, languag
           </Collapsible.Trigger>
           <Collapsible.Content className={header.panel}>
             <nav aria-label={text.layout.navigation} className={header.mobileNav}>
-              <SectionLinks links={links} activeSection={activeSection} onNavigate={() => setMenuOpen(false)} />
+              <SectionLinks links={sectionOrder} activeSection={activeSection} onNavigate={() => setMenuOpen(false)} />
             </nav>
           </Collapsible.Content>
         </Collapsible.Root>

@@ -12,6 +12,11 @@ namespace Portfolio.Api.Auth;
 
 internal static class AuthConfiguration
 {
+    public const string AttemptsPolicy = "auth-attempts";
+    public const string SetupStatusPolicy = "auth-setup-status";
+    public const string RefreshPolicy = "auth-refresh";
+    public const string LogoutPolicy = "auth-logout";
+
     public static void AddPortfolioAuth(this WebApplicationBuilder builder)
     {
         builder.Services.AddSingleton<AuthSettings>();
@@ -65,7 +70,7 @@ internal static class AuthConfiguration
             options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
             foreach (var (policy, limit) in new[]
             {
-                ("auth-attempts", 10), ("auth-setup-status", 30), ("auth-refresh", 30), ("auth-logout", 30),
+                (AttemptsPolicy, 10), (SetupStatusPolicy, 30), (RefreshPolicy, 30), (LogoutPolicy, 30),
             })
             {
                 options.AddPolicy(policy, context => RateLimitPartition.GetFixedWindowLimiter(

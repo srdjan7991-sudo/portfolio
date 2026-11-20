@@ -1,16 +1,21 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
-import { defaultSectionOrder, isSectionKey } from '../sections'
+import { defaultSectionOrder } from '../sections'
+import type { SectionKey } from '../sections'
 import { useLanguage } from '../i18n/language'
 
-export function useActiveSection(header: { readonly current: HTMLElement | null }, order: readonly string[] = defaultSectionOrder) {
+type SectionTarget = { id: SectionKey; element: HTMLElement }
+
+export function useActiveSection(header: { readonly current: HTMLElement | null }, order: readonly SectionKey[]) {
   const { language } = useLanguage()
-  const [activeSection, setActiveSection] = useState<string>()
+  const [activeSection, setActiveSection] = useState<SectionKey>()
 
   useEffect(() => {
     const sections = order
-      .filter(isSectionKey)
-      .map(id => document.getElementById(id))
-      .filter((section) => section !== null)
+      .map(id => {
+        const element = document.getElementById(id)
+        return element ? { id, element } : null
+      })
+      .filter(section => section !== null)
     let frame = 0
 
     function update() {
@@ -20,15 +25,15 @@ export function useActiveSection(header: { readonly current: HTMLElement | null 
       const readingLine = Math.max(headerHeight + 24, root.clientHeight * 0.3)
       const lastScrollPosition = root.scrollHeight - root.clientHeight
 
-      let current: HTMLElement | undefined
+      let current: SectionTarget | undefined
       for (const section of sections) {
-        if (section.getBoundingClientRect().top > readingLine) break
+        if (section.element.getBoundingClientRect().top > readingLine) break
         current = section
       }
       if (lastScrollPosition > 0 && window.scrollY >= lastScrollPosition - 2) {
         // On tall viewports, multiple links can share the browser's last scroll position.
         const requested = sections.find((section) => `#${section.id}` === location.hash)
-        const requestedTop = requested?.getBoundingClientRect().top ?? 0
+        const requestedTop = requested?.element.getBoundingClientRect().top ?? 0
         current = requested && requestedTop > headerHeight + 25 && requestedTop < root.clientHeight
           ? requested
           : sections.at(-1)

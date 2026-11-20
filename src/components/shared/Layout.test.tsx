@@ -60,30 +60,35 @@ test('returning to the hero through the brand also dismisses the mobile menu', a
   }
 })
 
-test('marks the current section in both navigation lists as the reader scrolls', async () => {
+test('uses the supplied section order for both navigation lists and the current link', async () => {
   const user = userEvent.setup()
+  const order = ['skills', 'work', 'expertise', 'experience', 'education', 'contact'] as const
   render(<>
-    <Header />
-    <section id="work" aria-label="Selected Work" />
+    <Header sectionOrder={order} />
     <section id="skills" aria-label="Technical Skills" />
+    <section id="work" aria-label="Selected Work" />
   </>)
-  const work = screen.getByRole('region', { name: 'Selected Work' })
   const skills = screen.getByRole('region', { name: 'Technical Skills' })
-  vi.spyOn(work, 'getBoundingClientRect').mockReturnValue(DOMRect.fromRect({ y: 0 }))
-  const skillPosition = vi.spyOn(skills, 'getBoundingClientRect').mockReturnValue(DOMRect.fromRect({ y: 500 }))
+  const work = screen.getByRole('region', { name: 'Selected Work' })
+  vi.spyOn(skills, 'getBoundingClientRect').mockReturnValue(DOMRect.fromRect({ y: 0 }))
+  const workPosition = vi.spyOn(work, 'getBoundingClientRect').mockReturnValue(DOMRect.fromRect({ y: 500 }))
   await user.click(screen.getByRole('button', { name: 'Menu' }))
   const navigations = screen.getAllByRole('navigation').map((navigation) => within(navigation))
-  await waitFor(() => {
-    for (const navigation of navigations) {
-      expect(navigation.getByRole('link', { current: 'location' })).toHaveAccessibleName('Work')
-    }
-  })
-
-  skillPosition.mockReturnValue(DOMRect.fromRect({ y: 0 }))
-  fireEvent.scroll(window)
+  for (const navigation of navigations) {
+    expect(navigation.getAllByRole('link').map(link => link.getAttribute('href')))
+      .toEqual(order.map(id => `#${id}`))
+  }
   await waitFor(() => {
     for (const navigation of navigations) {
       expect(navigation.getByRole('link', { current: 'location' })).toHaveAccessibleName('Skills')
+    }
+  })
+
+  workPosition.mockReturnValue(DOMRect.fromRect({ y: 0 }))
+  fireEvent.scroll(window)
+  await waitFor(() => {
+    for (const navigation of navigations) {
+      expect(navigation.getByRole('link', { current: 'location' })).toHaveAccessibleName('Work')
     }
   })
 })

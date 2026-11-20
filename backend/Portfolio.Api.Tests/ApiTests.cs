@@ -50,12 +50,7 @@ public sealed class ApiTests : IDisposable
     [Fact]
     public async Task Development_OpenAPI_describes_public_reads_and_the_protected_order_write()
     {
-        using var development = application.WithWebHostBuilder(builder => builder.UseEnvironment("Development"));
-        using var client = development.CreateClient();
-        using var response = await client.GetAsync("/swagger/v1/swagger.json");
-
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        using var body = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+        using var body = await ReadDevelopmentOpenApi();
         var paths = body.RootElement.GetProperty("paths");
         var readSections = paths.GetProperty("/api/sections").GetProperty("get");
         var order = paths.GetProperty("/api/sections/order");
@@ -69,11 +64,59 @@ public sealed class ApiTests : IDisposable
             Assert.True(responses.TryGetProperty("503", out _));
         }
 
+        var sectionsSchema = readSections.GetProperty("responses").GetProperty("200").GetProperty("content")
+            .GetProperty("application/json").GetProperty("schema");
+        Assert.Equal("array", sectionsSchema.GetProperty("type").GetString());
+        var rowSchema = sectionsSchema.GetProperty("items");
+        if (rowSchema.TryGetProperty("$ref", out var reference))
+        {
+            var schemaName = reference.GetString()!.Split('/')[^1];
+            rowSchema = body.RootElement.GetProperty("components").GetProperty("schemas").GetProperty(schemaName);
+        }
+        var rowProperties = rowSchema.GetProperty("properties");
+        foreach (var property in new[] { "key", "title", "body" })
+            Assert.Equal("string", rowProperties.GetProperty(property).GetProperty("type").GetString());
+
         Assert.True(writeOrder.GetProperty("security")[0].TryGetProperty("Bearer", out _));
         Assert.True(writeOrder.GetProperty("requestBody").GetProperty("required").GetBoolean());
         var writeResponses = writeOrder.GetProperty("responses");
-        foreach (var status in new[] { "200", "400", "401", "403", "503" })
+        foreach (var status in new[] { "200", "400", "401", "403", "409", "503" })
             Assert.True(writeResponses.TryGetProperty(status, out _), $"Missing PUT response {status}.");
+    }
+
+    [Fact]
+    public async Task Development_OpenAPI_describes_auth_guard_headers_and_reserves_the_setup_header_for_signup()
+    {
+        using var body = await ReadDevelopmentOpenApi();
+        var paths = body.RootElement.GetProperty("paths");
+        foreach (var route in new[] { "signup", "login", "refresh", "logout" })
+        {
+            var parameters = paths.GetProperty($"/api/auth/{route}").GetProperty("post")
+                .GetProperty("parameters").EnumerateArray().ToArray();
+            var guard = Assert.Single(parameters, parameter => parameter.GetProperty("name").GetString() == "X-Portfolio-Auth");
+            AssertRequiredStringHeader(guard);
+
+            var setup = parameters.Where(parameter => parameter.GetProperty("name").GetString() == "X-Portfolio-Setup");
+            if (route == "signup") AssertRequiredStringHeader(Assert.Single(setup));
+            else Assert.Empty(setup);
+        }
+    }
+
+    private async Task<JsonDocument> ReadDevelopmentOpenApi()
+    {
+        using var development = application.WithWebHostBuilder(builder => builder.UseEnvironment("Development"));
+        using var client = development.CreateClient();
+        using var response = await client.GetAsync("/swagger/v1/swagger.json");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        return JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+    }
+
+    private static void AssertRequiredStringHeader(JsonElement parameter)
+    {
+        Assert.Equal("header", parameter.GetProperty("in").GetString());
+        Assert.True(parameter.GetProperty("required").GetBoolean());
+        Assert.Equal("string", parameter.GetProperty("schema").GetProperty("type").GetString());
     }
 
     public void Dispose() => application.Dispose();

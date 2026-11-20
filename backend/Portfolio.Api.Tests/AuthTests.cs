@@ -4,6 +4,7 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Security.Claims;
 using System.Security.Cryptography;
+using System.Text.Json;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -14,6 +15,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Portfolio.Api.Data;
+using Portfolio.Api.Sections;
 using Xunit;
 
 namespace Portfolio.Api.Tests;
@@ -343,6 +345,41 @@ public sealed class AuthTests
         using var failed = await SaveOrder(client, DefaultSectionOrder.Reverse().ToArray(), access);
         Assert.Equal(HttpStatusCode.ServiceUnavailable, failed.StatusCode);
         Assert.Equal(saved, (await client.GetFromJsonAsync<OrderResponse>("/api/sections/order"))!.Keys);
+    }
+
+    [SqlFact]
+    public async Task Sql_server_lists_enabled_sections_in_display_order_with_the_public_response_shape()
+    {
+        await using var fixture = await SqlFixture.Create();
+        using var client = fixture.App.Client();
+        var empty = await client.GetFromJsonAsync<JsonElement>("/api/sections");
+        Assert.Empty(empty.EnumerateArray());
+
+        await using var scope = fixture.App.Services.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<PortfolioDbContext>();
+        db.Sections.AddRange(
+            new PortfolioSection { Key = "zulu", Title = "Later title", Body = "Later body", IsEnabled = true, SortOrder = 10 },
+            new PortfolioSection { Key = "hidden", Title = "Hidden title", Body = "Hidden body", IsEnabled = false, SortOrder = 0 },
+            new PortfolioSection { Key = "alpha", Title = "Earlier title", Body = "Earlier body", IsEnabled = true, SortOrder = 10 },
+            new PortfolioSection { Key = "work", Title = "Selected Work", Body = "", IsEnabled = true, SortOrder = 2 });
+        await db.SaveChangesAsync();
+
+        using var response = await client.GetAsync("/api/sections");
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal("application/json", response.Content.Headers.ContentType?.MediaType);
+        using var body = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+        Assert.Collection(body.RootElement.EnumerateArray(),
+            section => AssertPublicSection(section, "work", "Selected Work", ""),
+            section => AssertPublicSection(section, "alpha", "Earlier title", "Earlier body"),
+            section => AssertPublicSection(section, "zulu", "Later title", "Later body"));
+    }
+
+    private static void AssertPublicSection(JsonElement section, string key, string title, string body)
+    {
+        Assert.Equal(3, section.EnumerateObject().Count());
+        Assert.Equal(key, section.GetProperty("key").GetString());
+        Assert.Equal(title, section.GetProperty("title").GetString());
+        Assert.Equal(body, section.GetProperty("body").GetString());
     }
 
     private static readonly string[] DefaultSectionOrder = ["work", "skills", "expertise", "experience", "education", "contact"];
