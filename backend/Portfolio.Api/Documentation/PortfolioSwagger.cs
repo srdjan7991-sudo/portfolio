@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.OpenApi;
+using Portfolio.Api.Auth;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace Portfolio.Api.Documentation;
@@ -43,21 +44,22 @@ internal sealed class PortfolioAuthOperationFilter : IOperationFilter
         }
 
         var path = context.ApiDescription.RelativePath;
-        if (context.ApiDescription.HttpMethod != "POST" || path?.StartsWith("api/auth/", StringComparison.Ordinal) != true)
+        var authPath = AuthSettings.RouteBase.TrimStart('/');
+        if (context.ApiDescription.HttpMethod != HttpMethods.Post || path?.StartsWith(authPath + "/", StringComparison.Ordinal) != true)
             return;
 
         operation.Parameters ??= [];
         operation.Parameters.Add(new OpenApiParameter
         {
-            Name = "X-Portfolio-Auth", In = ParameterLocation.Header, Required = true,
-            Description = "Set to 1. The browser must also send the configured HTTPS Origin.",
+            Name = AuthSettings.GuardHeader, In = ParameterLocation.Header, Required = true,
+            Description = $"Set to {AuthSettings.GuardHeaderValue}. The browser must also send the configured HTTPS Origin.",
             Schema = new OpenApiSchema { Type = JsonSchemaType.String }
         });
-        if (path == "api/auth/signup")
+        if (path == authPath + AuthSettings.SignupRoute)
         {
             operation.Parameters.Add(new OpenApiParameter
             {
-                Name = "X-Portfolio-Setup", In = ParameterLocation.Header, Required = true,
+                Name = AuthSettings.SetupHeader, In = ParameterLocation.Header, Required = true,
                 Description = "Private setup code, required only when creating the first administrator.",
                 Schema = new OpenApiSchema { Type = JsonSchemaType.String }
             });

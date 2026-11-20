@@ -10,8 +10,13 @@ internal sealed class AuthSettings(IConfiguration configuration)
     public const string Issuer = "portfolio-api";
     public const string Audience = "portfolio-admin";
     public const string TokenType = "at+jwt";
+    public const string RouteBase = "/api/auth";
+    public const string SignupRoute = "/signup";
+    public const string GuardHeader = "X-Portfolio-Auth";
+    public const string GuardHeaderValue = "1";
+    public const string SetupHeader = "X-Portfolio-Setup";
     public const string Cookie = "__Secure-portfolio-refresh";
-    public const string CookiePath = "/api/auth";
+    public const string CookiePath = RouteBase;
     public const int MinimumSignupPasswordLength = 15;
     public const int MaximumPasswordLength = 128;
     public static readonly TimeSpan AccessLifetime = TimeSpan.FromMinutes(5);

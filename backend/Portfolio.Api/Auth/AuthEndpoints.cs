@@ -13,7 +13,7 @@ internal static class AuthEndpoints
 {
     public static void MapPortfolioAuth(this WebApplication app)
     {
-        var auth = app.MapGroup("/api/auth").AddEndpointFilter(async (invocation, next) =>
+        var auth = app.MapGroup(AuthSettings.RouteBase).AddEndpointFilter(async (invocation, next) =>
         {
             var context = invocation.HttpContext;
             context.Response.Headers.CacheControl = "no-store";
@@ -23,33 +23,33 @@ internal static class AuthEndpoints
             if (HttpMethods.IsPost(context.Request.Method) &&
                 (context.Request.Headers.Origin.Count != 1 ||
                  !string.Equals(context.Request.Headers.Origin.ToString(), settings.Origin, StringComparison.Ordinal) ||
-                 context.Request.Headers["X-Portfolio-Auth"].ToString() != "1"))
+                 context.Request.Headers[AuthSettings.GuardHeader].ToString() != AuthSettings.GuardHeaderValue))
             {
                 return Results.StatusCode(403);
             }
             return await next(invocation);
         });
 
-        auth.MapGet("/setup-status", SetupStatus).RequireRateLimiting("auth-setup-status")
+        auth.MapGet("/setup-status", SetupStatus).RequireRateLimiting(AuthConfiguration.SetupStatusPolicy)
             .WithSummary("Check whether the first administrator can be created")
             .Produces<SetupResponse>().Produces(429).Produces(503);
-        auth.MapPost("/signup", Signup).RequireRateLimiting("auth-attempts")
+        auth.MapPost(AuthSettings.SignupRoute, Signup).RequireRateLimiting(AuthConfiguration.AttemptsPolicy)
             .WithSummary("Create the first administrator")
             .WithDescription("Requires a valid email, a password of 15–128 characters and the setup code. " +
                 "On success, returns an access token and sets the refresh cookie. Status 409 means setup is closed.")
             .Produces<TokenResponse>().Produces<CredentialError>(400).Produces(403)
             .Produces<CredentialError>(409).Produces(429).ProducesProblem(500).Produces(503);
-        auth.MapPost("/login", Login).RequireRateLimiting("auth-attempts")
+        auth.MapPost("/login", Login).RequireRateLimiting(AuthConfiguration.AttemptsPolicy)
             .WithSummary("Sign in as the portfolio administrator")
             .WithDescription("Returns an access token and sets the refresh cookie. Incorrect credentials and locked accounts return the same status and message.")
             .Produces<TokenResponse>().Produces<CredentialError>(400).Produces<CredentialError>(401)
             .Produces(403).Produces(429).Produces(503);
-        auth.MapPost("/refresh", Refresh).RequireRateLimiting("auth-refresh")
+        auth.MapPost("/refresh", Refresh).RequireRateLimiting(AuthConfiguration.RefreshPolicy)
             .WithSummary("Renew the access token")
-            .WithDescription("The browser sends the HttpOnly, Secure, SameSite=Strict refresh cookie scoped to /api/auth. " +
+            .WithDescription($"The browser sends the HttpOnly, Secure, SameSite=Strict refresh cookie scoped to {AuthSettings.CookiePath}. " +
                 "A successful response rotates the cookie. Reusing an already rotated token revokes its session.")
             .Produces<TokenResponse>().Produces(401).Produces(403).Produces(429).Produces(503);
-        auth.MapPost("/logout", Logout).RequireRateLimiting("auth-logout")
+        auth.MapPost("/logout", Logout).RequireRateLimiting(AuthConfiguration.LogoutPolicy)
             .WithSummary("Revoke the session and clear the refresh cookie")
             .WithDescription("The browser sends the refresh cookie. A successful response clears it and has no response body.")
             .Produces(204).Produces(403).Produces(429).Produces(503);
@@ -66,7 +66,7 @@ internal static class AuthEndpoints
         UserManager<IdentityUser> users, RoleManager<IdentityRole> roles, TimeProvider time, CancellationToken ct)
     {
         if (!ValidCredentials(input, signup: true)) return InvalidInput();
-        if (!settings.AllowsSetup(context.Request.Headers["X-Portfolio-Setup"].ToString())) return Results.StatusCode(403);
+        if (!settings.AllowsSetup(context.Request.Headers[AuthSettings.SetupHeader].ToString())) return Results.StatusCode(403);
 
         await using var transaction = await LockAuth(db, ct);
         if (await db.AdminSetups.AnyAsync(ct)) return Results.Conflict(new CredentialError("Setup is closed."));

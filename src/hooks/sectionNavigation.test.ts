@@ -37,7 +37,7 @@ function renderActiveSection(readTop: Record<string, () => number>) {
   vi.spyOn(document.documentElement, 'clientHeight', 'get').mockReturnValue(600)
   vi.spyOn(document.documentElement, 'scrollHeight', 'get').mockReturnValue(2000)
   const headerRef = { current: header }
-  return renderHook(() => useActiveSection(headerRef))
+  return renderHook(() => useActiveSection(headerRef, defaultSectionOrder))
 }
 
 async function nextAnimationFrame() {
