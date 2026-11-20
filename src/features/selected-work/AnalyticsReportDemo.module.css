@@ -17,6 +17,7 @@
 .disclosure[open] .chevron { transform: translateY(0.12rem) rotate(225deg); }
 
 .report {
+  container: analytics-report / inline-size;
   margin-block-start: 1rem;
   padding: clamp(0.85rem, 3vw, 2rem);
   border: 1px solid var(--line);
@@ -121,7 +122,13 @@
   margin-block-start: 1rem;
 }
 
-.chart { margin: 0; min-inline-size: 0; }
+.chart {
+  container: report-chart / inline-size;
+  isolation: isolate;
+  position: relative;
+  margin: 0;
+  min-inline-size: 0;
+}
 .chart figcaption, .table caption {
   margin-block-end: 0.65rem;
   font-size: 0.88rem;
@@ -130,14 +137,21 @@
 }
 
 .chartBody {
-  --plot-height: clamp(7.5rem, 19vw, 12rem);
+  --plot-height: clamp(8.5rem, 19vw, 13rem);
   display: grid;
-  grid-template-columns: max-content minmax(0, 1fr);
-  gap: 0.45rem;
-  padding-block-start: 0.5rem;
+  gap: 1.1rem;
+  padding-block: 2rem 0.1rem;
   color: var(--muted);
   font: 0.69rem var(--mono);
 }
+
+.legend { display: flex; flex-wrap: wrap; gap: 0.25rem 0.85rem; margin: 0; padding: 0; list-style: none; }
+.legend li, .tooltipTitle { display: flex; align-items: center; gap: 0.35rem; font-size: 0.79rem; }
+.legend li > span, .tooltipTitle > span { flex: none; inline-size: 0.7rem; block-size: 0.7rem; border-radius: 0.13rem; }
+.chartHint { margin-block-start: 0.35rem; color: var(--muted); font-size: 0.78rem; }
+
+.plot { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 0.35rem; min-inline-size: 0; }
+.plot[data-in-period='false'] { display: none; }
 
 .scale, .rules {
   display: flex;
@@ -147,17 +161,19 @@
 }
 
 .scale { text-align: end; }
+.sharedScale { display: none; }
 .scale span:first-child { transform: translateY(-50%); }
 .scale span:last-child { transform: translateY(50%); }
 
-.columns { position: relative; display: flex; }
+.columns { position: relative; display: flex; min-inline-size: 0; }
 
 .rules {
   position: absolute;
   inset: 0 0 auto;
 }
 
-.rules span { border-block-start: 1px solid var(--line); }
+.rules span { border-block-start: 1px solid var(--line-soft); }
+.rules span:last-child { border-color: var(--line-glass); }
 
 .column {
   z-index: 0;
@@ -172,27 +188,96 @@
 
 .column[data-in-period='false'] { flex-grow: 0; opacity: 0; }
 
-.barTrack { position: relative; display: flex; align-items: end; justify-content: center; }
-
-.bar {
-  inline-size: min(54%, 2.6rem);
-  border-radius: 0.22rem 0.22rem 0 0;
-  background: var(--accent);
+.barTrack { display: flex; justify-content: center; }
+.mark {
+  position: relative;
+  flex: 1 1 0;
+  min-inline-size: 0;
+  max-inline-size: 3.25rem;
 }
 
-.missingMark { position: absolute; inset-block-end: 0.2rem; opacity: 0; }
+.mark[data-selected='false'] { flex-grow: 0; opacity: 0; }
+
+.barButton {
+  display: flex;
+  align-items: end;
+  justify-content: center;
+  inline-size: 100%;
+  block-size: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: 0.25rem;
+  background: transparent;
+  cursor: pointer;
+}
+
+.barButton:disabled { pointer-events: none; }
+.barButton:focus-visible { outline-offset: -2px; }
+.barButton[data-highlight='true'] { background: color-mix(in srgb, var(--accent) 10%, transparent); }
+
+.chart [data-series='quality'] { --mark-fill: var(--accent); --mark-edge: transparent; }
+.chart [data-series='utilization'] {
+  --mark-fill: repeating-linear-gradient(135deg, var(--accent-edge) 0 3px, var(--accent-soft) 3px 5px);
+  --mark-edge: var(--accent-edge);
+}
+.chart [data-series='operations'] { --mark-fill: var(--surface-raised); --mark-edge: var(--accent-edge); }
+
+.bar, .legend li > span, .tooltipTitle > span {
+  background: var(--mark-fill);
+  box-shadow: inset 0 0 0 1px var(--mark-edge);
+}
+
+.bar {
+  display: block;
+  inline-size: min(76%, 2.6rem);
+  border-radius: 0.22rem 0.22rem 0 0;
+}
+.bar[data-zero='true'] { min-block-size: 2px; }
+
+.missingMark { position: absolute; inset: auto 0 0.2rem; opacity: 0; pointer-events: none; }
 .missingMark[data-missing='true'] { opacity: 1; }
 .chartNote { margin-block-start: 0.45rem; font-size: 0.78rem; }
 
-.table { inline-size: 100%; border-collapse: collapse; font-size: 0.84rem; }
+.tooltip {
+  position: absolute;
+  z-index: 3;
+  inset: 0 auto auto 0;
+  inline-size: min(14rem, calc(100% - 12px));
+  translate: var(--tooltip-x, 0) var(--tooltip-y, 0);
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+.tooltip[data-open='true'][data-positioned='true'] { visibility: visible; opacity: 1; }
+.tooltip[data-open='true'][data-positioned='true'][data-hoverable='true'][data-overlapping='false'] { pointer-events: auto; }
+.tooltipCard {
+  padding: 0.55rem 0.7rem;
+  border: 1px solid var(--line-glass);
+  border-radius: 0.5rem;
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: var(--shadow-small);
+  overflow-wrap: anywhere;
+}
+.tooltipHeader { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.25rem; }
+.tooltipPeriod { color: var(--muted); font-size: 0.76rem; }
+.tooltipCard dl { display: grid; gap: 0.2rem; margin-block-start: 0.35rem; border-block-start: 1px solid var(--line); padding-block-start: 0.35rem; }
+.tooltipCard dl > div { display: flex; justify-content: space-between; gap: 0.45rem; }
+.tooltipCard dt { color: var(--muted); }
+.tooltipCard :is(dt, dd) { font-size: 0.77rem; line-height: 1.35; }
+.tooltipCard dd { text-align: end; font-weight: 600; font-variant-numeric: tabular-nums; }
+
+.table { inline-size: 100%; border-collapse: collapse; font-size: clamp(0.71rem, 1.5vw, 0.84rem); }
 .table th, .table td {
-  padding: 0.4rem 0.25rem;
+  padding: 0.4rem 0.2rem;
   border-block-end: 1px solid var(--line);
   text-align: start;
+  overflow-wrap: anywhere;
 }
 .table thead { color: var(--muted); }
+.tableFull { display: none; }
 .table tbody th { font-weight: 450; }
-.table :is(th, td):last-child { text-align: end; font-variant-numeric: tabular-nums; }
+.table :is(th:not(:first-child), td) { text-align: end; font-variant-numeric: tabular-nums; }
 
 @media (prefers-reduced-motion: no-preference) {
   .resultReveal {
@@ -208,21 +293,42 @@
       visibility 0s linear 570ms;
   }
 
-  .column { transition: flex-grow var(--report-duration) var(--report-easing), opacity 360ms var(--ease-out); }
+  .plot, .column, .mark { transition: flex-grow var(--report-duration) var(--report-easing), opacity 360ms var(--ease-out); }
   .bar { transition: height var(--report-duration) var(--report-easing); }
+  .barButton { transition: background-color 140ms var(--ease-out); }
   .missingMark { transition: opacity 120ms var(--ease-out); }
   .missingMark[data-missing='true'] { transition-delay: var(--report-duration); }
+  .tooltip { transition: opacity 140ms var(--ease-out), visibility 0s linear 140ms; }
+  .tooltip[data-open='true'][data-positioned='true'] { transition-delay: 0s; }
+  .tooltipCard { transform: translateY(3px); transition: transform 160ms var(--ease-out); }
+  .tooltip[data-open='true'] .tooltipCard { transform: translateY(0); }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .resultReveal, .column, .bar, .missingMark { transition: none; }
+@container report-chart (min-width: 32rem) {
+  .chartBody { display: flex; gap: 0; }
+  .sharedScale { display: flex; margin-inline-end: 0.45rem; }
+  .localScale { display: none; }
+  .plot { flex: 1 1 0; grid-template-columns: minmax(0, 1fr); }
+  .plot[data-in-period='false'] { display: grid; flex-grow: 0; opacity: 0; overflow: clip; }
 }
 
 @media (forced-colors: active) {
-  .bar { background-color: CanvasText; }
+  .bar, .legend li > span, .tooltipTitle > span { forced-color-adjust: none; }
+  .chart [data-series='quality'] { --mark-fill: CanvasText; }
+  .chart [data-series='utilization'] { --mark-fill: repeating-linear-gradient(135deg, CanvasText 0 2px, Canvas 2px 4px); --mark-edge: CanvasText; }
+  .chart [data-series='operations'] { --mark-fill: Canvas; --mark-edge: CanvasText; }
+  .barButton[data-highlight='true'] { outline: 1px solid Highlight; outline-offset: -1px; }
 }
 
 @media (min-width: 52rem) {
   .filters { grid-template-columns: repeat(2, minmax(0, 15rem)) auto; }
+}
+
+@container analytics-report (min-width: 36rem) {
+  .tableShort { display: none; }
+  .tableFull { display: inline; }
+}
+
+@container analytics-report (min-width: 58rem) {
   .results { grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); }
 }

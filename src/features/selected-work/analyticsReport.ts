@@ -13,14 +13,19 @@ function isReportPeriod(value: string): value is ReportPeriod {
 
 export const reportPeriods = Object.keys(periodRanges).filter(isReportPeriod)
 
-const categories = ['quality', 'utilization', 'operations'] as const
-export const reportCategories = ['all', ...categories] as const
+export const reportSeries = ['quality', 'utilization', 'operations'] as const
+export type ReportSeries = typeof reportSeries[number]
+export const reportCategories = ['all', ...reportSeries] as const
 export type ReportCategory = typeof reportCategories[number]
 
 export type ReportFilters = Readonly<{ period: ReportPeriod; category: ReportCategory }>
 export const defaultReportFilters: ReportFilters = { period: 'firstHalf', category: 'all' }
 
-type MonthlyCounts = Readonly<Partial<Record<typeof categories[number], number>>>
+type MonthlyCounts = Readonly<Partial<Record<ReportSeries, number>>>
+export type ReportPoint = Readonly<{
+  count: number
+  change: Readonly<{ amount: number; rate: number | null }> | null
+}>
 
 // Each entry is a calendar month from January through June. Missing categories are unreported.
 const monthlyCounts: readonly MonthlyCounts[] = [
@@ -32,39 +37,57 @@ const monthlyCounts: readonly MonthlyCounts[] = [
   { quality: 121, utilization: 89, operations: 30 },
 ]
 
-export const reportMonths: readonly number[] = monthlyCounts.map((_, month) => month)
-
-function sumCounts(counts: readonly number[]) {
-  return counts.reduce((sum, count) => sum + count, 0)
-}
-
 // Keep the scale comparable between filters so a lower count always draws a shorter bar.
-const highestMonthlyTotal = Math.max(...monthlyCounts.map(counts => sumCounts(Object.values(counts))))
-export const reportScaleMaximum = Math.max(20, Math.ceil(highestMonthlyTotal / 20) * 20)
+const highestObservation = Math.max(...monthlyCounts.flatMap(counts => Object.values(counts)))
+export const reportScaleMaximum = Math.max(20, Math.ceil(highestObservation / 20) * 20)
+
+function reportPoint(count: number | undefined, previous: number | undefined): ReportPoint | null {
+  if (count === undefined) return null
+  return {
+    count,
+    change: previous === undefined ? null : {
+      amount: count - previous,
+      rate: previous === 0 ? null : (count - previous) / previous,
+    },
+  }
+}
 
 export function summarizeReport({ period, category }: ReportFilters) {
   const [start, end] = periodRanges[period]
-  const selectedCategories = category === 'all' ? categories : [category]
+  const series: readonly ReportSeries[] = category === 'all' ? reportSeries : [category]
   let total = 0
   let monthsWithData = 0
 
-  const months = monthlyCounts.slice(start, end).map((counts, index) => {
-    const reportedCounts = selectedCategories
-      .map(key => counts[key])
-      .filter(count => count !== undefined)
-    const count = reportedCounts.length ? sumCounts(reportedCounts) : null
-    const partial = count !== null && reportedCounts.length < selectedCategories.length
+  const chartMonths = monthlyCounts.map((counts, month) => {
+    const inPeriod = month >= start && month < end
+    const points: Record<ReportSeries, ReportPoint | null> = { quality: null, utilization: null, operations: null }
+    const previous = monthlyCounts[month - 1]
+    let available = 0
+    let monthlyTotal = 0
 
-    if (count !== null) {
-      total += count
+    if (inPeriod) {
+      for (const key of series) {
+        const point = reportPoint(counts[key], previous?.[key])
+        points[key] = point
+        if (point !== null) {
+          available++
+          monthlyTotal += point.count
+        }
+      }
+    }
+
+    if (available > 0) {
+      total += monthlyTotal
       monthsWithData++
     }
 
-    return { month: start + index, count, partial }
+    return { month, inPeriod, points, count: available > 0 ? monthlyTotal : null, partial: available > 0 && available < series.length }
   })
 
   return {
-    months,
+    series,
+    chartMonths,
+    months: chartMonths.filter(month => month.inPeriod),
     total,
     monthsWithData,
     monthlyAverage: monthsWithData ? total / monthsWithData : null,

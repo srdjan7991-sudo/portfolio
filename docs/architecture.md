@@ -17,6 +17,14 @@ The React features contain the public page copy. Selected Work presents the Mede
 
 [`PortfolioSection.tsx`](../src/components/shared/PortfolioSection.tsx) supplies section markup and heading IDs. [`Layout.tsx`](../src/components/shared/Layout.tsx) owns the Header, Footer, and mobile menu. Navigation uses native hash links and follows the current section order. [`sectionNavigation.ts`](../src/hooks/sectionNavigation.ts) manages the active link, initial hash alignment, and one-time section reveals. The current link uses `aria-current="location"`.
 
+## Sample analytics report
+
+Open the sample report under Selected Work. The default view shows 15 synthetic counts across Quality, Utilization, and Operations from January through June 2026. Operations reporting starts in April. Each reported observation has its own bar in the monthly group. The table shows the selected months and categories with the same counts. A missing observation is marked as unreported. A reported zero is a valid count. [Report data](../src/features/selected-work/analyticsReport.ts)
+
+The period and category filters apply to the chart, table, and summary metrics. The total sums the reported observations. The monthly average divides the total by the number of selected months with data. Coverage shows how many months in the selected period have data. A selection with no observations shows an empty state. [Report component](../src/features/selected-work/AnalyticsReportDemo.tsx)
+
+Hover over, focus, or tap a bar to see its exact count and the change in count and percentage from the previous calendar month for the same category. The comparison can use data outside the selected period. The comparison is unavailable if that month has no observation. A zero baseline supports a change in count and leaves the percentage unavailable. Escape dismisses the tooltip. The report uses the selected language and theme and respects reduced motion.
+
 ## Themes and motion
 
 [`index.html`](../index.html) applies the saved dark preference before React runs. [`theme.css`](../src/theme.css) supplies color and surface tokens for both themes. [`global.css`](../src/global.css) supplies Geist and Geist Mono, layout widths, spacing, focus outlines, and shared control styles. [`useTheme.ts`](../src/features/theme/useTheme.ts) updates the document theme, browser theme color, and `localStorage` from the Header switch. Light is the default.

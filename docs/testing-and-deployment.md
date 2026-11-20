@@ -11,10 +11,16 @@ npm run typecheck
 npm run build
 ```
 
-Vitest uses jsdom and the setup in [`src/setupTests.ts`](../src/setupTests.ts). Tests sit next to the features and use React Testing Library, jest-dom, and user-event. They cover navigation and focus, the mobile menu, language and theme persistence, case study disclosure, admin sessions, section order confirmation and rollback, and guided and live walkthrough states. To run the walkthrough tests alone:
+Vitest uses jsdom and the setup in [`src/setupTests.ts`](../src/setupTests.ts). Tests sit next to the features and use React Testing Library, jest-dom, and user-event. They cover navigation and focus, the mobile menu, language and theme persistence, case study disclosure, the sample analytics report, admin sessions, section order confirmation and rollback, and guided and live walkthrough states. To run just the walkthrough tests, use the following command.
 
 ```sh
 npm test -- src/features/request-flow/RequestFlow.test.tsx
+```
+
+Run the sample report's data and interaction tests with this command.
+
+```sh
+npm test -- src/features/selected-work/analyticsReport.test.ts src/features/selected-work/AnalyticsReportDemo.test.tsx
 ```
 
 Run `npm run test:coverage` to generate the V8 report. Open `coverage/index.html` for file-level results. The local run on 18 November 2026 passed 76 tests across 15 files.
@@ -46,8 +52,9 @@ Run the static build locally with `npm run build` followed by `npm run preview`.
 | Area | What to verify |
 | --- | --- |
 | Public page | Review the layout at 320, 375, 390, 768, 1024, 1280, 1440, and 1920 px in both languages and themes. Check keyboard focus, the mobile menu, section hash links, the case study, and asset loading. Switch languages with the menu or case study open. From the language switch, press Escape to return focus to the menu trigger. Reopen the menu and tab out of the header to check that the focused content is visible. Reload to verify the saved language on the first render. |
+| Sample analytics report | Open the report in Selected Work and check for 15 bars grouped across January through June. Verify that the chart and table show the same category counts and that Operations is unreported through March. Select Q2 and Quality. April's tooltip should show a count of 102 and an increase of 9 (about 9.7%) from March, which is outside Q2. Switch the category to Operations. April should show a count of 24 and an unavailable comparison. Select Q1 to check the empty state, then reset the filters. Open tooltips by hovering, tabbing to a bar, and tapping on a touch screen. Press Escape to dismiss a tooltip. Repeat on narrow and wide screens in both languages and themes. Switch the language while the report is open and verify that the filters stay selected. |
 | Guided walkthrough | Start the request, advance through all six stages, pause and resume, step manually, replay, and close. Check that the outgoing and returning fills meet their SVG endpoints, the server rotates, and the three database slots seat in order. Switch languages mid-stage to verify that the scene keeps its size and the animation keeps its place. |
-| Reduced motion | Emulate `prefers-reduced-motion: reduce`. Check that the walkthrough can still start, pause, and step through each stage while the illustrations show the current state. |
+| Reduced motion | Emulate `prefers-reduced-motion: reduce`. Check that the walkthrough can still start, pause, and step through each stage while the illustrations show the current state. In the sample report, change the filters and open a bar tooltip. Check that the chart and tooltip update without motion. |
 | Live walkthrough | In the HTTPS frontend, run the demonstration and check `GET /api/sections` in the browser Network panel. Compare the HTTP status and row count with the player. An empty response should show the empty state. A failed request should show an error with a replay option. |
 | Administration | Check sign-in, reload with the session intact, and sign-out. In **Editing mode**, click or tap the up and down buttons, check the controls at both ends of the list, and reload to confirm the saved order. Start a keyboard move, switch languages, and return to the handle to save. Repeat and cancel by leaving the handle and switch. Check drag sorting and the fixed positions of Header, Hero, the walkthrough, and Footer. |
 
