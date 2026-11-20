@@ -3,6 +3,8 @@ import { TechnologyTags } from '../../components/shared/TechnologyTags'
 import { useLanguage } from '../../i18n/language'
 import './SelectedWork.css'
 
+const seriesAPath = 'M0 161 C40 166 67 130 112 137 S178 155 224 120 S287 76 320 92 S390 108 432 66 S505 90 544 48 S610 60 640 21'
+
 function AnalyticsPreview() {
   const { text: { work: { preview } } } = useLanguage()
   return (
@@ -25,8 +27,8 @@ function AnalyticsPreview() {
           </div>
           <svg className="selected-work-chart" viewBox="0 0 640 206" fill="none" focusable="false">
             <path d="M0 20H640 M0 64H640 M0 108H640 M0 152H640 M0 196H640" stroke="var(--line)" />
-            <path d="M0 161 C40 166 67 130 112 137 S178 155 224 120 S287 76 320 92 S390 108 432 66 S505 90 544 48 S610 60 640 21 L640 196 H0Z" fill="var(--accent-soft)" />
-            <path d="M0 161 C40 166 67 130 112 137 S178 155 224 120 S287 76 320 92 S390 108 432 66 S505 90 544 48 S610 60 640 21" stroke="var(--accent)" strokeWidth="3" />
+            <path d={`${seriesAPath} L640 196 H0Z`} fill="var(--accent-soft)" />
+            <path d={seriesAPath} stroke="var(--accent)" strokeWidth="3" />
             <path d="M0 182 C51 183 71 157 112 160 S173 174 224 155 S286 118 320 133 S393 142 432 115 S499 123 544 97 S606 105 640 73" stroke="var(--quiet)" strokeWidth="2" strokeDasharray="6 5" />
           </svg>
           <div className="selected-work-chart-months">
