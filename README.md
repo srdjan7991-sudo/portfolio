@@ -29,7 +29,7 @@ For live API calls, Swagger, and administrator controls, follow the [local backe
 | Behind every request | A six-stage walkthrough of a request through the browser, application server, and database. With the API enabled, it can show the result of a public request to the local backend. |
 | English and Serbian | A header switch changes the language in place and remembers the selection on the next visit. |
 | Light and dark themes | A switch in the header with a saved preference. The interface respects reduced motion. |
-| Section ordering | In the HTTPS setup, the administrator can sort six content sections by dragging or with the keyboard. The API saves the order in SQL Server. |
+| Section ordering | In the HTTPS setup, the administrator can sort six content sections by dragging, using the up and down buttons, or using the keyboard. The API saves the order in SQL Server. |
 
 ## Stack
 

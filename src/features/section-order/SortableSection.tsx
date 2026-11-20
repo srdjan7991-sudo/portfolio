@@ -11,6 +11,10 @@ type ItemProps = {
   bounds: RefObject<HTMLDivElement | null>
   reduced: boolean
   pickedUp: boolean
+  moveActive: boolean
+  canMoveUp: boolean
+  canMoveDown: boolean
+  onStep: (direction: -1 | 1, control: HTMLButtonElement) => void
   onPointerStart: (cancel: () => void) => void
   onPointerEnd: (commit: boolean) => void
   onKeyDown: (event: KeyboardEvent<HTMLButtonElement>) => void
@@ -19,11 +23,17 @@ type ItemProps = {
 
 export function SortableSection({
   sectionKey, children, editing, saving, bounds, reduced, pickedUp,
+  moveActive, canMoveUp, canMoveDown, onStep,
   onPointerStart, onPointerEnd, onKeyDown, onClick,
 }: ItemProps) {
   const { text } = useLanguage()
   const controls = useDragControls()
   const y = useMotionValue(0)
+  const title = text.sections[sectionKey].title
+  const steps = [
+    { direction: -1, label: text.order.moveUp(title), arrow: '↑', available: canMoveUp },
+    { direction: 1, label: text.order.moveDown(title), arrow: '↓', available: canMoveDown },
+  ] as const
   return (
     <Reorder.Item as="div" className="portfolio-order-item" value={sectionKey}
       data-picked-up={pickedUp || undefined}
@@ -44,14 +54,24 @@ export function SortableSection({
       onDragEnd={event => onPointerEnd(event.type !== 'pointercancel')}>
       {children}
       {editing && (
-        <button className="portfolio-order-handle" type="button" data-admin-control aria-disabled={saving || undefined}
-          aria-label={text.order.reorder(text.sections[sectionKey].title)} aria-pressed={pickedUp}
-          aria-describedby="section-order-instructions"
-          onPointerDown={event => { if (!saving) controls.start(event) }}
-          onKeyDown={event => { if (!saving) onKeyDown(event) }} onClick={event => { if (!saving) onClick(event) }}>
-          <span className="portfolio-order-grip" aria-hidden="true" />
-          {text.order.move}
-        </button>
+        <div className="portfolio-order-controls">
+          <button className="portfolio-order-handle" type="button" data-admin-control data-section-order-control
+            aria-disabled={saving || undefined} aria-label={text.order.reorder(title)} aria-pressed={pickedUp}
+            aria-describedby="section-order-instructions"
+            onPointerDown={event => { if (!saving) controls.start(event) }}
+            onKeyDown={event => { if (!saving) onKeyDown(event) }} onClick={event => { if (!saving) onClick(event) }}>
+            <span className="portfolio-order-grip" aria-hidden="true" />
+            {text.order.move}
+          </button>
+          {steps.map(({ direction, label, arrow, available }) => (
+            <button key={direction} className="portfolio-order-step" type="button" data-admin-control
+              data-section-order-control aria-label={label} title={label}
+              disabled={moveActive} aria-disabled={saving || !available || undefined}
+              onClick={event => onStep(direction, event.currentTarget)}>
+              <span aria-hidden="true">{arrow}</span>
+            </button>
+          ))}
+        </div>
       )}
     </Reorder.Item>
   )

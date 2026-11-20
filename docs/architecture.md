@@ -27,7 +27,7 @@ Hero entrance motion and section reordering use Motion for React. The walkthroug
 
 The first visit uses English. The EN/SR switch saves the choice under `portfolio-language` in `localStorage`. [`language.tsx`](../src/i18n/language.tsx) reads the preference before rendering the app, sets the document language and metadata, and supplies a typed catalog through React context. Add interface copy to both [`en.ts`](../src/i18n/en.ts) and [`sr.ts`](../src/i18n/sr.ts). Serbian follows the English catalog's keys and parameter types.
 
-Section IDs, workflow state, and API paths stay independent of language. Authentication failures and reorder announcements store codes and data, then render in the selected language. A keyboard reorder stays pending while focus moves between its handle and the language switch. The Contact link labels the downloadable CV as English in either language.
+Section IDs, workflow state, and API paths stay independent of language. Authentication failures and reorder announcements store codes and data, then render in the selected language. A keyboard reorder stays pending while focus moves between its handle and the language switch. In Contact, LinkedIn and GitHub open in a new tab, Email opens the configured mail handler, and the CV download is labeled as English in either language.
 
 The live walkthrough translates known default titles in the browser result cards using case-insensitive section keys and an exact English title match. Custom titles and bodies stay as returned by the API. The JSON excerpt shows the first record with its original key, title, and up to 100 characters of body text.
 
@@ -63,6 +63,6 @@ In the database stage, [`RequestFlowDiagram.tsx`](../src/features/request-flow/R
 
 [`useSectionOrder.ts`](../src/features/section-order/useSectionOrder.ts) reads the order from `GET /api/sections/order` when API integration is enabled. It falls back to the bundled order if the response is unavailable or invalid. The Header and content group receive the same order.
 
-In **Editing mode**, drag a section by its **Move section** handle, or press Space or Enter to pick it up, use the arrow keys, then press Space or Enter to save. Escape cancels the move. A rejected save restores the last confirmed order. The administrator can change the sequence of the six sections. Editing the section copy remains a source change.
+In **Editing mode**, click or tap the up or down button to move a section one position and save the change. You can also drag a section by its **Move section** handle. From the handle, press Space or Enter to pick up the section, use the arrow keys, then press Space or Enter to save. Escape cancels the move. A rejected save restores the last confirmed order. The administrator can change the sequence of the six sections. Editing the section copy remains a source change.
 
 See the [backend guide](backend.md) for the HTTP contract and the [verification guide](testing-and-deployment.md) for browser checks.

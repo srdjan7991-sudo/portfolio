@@ -97,6 +97,25 @@ export function PortfolioSections({ sections, order, editing, saving, onPreview,
     else start({ key, type: 'keyboard', handle })
   }
 
+  function previewStep(key: SectionKey, direction: -1 | 1, control: HTMLButtonElement) {
+    const from = order.indexOf(key)
+    const to = from + direction
+    if (from < 0 || to < 0 || to >= order.length) return false
+    const next = [...order]
+    next.splice(to, 0, ...next.splice(from, 1))
+    const hadFocus = document.activeElement === control
+    onPreview(next)
+    setAnnouncement({ kind: 'moved', key, position: to + 1, total: order.length })
+    requestAnimationFrame(() => {
+      if (!control.isConnected) return
+      if (hadFocus && document.activeElement === document.body) control.focus({ preventScroll: true })
+      if (!hadFocus || document.activeElement === control) {
+        control.scrollIntoView({ block: 'nearest', behavior: 'instant' })
+      }
+    })
+    return true
+  }
+
   function handleKey(event: KeyboardEvent<HTMLButtonElement>, key: SectionKey) {
     if (!['Enter', ' ', 'ArrowUp', 'ArrowDown', 'Escape'].includes(event.key)) return
     event.stopPropagation()
@@ -111,15 +130,7 @@ export function PortfolioSections({ sections, order, editing, saving, onPreview,
     }
     const move = moving.current
     if (move?.key !== key || move.type !== 'keyboard') return
-    const from = order.indexOf(key)
-    const to = from + (event.key === 'ArrowUp' ? -1 : 1)
-    if (to < 0 || to >= order.length) return
-    const next = [...order]
-    next.splice(to, 0, ...next.splice(from, 1))
-    onPreview(next)
-    setAnnouncement({ kind: 'moved', key, position: to + 1, total: order.length })
-    const handle = event.currentTarget
-    requestAnimationFrame(() => handle.scrollIntoView({ block: 'nearest', behavior: 'instant' }))
+    previewStep(key, event.key === 'ArrowUp' ? -1 : 1, event.currentTarget)
   }
 
   const message = !announcement ? '' : announcement.kind === 'cancelled' ? text.order.cancelled
@@ -138,9 +149,13 @@ export function PortfolioSections({ sections, order, editing, saving, onPreview,
           <ScreenReaderStatus message={message} />
         </>
       )}
-      {order.map(key => (
+      {order.map((key, index) => (
         <SortableSection key={key} sectionKey={key} editing={editing} saving={saving}
           bounds={bounds} reduced={Boolean(reduced)} pickedUp={pickedUp === key}
+          moveActive={pickedUp !== undefined} canMoveUp={index > 0} canMoveDown={index < order.length - 1}
+          onStep={(direction, control) => {
+            if (editing && !saving && !moving.current && previewStep(key, direction, control)) onSave()
+          }}
           onPointerStart={cancel => start({ key, type: 'pointer', cancel })}
           onPointerEnd={commit => { if (moving.current?.type === 'pointer') finish(commit) }}
           onKeyDown={event => handleKey(event, key)}
