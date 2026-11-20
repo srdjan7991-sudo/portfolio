@@ -93,6 +93,7 @@
 }
 .close span { font-size: 1.3em; }
 .close:hover { color: var(--accent-hover); background: var(--accent-soft); }
+.section[data-view='scenarios'] .close { scroll-margin-block-start: 0.6rem; }
 .panel h3 {
   max-width: 31ch;
   margin-block-start: 0.45rem;
@@ -173,7 +174,7 @@
   @keyframes explanation-in { from { opacity: 0.8; } to { opacity: 1; } }
 
   .expand, .teaserButton { transition: grid-template-rows 820ms var(--ease-out), opacity 380ms ease; }
-  .section[data-expanded='true'][data-view='player'] :is(.expand, .teaserButton) {
+  .section:is([data-view='scenarios'], [data-expanded='true'][data-view='player']) :is(.expand, .teaserButton) {
     transition-property: opacity;
   }
 }

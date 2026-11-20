@@ -17,7 +17,7 @@ npm ci
 npm run dev
 ```
 
-Open the URL printed by Vite. The default HTTP setup uses the bundled section order and the guided request walkthrough. It works without a database.
+Open the URL printed by Vite. The default HTTP setup uses the bundled section order, the guided request walkthrough, and the simulated HTTP scenarios. It works without a database.
 
 For live API calls, Swagger, and administrator controls, follow the [local backend setup](docs/backend.md#local-setup).
 
@@ -26,7 +26,7 @@ For live API calls, Swagger, and administrator controls, follow the [local backe
 | Feature | What it shows |
 | --- | --- |
 | Selected Work | The Mede Analytics case study, a reporting preview, and an independent analytics demo with period and category filters, a chart, and a matching table. The demo uses synthetic data. Kterio has a separate project summary. |
-| Behind every request | A six-stage walkthrough of a request through the browser, application server, and database. With the API enabled, it can show the result of a public request to the local backend. |
+| Behind every request | Follow the six-stage walkthrough or choose **Try HTTP scenarios** to compare out-of-order responses, cancel a slow request, and retry after HTTP 500. The scenarios use simulated data. With the API enabled, the six-stage walkthrough can show the actual response from the portfolio backend. |
 | English and Serbian | A header switch changes the language in place and remembers the selection on the next visit. |
 | Light and dark themes | A switch in the header with a saved preference. The interface respects reduced motion. |
 | Section ordering | In the HTTPS setup, the administrator can sort six content sections by dragging, using the up and down buttons, or using the keyboard. The API saves the order in SQL Server. |
@@ -36,7 +36,7 @@ For live API calls, Swagger, and administrator controls, follow the [local backe
 | Area | Tools |
 | --- | --- |
 | Frontend | React, TypeScript, Vite, CSS Modules, CSS custom properties, locally hosted Geist and Geist Mono |
-| Interaction | Motion for React for Hero and section reordering, Radix UI Collapsible for the mobile menu, SVG and CSS for the walkthrough |
+| Interaction | Motion for React for Hero and section reordering, Radix UI Collapsible for the mobile menu, SVG and CSS for the walkthrough and HTTP scenarios |
 | API and data | ASP.NET Core Minimal APIs on .NET 10, Entity Framework Core, SQL Server, Swashbuckle and Swagger UI |
 | Authentication | ASP.NET Core Identity and JWT bearer authentication |
 | Testing | Vitest, React Testing Library, jest-dom, user-event, jsdom, V8 coverage, xUnit, ASP.NET Core TestServer |
@@ -71,6 +71,6 @@ For live API calls, Swagger, and administrator controls, follow the [local backe
 
 ## Documentation
 
-- [Architecture and request walkthrough](docs/architecture.md) covers page composition, themes, navigation, section ordering, and the SVG animation timeline.
+- [Architecture and request walkthrough](docs/architecture.md) covers page composition, themes, navigation, section ordering, the SVG animation timeline, and the HTTP simulation.
 - [Local backend and API](docs/backend.md) covers SQL Server, migrations, HTTPS, administrator setup, and endpoint behavior.
 - [Testing and deployment](docs/testing-and-deployment.md) covers frontend and backend checks, browser verification, and what GitHub Pages publishes.

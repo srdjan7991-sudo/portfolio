@@ -59,6 +59,20 @@ In the database stage, [`RequestFlowDiagram.tsx`](../src/features/request-flow/R
 
 [`RequestFlowCircuit.tsx`](../src/features/request-flow/RequestFlowCircuit.tsx) draws normalized paths for the outbound and returning fills. [`RequestFlowConnections.tsx`](../src/features/request-flow/RequestFlowConnections.tsx) measures SVG connection points with `ResizeObserver` and updates the routes in an animation frame. The scene is horizontal at wider widths and stacks at `46rem` and below. Reserved space for captions, response data, and database readouts keeps the layout steady as the state changes. Reduced motion presents each stage without the animated fill and transforms.
 
+### Interactive HTTP scenarios
+
+Choose **Try HTTP scenarios** in the same section. The simulator runs locally in both the static and HTTPS builds. It shows example GET paths and HTTP statuses without sending requests or depending on the database.
+
+| Scenario | What to try |
+| --- | --- |
+| Responses out of order | Send the first request and then a newer one. The simulator holds the older response until the newer one arrives. The unchecked view applies both responses in arrival order and ends on the old period. The checked view keeps the result of the most recently issued request. |
+| Cancel a slow request | Cancel the pending request or send a replacement that cancels it. A cancelled lane stops before delivering a result. In a real application, aborting `fetch` stops the browser from waiting or reading the response. Server-side work may continue. |
+| Recover from HTTP 500 | Send the request and wait for the error to arrive. Retry the same simulated GET and watch the screen move from loading to success. The failed attempt stays in the diagram. |
+
+[`useRequestScenarios.ts`](../src/features/request-flow/scenarios/useRequestScenarios.ts) owns request IDs, phases, and deadlines. Timer events advance a request only when the ID and deadline still match. A delayed timer starts the next phase at delivery so it stays visible for its intended duration. Resetting or switching scenarios clears the run and its pending transitions. Closing the panel pauses its visuals and clears pending timers. Reopening starts a fresh run. Language and theme changes preserve the open run.
+
+[`RequestScenarios.tsx`](../src/features/request-flow/scenarios/RequestScenarios.tsx) renders the request lanes, controls, results, and optional technical details. Starting or cancelling a request scrolls more of the lanes into view when space allows and keeps the active control visible. CSS uses the same transit duration as the simulation. Reduced motion shows the same phases and results with static indicators. The six-stage walkthrough retains its own live request handling and playback.
+
 ## Section ordering
 
 [`useSectionOrder.ts`](../src/features/section-order/useSectionOrder.ts) reads the order from `GET /api/sections/order` when API integration is enabled. It falls back to the bundled order if the response is unavailable or invalid. The Header and content group receive the same order.
