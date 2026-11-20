@@ -1,6 +1,7 @@
 import { PortfolioSection } from '../../components/shared/PortfolioSection'
 import { TechnologyTags } from '../../components/shared/TechnologyTags'
 import { useLanguage } from '../../i18n/language'
+import { AnalyticsReportDemo } from './AnalyticsReportDemo'
 import './SelectedWork.css'
 
 const seriesAPath = 'M0 161 C40 166 67 130 112 137 S178 155 224 120 S287 76 320 92 S390 108 432 66 S505 90 544 48 S610 60 640 21'
@@ -54,6 +55,7 @@ export function SelectedWork() {
             <TechnologyTags label={work.technologies('Mede Analytics')} tools={['React', 'TypeScript', 'Redux', 'Highcharts', '.NET 8', 'Vitest']} />
           </div>
           <AnalyticsPreview />
+          <AnalyticsReportDemo />
           <details className="selected-work-case-study">
             <summary>{work.read}</summary>
             <dl className="selected-work-case-details">

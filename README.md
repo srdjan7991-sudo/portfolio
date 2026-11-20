@@ -25,7 +25,7 @@ For live API calls, Swagger, and administrator controls, follow the [local backe
 
 | Feature | What it shows |
 | --- | --- |
-| Selected Work | The Mede Analytics case study and a reporting preview labeled as synthetic, followed by a summary of the work on Kterio. |
+| Selected Work | The Mede Analytics case study, a reporting preview, and an independent analytics demo with period and category filters, a chart, and a matching table. The demo uses synthetic data. Kterio has a separate project summary. |
 | Behind every request | A six-stage walkthrough of a request through the browser, application server, and database. With the API enabled, it can show the result of a public request to the local backend. |
 | English and Serbian | A header switch changes the language in place and remembers the selection on the next visit. |
 | Light and dark themes | A switch in the header with a saved preference. The interface respects reduced motion. |
