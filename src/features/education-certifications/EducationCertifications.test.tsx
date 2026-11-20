@@ -5,8 +5,9 @@ import { EducationCertifications } from './EducationCertifications'
 test('lists the certification and courses with their providers and dates', () => {
   render(<EducationCertifications />)
   const [certification, courses] = screen.getAllByRole('listitem')
-  expect(within(certification).getByRole('heading', { name: 'Certified Software Engineering Professional' })).toBeInTheDocument()
+  expect(within(certification).getByRole('heading', { name: 'Certified Software Engineering Professional' })).toHaveAttribute('lang', 'en')
   expect(within(certification).getByText('ITAcademy · Belgrade, Serbia · 2018')).toBeInTheDocument()
   expect(within(courses).getByRole('heading', { name: 'Selected Anthropic courses' })).toBeInTheDocument()
-  expect(within(courses).getByText(/Claude Code in Action, AI Fluency for Builders, and Introduction to Model Context Protocol · August 2026/)).toBeInTheDocument()
+  expect(within(courses).getByText('Claude Code in Action')).toHaveAttribute('lang', 'en')
+  expect(courses).toHaveTextContent('Claude Code in Action, AI Fluency for Builders, and Introduction to Model Context Protocol · August 2026')
 })

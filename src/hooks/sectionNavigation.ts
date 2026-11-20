@@ -1,20 +1,15 @@
-import { useEffect, useLayoutEffect, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { defaultSectionOrder, isSectionKey } from '../sections'
+import { useLanguage } from '../i18n/language'
 
-export const sectionLinks = [
-  { id: 'work', label: 'Work' },
-  { id: 'skills', label: 'Skills' },
-  { id: 'expertise', label: 'Expertise' },
-  { id: 'experience', label: 'Experience' },
-  { id: 'education', label: 'Education' },
-  { id: 'contact', label: 'Contact' },
-]
-
-export function useActiveSection(header: { readonly current: HTMLElement | null }) {
+export function useActiveSection(header: { readonly current: HTMLElement | null }, order: readonly string[] = defaultSectionOrder) {
+  const { language } = useLanguage()
   const [activeSection, setActiveSection] = useState<string>()
 
   useEffect(() => {
-    const sections = sectionLinks
-      .map(({ id }) => document.getElementById(id))
+    const sections = order
+      .filter(isSectionKey)
+      .map(id => document.getElementById(id))
       .filter((section) => section !== null)
     let frame = 0
 
@@ -56,12 +51,14 @@ export function useActiveSection(header: { readonly current: HTMLElement | null 
       window.removeEventListener('resize', scheduleUpdate)
       window.removeEventListener('hashchange', scheduleUpdate)
     }
-  }, [header])
+  }, [header, order, language])
 
   return activeSection
 }
 
-export function useSectionNavigation() {
+export function useSectionNavigation(orderReady = true) {
+  const realign = useRef<() => void>(null)
+  const waitingForOrder = useRef(!orderReady)
   useLayoutEffect(() => {
     // A deep link can arrive before React has inserted the target into the document.
     const hash = location.hash
@@ -71,15 +68,25 @@ export function useSectionNavigation() {
     target.focus({ preventScroll: true })
     target.scrollIntoView({ behavior: 'instant' })
 
-    const initialScroll = window.scrollY
+    let initialScroll = window.scrollY
     let cancelled = false
-    void document.fonts.ready.then(() => {
-      if (!cancelled && location.hash === hash && window.scrollY === initialScroll) {
+    function alignWhileUntouched() {
+      if (target && !cancelled && location.hash === hash && document.activeElement === target && window.scrollY === initialScroll) {
         target.scrollIntoView({ behavior: 'instant' })
+        initialScroll = window.scrollY
       }
-    })
-    return () => { cancelled = true }
+    }
+    realign.current = alignWhileUntouched
+    void document.fonts?.ready.then(alignWhileUntouched)
+    return () => { cancelled = true; realign.current = null }
   }, [])
+
+  useLayoutEffect(() => {
+    if (orderReady && waitingForOrder.current) {
+      waitingForOrder.current = false
+      realign.current?.()
+    }
+  }, [orderReady])
 
   useEffect(() => {
     if (!('IntersectionObserver' in window)) return
@@ -95,7 +102,7 @@ export function useSectionNavigation() {
       }
     }, { threshold: 0.08 })
 
-    for (const { id } of sectionLinks) {
+    for (const id of defaultSectionOrder) {
       const section = document.getElementById(id)
       // Preserve the initial view, including direct links and restored scroll positions.
       if (section && section.getBoundingClientRect().top >= window.innerHeight) {

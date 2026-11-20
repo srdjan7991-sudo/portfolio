@@ -1,20 +1,16 @@
+import { PortfolioSection } from '../../components/shared/PortfolioSection'
 import './EngineeringExpertise.css'
-
-const expertise = [
-  { title: 'Enterprise Frontend', text: 'I help move legacy interfaces to React and build reusable components that follow shared UI patterns and Figma designs.' },
-  { title: 'Analytics & Data Visualization', text: 'I build dashboards and reporting workflows that let users filter results and explore data through interactive charts.' },
-  { title: 'API Integration & Testing', text: 'I connect React features to .NET APIs, handle asynchronous state and errors, and write automated tests for user-facing behavior.' },
-]
+import { useLanguage } from '../../i18n/language'
 
 export function EngineeringExpertise() {
+  const { text: { expertise } } = useLanguage()
   return (
-    <section id="expertise" className={`container portfolio-section`} aria-labelledby="expertise-title" tabIndex={-1}>
-      <h2 id="expertise-title" className="section-title">Engineering Expertise</h2>
+    <PortfolioSection id="expertise">
       <div className="expertise-expertise-grid">
-        {expertise.map(({ title, text }) => (
-          <div key={title}><h3>{title}</h3><p>{text}</p></div>
+        {Object.entries(expertise).map(([id, { title, text }]) => (
+          <div key={id}><h3>{title}</h3><p>{text}</p></div>
         ))}
       </div>
-    </section>
+    </PortfolioSection>
   )
 }

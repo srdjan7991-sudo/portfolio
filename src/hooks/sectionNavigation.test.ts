@@ -2,7 +2,9 @@ import { act, fireEvent, render, renderHook, screen } from '@testing-library/rea
 import { afterEach, expect, test, vi } from 'vitest'
 import { createElement } from 'react'
 import { App } from '../App'
-import { sectionLinks, useActiveSection, useSectionNavigation } from './sectionNavigation'
+import { useActiveSection, useSectionNavigation } from './sectionNavigation'
+import { defaultSectionOrder } from '../sections'
+import { en } from '../i18n/en'
 
 afterEach(() => {
   window.history.replaceState(null, '', '/')
@@ -11,11 +13,11 @@ afterEach(() => {
 test('every primary navigation link reaches a named section in the same reading order', () => {
   render(createElement(App))
   const regions = screen.getAllByRole('region')
-  const registeredIds = sectionLinks.map(({ id }) => id)
-  expect(regions.map((region) => region.id)).toEqual(['top', ...registeredIds])
+  const registeredIds = defaultSectionOrder
+  expect(regions.map((region) => region.id)).toEqual(['top', 'request-flow', ...registeredIds])
   expect(new Set(registeredIds).size).toBe(registeredIds.length)
-  for (const { id, label } of sectionLinks) {
-    expect(screen.getByRole('link', { name: label })).toHaveAttribute('href', `#${id}`)
+  for (const id of registeredIds) {
+    expect(screen.getByRole('link', { name: en.sections[id].label })).toHaveAttribute('href', `#${id}`)
   }
 })
 
@@ -114,6 +116,25 @@ test('leaves focus alone when a deep link points at an element that is missing',
   button.focus()
   renderHook(useSectionNavigation)
   expect(button).toHaveFocus()
+})
+
+test('opens the deep link before the order loads and respects focus the reader moves afterwards', () => {
+  window.history.replaceState(null, '', '#work')
+  render(createElement('main', null,
+    createElement('section', { id: 'work', tabIndex: -1, 'aria-label': 'Selected Work' }),
+    createElement('button', null, 'Dark theme'),
+  ))
+  const section = screen.getByRole('region', { name: 'Selected Work' })
+  section.scrollIntoView = vi.fn()
+  const { rerender } = renderHook(({ ready }) => useSectionNavigation(ready), { initialProps: { ready: false } })
+  expect(section).toHaveFocus()
+  const control = screen.getByRole('button', { name: 'Dark theme' })
+  control.focus()
+
+  rerender({ ready: true })
+
+  expect(control).toHaveFocus()
+  expect(section.scrollIntoView).toHaveBeenCalledOnce()
 })
 
 test.each([

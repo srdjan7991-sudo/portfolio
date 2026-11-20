@@ -1,0 +1,53 @@
+.portfolio-order-group[data-editing] { overflow-anchor: none; }
+
+:root:has(.portfolio-order-group[data-editing] [data-picked-up]) {
+  scroll-behavior: auto;
+  overflow-anchor: none;
+}
+
+.portfolio-order-group[data-editing] .portfolio-order-item {
+  position: relative;
+  outline: 1px dashed var(--accent-edge);
+  outline-offset: -3px;
+}
+
+.portfolio-order-group[data-editing] .portfolio-order-item[data-picked-up] {
+  outline: 2px solid var(--accent-edge);
+  box-shadow: var(--shadow);
+}
+
+.portfolio-order-handle {
+  position: absolute;
+  inset: 0.35rem var(--gutter) auto auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-height: 2.75rem;
+  padding-inline: 0.72rem;
+  border: 1px solid var(--control-edge);
+  border-radius: 0.45rem;
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.77rem;
+  font-weight: 650;
+  touch-action: none;
+  user-select: none;
+  cursor: grab;
+}
+
+.portfolio-order-handle[aria-pressed='true'] { background: var(--accent-soft); color: var(--accent); cursor: grabbing; }
+.portfolio-order-handle:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.portfolio-order-handle[aria-disabled='true'] { opacity: 0.65; cursor: wait; }
+
+.portfolio-order-grip {
+  width: 0.65rem;
+  height: 0.8rem;
+  background: radial-gradient(circle, currentColor 1px, transparent 1.35px) 0 0 / 5px 4px;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .portfolio-order-handle { animation: portfolio-order-handle-in 180ms ease-out; }
+  .portfolio-order-group[data-editing] .portfolio-order-item { transition: box-shadow 180ms ease; }
+  @keyframes portfolio-order-handle-in { from { opacity: 0; transform: translateY(-2px); } }
+}

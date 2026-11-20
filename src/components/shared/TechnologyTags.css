@@ -1,10 +1,13 @@
 .technology-tags {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.45rem 0.6rem;
+  gap: 0.4rem 1rem;
   padding: 0;
   margin: 0;
   list-style: none;
 }
 
-.technology-tags li { background: #e9eeea; color: #284440; padding: 0.26rem 0.65rem; border-radius: 999px; font-size: 0.82rem; }
+.technology-tags li {
+  color: var(--quiet);
+  font: 0.74rem/1.55 var(--mono);
+}

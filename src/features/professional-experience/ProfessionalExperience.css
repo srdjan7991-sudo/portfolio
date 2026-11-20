@@ -1,19 +1,54 @@
-.experience-entry-heading h4 {
-  font-size: clamp(1.2rem, 2.4vw, 1.65rem);
-  font-weight: 650;
-  letter-spacing: -0.045em;
-  line-height: 1.15;
+.experience-employment {
+  padding-block: 0.9rem clamp(1.25rem, 3vw, 2.5rem);
+  border-bottom: 1px solid var(--line);
 }
 
-.experience-employment { background: #e6eee9; padding: clamp(1.1rem, 4vw, 2.2rem); border-radius: 0.9rem; }
-.experience-entry-heading { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 0.25rem 1rem; }
-.experience-entry-heading p { font-variant-numeric: tabular-nums; }
-.experience-employment > p { margin-top: 0.7rem; max-width: 68ch; }
-.experience-project-heading { margin-top: clamp(1.75rem, 4vw, 3rem); }
-.experience-timeline { list-style: none; padding: 0; margin: 1.1rem 0 0 0.3rem; border-left: 1px solid #98b1a8; }
-.experience-timeline > li { position: relative; padding: 0.25rem 0 1.6rem clamp(1.2rem, 3.5vw, 2.6rem); }
+.experience-entry-heading {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 0.45rem 1.5rem;
+}
+.experience-entry-heading p { font: 0.78rem/1.5 var(--mono); font-variant-numeric: tabular-nums; }
+.experience-employment > p { margin-top: 0.85rem; max-width: 66ch; }
+.experience-project-heading { margin-top: clamp(1.8rem, 4vw, 3.3rem); }
+
+.experience-timeline {
+  list-style: none;
+  padding: 0;
+  margin: 1.4rem 0 0 0.33rem;
+  border-inline-start: 1px solid var(--line-glass);
+}
+.experience-timeline > li { position: relative; padding: 0.25rem 0 1.8rem clamp(1.2rem, 3vw, 2.35rem); }
 .experience-timeline > li:last-child { padding-bottom: 0; }
-.experience-timeline > li::before { content: ''; position: absolute; top: 0.65rem; left: -0.31rem; width: 0.56rem; height: 0.56rem; border-radius: 50%; background: var(--accent); }
-.experience-entry-heading h4 { margin: 0; }
-.experience-timeline .experience-role { margin-block: 0.2rem 0.45rem; color: var(--accent); font-weight: 650; }
-.experience-timeline .technology-tags { margin-top: 0.55rem; }
+.experience-timeline > li::before {
+  content: '';
+  position: absolute;
+  inset: 0.65rem auto auto -0.26rem;
+  width: 0.5rem;
+  height: 0.5rem;
+  border: 1px solid var(--quiet);
+  border-radius: 50%;
+  background: var(--paper);
+}
+.experience-timeline > li:first-child::before { border-color: var(--accent); background: var(--accent); }
+
+.experience-entry-heading h4 {
+  margin: 0;
+  font-size: clamp(1.18rem, 2.4vw, 1.62rem);
+  font-weight: 580;
+  letter-spacing: -0.045em;
+  line-height: 1.2;
+}
+.experience-timeline .experience-role { margin-block: 0.3rem 0.65rem; color: var(--ink); font-size: 0.89rem; }
+.experience-timeline .technology-tags { margin-top: 0.85rem; }
+
+@media (max-width: 36rem) {
+  .experience-entry-heading { grid-template-columns: 1fr; }
+}
+@media (hover: hover) {
+  .experience-timeline > li:hover::before { border-color: var(--accent); }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .experience-timeline > li::before { transition: border-color var(--quick) ease; }
+}

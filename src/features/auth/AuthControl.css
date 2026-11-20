@@ -1,0 +1,168 @@
+.portfolio-auth-trigger {
+  min-width: 5.5rem;
+  min-height: 2.75rem;
+  padding: 0.25rem 0.9rem;
+  border: 1px solid var(--line-glass);
+  border-radius: var(--pill);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 650;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.portfolio-auth-trigger-icon { display: none; }
+.portfolio-auth-language { display: flex; justify-content: flex-end; margin-block-start: 0.75rem; }
+
+.portfolio-auth-trigger:hover { background: var(--surface-raised); border-color: var(--accent); }
+.portfolio-auth-trigger:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+.portfolio-auth-dialog {
+  width: min(28rem, calc(100% - 2rem));
+  max-height: calc(100dvh - 2rem);
+  padding: clamp(1.4rem, 5vw, 2.4rem);
+  margin: auto;
+  border: 1px solid var(--line-glass);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: var(--shadow);
+}
+
+.portfolio-auth-dialog::backdrop { background: var(--dialog-backdrop); }
+.portfolio-auth-dialog h2 {
+  padding-inline-end: 2.5rem;
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: clamp(2.25rem, 7vw, 3.5rem);
+  font-style: normal;
+  font-weight: 610;
+  line-height: 0.98;
+  letter-spacing: -0.065em;
+}
+
+.portfolio-auth-description { margin-block: 0.65rem 1.3rem; color: var(--muted); font-size: 0.93rem; }
+.portfolio-auth-dialog form, .portfolio-auth-dialog label, .portfolio-auth-password { display: grid; gap: 0.42rem; }
+.portfolio-auth-dialog form { gap: 0.9rem; }
+.portfolio-auth-dialog label { font-size: 0.88rem; font-weight: 650; }
+
+.portfolio-auth-dialog input {
+  width: 100%;
+  min-width: 0;
+  min-height: 2.95rem;
+  padding: 0.63rem 0.75rem;
+  border: 1px solid var(--control-edge);
+  border-radius: 0.55rem;
+  background: var(--surface-subtle);
+  color: var(--ink);
+  font: 400 1rem var(--sans);
+}
+
+.portfolio-auth-dialog input:hover { border-color: var(--accent-edge); }
+.portfolio-auth-dialog input:focus { border-color: var(--accent); outline: 2px solid var(--accent); outline-offset: 1px; }
+
+.portfolio-auth-close, .portfolio-auth-reveal {
+  color: var(--muted);
+  background: transparent;
+  border: 0;
+  font: inherit;
+  cursor: pointer;
+}
+
+.portfolio-auth-close {
+  position: absolute;
+  inset: 0.7rem 0.7rem auto auto;
+  min-width: 2.75rem;
+  min-height: 2.75rem;
+  border-radius: 50%;
+  font-size: 1.45rem;
+  line-height: 1;
+}
+
+.portfolio-auth-close:hover, .portfolio-auth-reveal:hover { background: var(--surface-raised); }
+.portfolio-auth-reveal {
+  justify-self: end;
+  min-height: 2.75rem;
+  margin-block-start: -0.25rem;
+  padding-inline: 0.55rem;
+  border-radius: 0.45rem;
+  font-size: 0.83rem;
+  font-weight: 650;
+}
+
+.portfolio-auth-action {
+  min-height: 2.85rem;
+  padding: 0.6rem 1.05rem;
+  border: 0;
+  border-radius: var(--pill);
+  color: var(--on-accent);
+  background: var(--accent);
+  font: inherit;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.portfolio-auth-action:hover { background: var(--accent-hover); }
+.portfolio-auth-action:disabled { opacity: 0.7; cursor: wait; }
+.portfolio-auth-dialog button:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.portfolio-auth-account { margin-block-end: 1rem; overflow-wrap: anywhere; }
+
+.portfolio-auth-error {
+  margin-block-end: 0.9rem;
+  padding: 0.65rem 0.8rem;
+  border: 1px solid var(--danger-edge);
+  border-radius: 0.55rem;
+  background: var(--danger-bg);
+  color: var(--danger-text);
+  font-size: 0.88rem;
+}
+
+.portfolio-auth-progress:not(:empty) {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-block-end: 0.7rem;
+  color: var(--muted);
+  font-size: 0.87rem;
+}
+
+.portfolio-auth-spinner {
+  width: 0.9rem;
+  aspect-ratio: 1;
+  border: 2px solid var(--line);
+  border-inline-start-color: var(--accent);
+  border-radius: 50%;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .portfolio-auth-dialog {
+    opacity: 0;
+    transform: translateY(8px) scale(0.985);
+    transition: opacity 180ms ease, transform 220ms var(--ease-out),
+      display 220ms allow-discrete, overlay 220ms allow-discrete;
+  }
+
+  .portfolio-auth-dialog[open] { opacity: 1; transform: none; }
+  .portfolio-auth-dialog:not([open]) { pointer-events: none; }
+
+  .portfolio-auth-dialog::backdrop {
+    opacity: 0;
+    transition: opacity 220ms ease, display 220ms allow-discrete, overlay 220ms allow-discrete;
+  }
+
+  .portfolio-auth-dialog[open]::backdrop { opacity: 1; }
+
+  @starting-style {
+    .portfolio-auth-dialog[open] { opacity: 0; transform: translateY(8px) scale(0.985); }
+    .portfolio-auth-dialog[open]::backdrop { opacity: 0; }
+  }
+
+  .portfolio-auth-dialog button, .portfolio-auth-trigger, .portfolio-auth-dialog input {
+    transition: background-color 160ms ease, border-color 160ms ease;
+  }
+
+  .portfolio-auth-spinner { animation: portfolio-auth-spin 750ms linear infinite; }
+  @keyframes portfolio-auth-spin { to { transform: rotate(1turn); } }
+}

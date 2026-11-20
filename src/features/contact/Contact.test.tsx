@@ -11,7 +11,7 @@ test('links to the public contact channels', () => {
 
 test('offers the DOCX CV as a download under the configured base URL', () => {
   render(<Contact />)
-  const cv = screen.getByRole('link', { name: 'Download CV (DOCX)' })
+  const cv = screen.getByRole('link', { name: 'Download CV (English, DOCX)' })
   expect(cv).toHaveAttribute('href', `${import.meta.env.BASE_URL}Srdjan_Pajic_CV.docx`)
   expect(cv).toHaveAttribute('download')
 })

@@ -1,13 +1,25 @@
+import { PortfolioSection } from '../../components/shared/PortfolioSection'
 import './EducationCertifications.css'
+import { useLanguage } from '../../i18n/language'
+
+const courseNames = ['Claude Code in Action', 'AI Fluency for Builders', 'Introduction to Model Context Protocol']
+const courseLists = {
+  en: new Intl.ListFormat('en', { type: 'conjunction' }).formatToParts(courseNames),
+  sr: new Intl.ListFormat('sr-Latn', { type: 'conjunction' }).formatToParts(courseNames),
+}
 
 export function EducationCertifications() {
+  const { language, text: { education } } = useLanguage()
   return (
-    <section id="education" className={`container portfolio-section`} aria-labelledby="education-title" tabIndex={-1}>
-      <h2 id="education-title" className="section-title">Education &amp; Certifications</h2>
+    <PortfolioSection id="education">
       <ul className="education-credentials">
-        <li><h3>Certified Software Engineering Professional</h3><p>ITAcademy · Belgrade, Serbia · 2018</p></li>
-        <li><h3>Selected Anthropic courses</h3><p>Claude Code in Action, AI Fluency for Builders, and Introduction to Model Context Protocol · August 2026</p></li>
+        <li><h3 lang="en">Certified Software Engineering Professional</h3><p>ITAcademy · {education.location} · 2018</p></li>
+        <li>
+          <h3>{education.courses}</h3>
+          <p>{courseLists[language].map(({ type, value }) => type === 'element'
+            ? <span key={value} lang="en">{value}</span> : value)} · {education.date}</p>
+        </li>
       </ul>
-    </section>
+    </PortfolioSection>
   )
 }

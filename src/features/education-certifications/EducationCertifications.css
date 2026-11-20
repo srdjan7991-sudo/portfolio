@@ -1,12 +1,16 @@
 .education-credentials {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.45rem 0.6rem;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(1.2rem, 4vw, 3rem);
   padding: 0;
   margin: 0;
   list-style: none;
 }
 
-.education-credentials { display: grid; gap: 1rem; }
-.education-credentials > li { border-top: 1px solid var(--line); padding-top: 0.85rem; }
-.education-credentials p { margin-top: 0.3rem; }
+.education-credentials > li { border-top: 1px solid var(--line-glass); padding-block-start: 1.25rem; }
+.education-credentials h3 { max-width: 26ch; }
+.education-credentials p { margin-top: 0.8rem; font: 0.79rem/1.75 var(--mono); }
+
+@media (max-width: 43rem) {
+  .education-credentials { grid-template-columns: 1fr; }
+}

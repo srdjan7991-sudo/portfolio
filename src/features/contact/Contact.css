@@ -1,24 +1,23 @@
+.contact-section {
+  padding-block: var(--section-space);
+  border-top: 1px solid var(--line);
+  background: var(--surface-subtle);
+}
+.contact-section .section-title { font-size: clamp(2.8rem, 7vw, 6rem); margin-bottom: 1rem; }
+.contact-section:focus { outline: none; }
+.contact-section:focus-visible .section-title {
+  text-decoration: underline var(--accent) 2px;
+  text-underline-offset: 0.15em;
+}
+.contact-section p { color: var(--muted); max-width: 44ch; font-size: clamp(1rem, 1.7vw, 1.2rem); }
+
 .contact-links {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.45rem 0.6rem;
+  gap: 0.58rem;
   padding: 0;
-  margin: 0;
+  margin: 1.8rem 0 0;
   list-style: none;
 }
 
-.contact-section { background: #102422; color: #f8f6ee; padding-block: clamp(3.25rem, 8vw, 6.5rem); }
-.contact-section:focus { outline: none; }
-.contact-section:focus-visible .section-title {
-  text-decoration: underline #88a89d 2px;
-  text-underline-offset: 0.15em;
-}
-.contact-section p { color: #c4d0ca; max-width: 60ch; }
-.contact-links { margin-top: 1.45rem; }
-.contact-links a { display: inline-flex; align-items: center; gap: 0.45rem; min-height: 2.75rem; padding: 0.45rem 0.8rem; border: 1px solid #66837a; border-radius: 999px; text-decoration: none; }
-.contact-links a:hover, .contact-links a:focus-visible { background: #263c36; border-color: #bbd9cb; }
-.contact-file-type { color: #c4d0ca; font-size: 0.78rem; }
-
-@media (prefers-reduced-motion: no-preference) {
-  .contact-links a { transition: background-color 180ms ease, border-color 180ms ease; }
-}
+.contact-file-type { font: 0.68rem var(--mono); color: var(--muted); }

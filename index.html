@@ -1,10 +1,25 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="light" data-theme-storage="portfolio-theme">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#f4f2ed" data-light="#f4f2ed" data-dark="#242628" />
+    <script>
+      // Apply the saved preference before styles or the React entry point load.
+      try {
+        const root = document.documentElement
+        if (localStorage.getItem(root.dataset.themeStorage) === 'dark') {
+          root.dataset.theme = 'dark'
+          const themeColor = document.querySelector('meta[name="theme-color"]')
+          themeColor.content = themeColor.dataset.dark
+        }
+      } catch {
+        // A browser can disable storage. The default theme still works.
+      }
+    </script>
+    <link rel="stylesheet" href="/src/theme.css?direct" />
     <meta name="description" content="Srdjan Pajic, frontend engineer focused on React and TypeScript. Explore selected work, experience, and technical skills." />
-    <title>Srdjan Pajic — Frontend Engineer</title>
+    <title>Srdjan Pajic | Frontend Engineer</title>
   </head>
   <body>
     <div id="root"></div>

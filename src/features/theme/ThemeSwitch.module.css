@@ -1,0 +1,84 @@
+.button {
+  --switch-track: #e8e5de;
+  --switch-edge: #918b80;
+  --switch-thumb: #fffefa;
+  --switch-thumb-edge: rgb(34 35 34 / 11%);
+  --switch-symbol: #765018;
+  --switch-crater: #8297aa;
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 3.125rem;
+  min-height: 2.75rem;
+  padding: 0;
+  border: 0;
+  border-radius: var(--pill);
+  background: transparent;
+  color: var(--switch-symbol);
+  cursor: pointer;
+}
+
+.button[aria-checked='true'] {
+  --switch-track: #33404b;
+  --switch-edge: #778a9c;
+  --switch-thumb: #26313b;
+  --switch-thumb-edge: #566775;
+  --switch-symbol: #deebfa;
+}
+
+.track {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 1.625rem;
+  border: 1px solid var(--switch-edge);
+  border-radius: inherit;
+  background-color: var(--switch-track);
+}
+
+.thumb {
+  position: absolute;
+  inset: 2px auto auto 2px;
+  display: grid;
+  place-items: center;
+  width: 1.25rem;
+  aspect-ratio: 1;
+  border: 1px solid var(--switch-thumb-edge);
+  border-radius: 50%;
+  background-color: var(--switch-thumb);
+}
+
+.symbol { width: 1.0625rem; height: 1.0625rem; }
+.rays, .disc { transform-origin: center; }
+.occlusion { transform: translate(17px, -14px); }
+.craters, .stars { opacity: 0; }
+.stars {
+  position: absolute;
+  inset: 5px auto auto 4px;
+  width: 1.0625rem;
+  height: 0.875rem;
+  transform: translateY(2px);
+}
+
+.button[aria-checked='true'] .thumb { transform: translateX(1.5rem); }
+.button[aria-checked='true'] .rays { opacity: 0; transform: rotate(35deg) scale(0.5); }
+.button[aria-checked='true'] .disc { transform: scale(1.33); }
+.button[aria-checked='true'] .occlusion { transform: translate(5px, -4.6px); }
+.button[aria-checked='true'] .craters, .button[aria-checked='true'] .stars { opacity: 1; }
+.button[aria-checked='true'] .stars { transform: none; }
+
+@media (hover: hover) {
+  .button:hover .track { border-color: var(--accent); }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .button { transition: color 240ms ease; }
+  .track { transition: background-color 280ms ease, border-color var(--quick) ease; }
+  .thumb {
+    transition: transform 430ms var(--ease-out), background-color 280ms ease, border-color 280ms ease;
+  }
+  .rays { transition: opacity 140ms ease, transform 380ms var(--ease-out); }
+  .disc, .occlusion { transition: transform 425ms var(--ease-out); }
+  .craters { transition: opacity 200ms ease; }
+  .stars { transition: opacity 220ms ease, transform 350ms var(--ease-out); }
+}
