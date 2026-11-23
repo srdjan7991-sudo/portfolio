@@ -1,4 +1,4 @@
-import { act, render, screen, waitFor, within } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { expect, test, vi } from 'vitest'
 import { LanguageProvider, useLanguage } from '../../i18n/language'
@@ -115,6 +115,53 @@ test('retains the selected technology when the language changes', async () => {
     localStorage.clear()
     document.documentElement.lang = 'en'
     document.title = ''
+  }
+})
+
+test.each([
+  ['Highcharts', 'View work on Mede Analytics', '#work-mede'],
+  ['C#', 'View work on Kterio', '#experience-kterio'],
+])('links %s to its confirmed project', async (skill, label, href) => {
+  const user = userEvent.setup()
+  render(<TechnicalSkills />)
+  const tool = screen.getByRole('button', { name: skill })
+  tool.focus()
+  await user.keyboard('{Enter}')
+  const heading = screen.getByRole('heading', { name: skill, level: 4 })
+  expect(heading).toHaveFocus()
+  expect(within(heading.parentElement!).getByRole('link', { name: label })).toHaveAttribute('href', href)
+})
+
+test('restores focus to the project link after returning through native fragment history', async () => {
+  const user = userEvent.setup()
+  const originalState = history.state
+  const originalUrl = location.href
+  const replaceState = vi.spyOn(history, 'replaceState')
+  try {
+    render(<><TechnicalSkills /><article id="work-mede" tabIndex={-1}>Mede Analytics</article></>)
+    await user.click(screen.getByRole('button', { name: 'Highcharts' }))
+    const link = screen.getByRole('link', { name: 'View work on Mede Analytics' })
+    fireEvent.click(link, { ctrlKey: true })
+    expect(replaceState).not.toHaveBeenCalled()
+
+    expect(fireEvent.click(link)).toBe(true)
+    const entry = replaceState.mock.calls.at(-1)?.[0]
+    expect(entry).toBeDefined()
+
+    // jsdom does not model the browser's native focus and history restoration.
+    const project = document.getElementById('work-mede')
+    act(() => {
+      project?.focus()
+      history.replaceState(entry, '', originalUrl)
+      window.dispatchEvent(new HashChangeEvent('hashchange', {
+        oldURL: new URL('#work-mede', originalUrl).href,
+        newURL: originalUrl,
+      }))
+    })
+    expect(link).toHaveFocus()
+  } finally {
+    replaceState.mockRestore()
+    history.replaceState(originalState, '', originalUrl)
   }
 })
 

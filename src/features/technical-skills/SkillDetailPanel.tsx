@@ -1,4 +1,6 @@
 import { useLanguage } from '../../i18n/language'
+import type { Language } from '../../i18n/language'
+import type { MouseEvent } from 'react'
 import { relatedSkills, skillDetails } from './skillDetails'
 import { skillLogo } from './skillGroups'
 import type { SkillName, SkillTool } from './skillGroups'
@@ -10,13 +12,29 @@ type Props = {
   linked?: boolean
   onClose: () => void
   onSelect: (skill: SkillName) => void
+  onProjectLink: (event: MouseEvent<HTMLAnchorElement>) => void
 }
 
-export function SkillDetailPanel({ tool: [name, logo], id, headingId, linked, onClose, onSelect }: Props) {
+const projectEvidence: Partial<Record<SkillName, {
+  href: `#${string}`
+  label: Record<Language, string>
+}>> = {
+  Highcharts: {
+    href: '#work-mede',
+    label: { en: 'View work on Mede Analytics', sr: 'Pogledaj rad na Mede Analytics' },
+  },
+  'C#': {
+    href: '#experience-kterio',
+    label: { en: 'View work on Kterio', sr: 'Pogledaj rad na projektu Kterio' },
+  },
+}
+
+export function SkillDetailPanel({ tool: [name, logo], id, headingId, linked, onClose, onSelect, onProjectLink }: Props) {
   const { language, text: { skills: { explorer } } } = useLanguage()
   const { description, context } = skillDetails[name][language]
   const source = skillLogo(logo)
   const related = relatedSkills[name] ?? []
+  const project = projectEvidence[name]
 
   return (
     <div id={id} className="skills-detail">
@@ -29,6 +47,11 @@ export function SkillDetailPanel({ tool: [name, logo], id, headingId, linked, on
       </button>
       <p className="skills-role">{description}</p>
       {context && <p className="skills-context">{context}</p>}
+      {project && (
+        <a className="skills-project-link" id={`${headingId}-project`} href={project.href} onClick={onProjectLink}>
+          {project.label[language]} <span aria-hidden="true">↗</span>
+        </a>
+      )}
       {related.length > 0 && (
         <div className="skills-relations">
           <h5>{explorer.related}</h5>

@@ -15,6 +15,19 @@
   padding-block: 0.75rem;
 }
 
+.footerInner > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.footerInner > span::before {
+  content: '';
+  inline-size: 0.35rem;
+  block-size: 0.35rem;
+  background: var(--accent);
+}
+
 .footer a {
   display: inline-flex;
   align-items: center;
@@ -29,5 +42,5 @@
 
 @media (prefers-reduced-motion: no-preference) {
   .footer a, .footer a span { transition: color var(--quick) ease, transform var(--quick) var(--ease-out); }
-  .footer a:hover span { transform: translateY(-3px); }
+  .footer a:is(:hover, :focus-visible) span { transform: translateY(-3px); }
 }

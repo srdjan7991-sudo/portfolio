@@ -1,32 +1,14 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { useLanguage } from '../../i18n/language'
 import { AnalyticsReportChart } from './AnalyticsReportChart'
+import { AnalyticsReportComparison, AnalyticsReportCoverage } from './AnalyticsReportContext'
 import {
   defaultReportFilters, reportCategories, reportPeriods, reportYear, summarizeReport,
 } from './analyticsReport'
+import type { Observation, ReportFilters } from './analyticsReport'
+import { ReportFilter } from './ReportFilter'
+import { reportContextCopy } from './reportContextCopy'
 import styles from './AnalyticsReportDemo.module.css'
-
-type ReportFilterProps<Value extends string> = {
-  label: string
-  value: Value
-  options: readonly Value[]
-  optionLabel: (option: Value) => string
-  onChange: (value: Value) => void
-}
-
-function ReportFilter<Value extends string>({ label, value, options, optionLabel, onChange }: ReportFilterProps<Value>) {
-  return (
-    <label>
-      {label}
-      <select value={value} onChange={event => {
-        const selected = options.find(option => option === event.currentTarget.value)
-        if (selected !== undefined) onChange(selected)
-      }}>
-        {options.map(option => <option key={option} value={option}>{optionLabel(option)}</option>)}
-      </select>
-    </label>
-  )
-}
 
 export function AnalyticsReportDemo() {
   const { text: { work: { report } } } = useLanguage()
@@ -50,7 +32,10 @@ export function AnalyticsReportDemo() {
 
 function AnalyticsReport({ active }: { active: boolean }) {
   const { language, text: { work: { report } } } = useLanguage()
+  const copy = reportContextCopy[language]
   const [filters, setFilters] = useState(defaultReportFilters)
+  const [pinned, setPinned] = useState<Observation | null>(null)
+  const tableCaption = useRef<HTMLTableCaptionElement>(null)
   const { dates, shortDates, periods, counts, averages, changes, percents } = useMemo(() => {
     const locale = language === 'sr' ? 'sr-Latn-RS' : 'en-US'
     return {
@@ -81,6 +66,18 @@ function AnalyticsReport({ active }: { active: boolean }) {
   const hasResults = monthlyAverage !== null
   const formattedTotal = counts.format(total)
   const grouped = series.length > 1
+  const visibleRows = chartRows.filter(row => row.inPeriod)
+  const pinnedRow = pinned && visibleRows.find(row => row.month === pinned.month)
+  const pinnedValue = pinned && pinnedRow ? pinnedRow.points[pinned.series]?.count : undefined
+
+  function changeFilters(next: ReportFilters) {
+    setFilters(next)
+    setPinned(null)
+  }
+
+  function togglePin(point: Observation) {
+    setPinned(current => current?.month === point.month && current.series === point.series ? null : point)
+  }
 
   return (
     <div className={styles.report}>
@@ -93,11 +90,11 @@ function AnalyticsReport({ active }: { active: boolean }) {
       <div className={styles.filters}>
         <ReportFilter label={report.period} value={filters.period} options={reportPeriods}
           optionLabel={period => report.periods[period](reportYear)}
-          onChange={period => setFilters(current => ({ ...current, period }))} />
+          onChange={period => changeFilters({ ...filters, period })} />
         <ReportFilter label={report.category} value={filters.category} options={reportCategories}
           optionLabel={category => report.categories[category]}
-          onChange={category => setFilters(current => ({ ...current, category }))} />
-        <button className="ui-pill" type="button" onClick={() => setFilters({ ...defaultReportFilters })}>{report.reset}</button>
+          onChange={category => changeFilters({ ...filters, category })} />
+        <button className="ui-pill" type="button" onClick={() => changeFilters(defaultReportFilters)}>{report.reset}</button>
       </div>
 
       <div className={styles.reportOutput}>
@@ -120,37 +117,57 @@ function AnalyticsReport({ active }: { active: boolean }) {
 
             <div className={styles.results}>
               <AnalyticsReportChart rows={chartRows} series={series} filters={filters} active={active && hasResults}
-                counts={counts} changes={changes} percents={percents} text={report} />
+                counts={counts} changes={changes} percents={percents} text={report}
+                pinned={pinned} pinHint={copy.pinHint} onPin={togglePin} />
 
-              <table className={styles.table}>
-                <caption>{report.table}</caption>
-                <thead>
-                  <tr>
-                    <th scope="col">{report.month}</th>
-                    {grouped && series.map(key => (
-                      <th scope="col" key={key} aria-label={report.categories[key]}>
-                        <span className={styles.tableShort} aria-hidden="true">{report.shortCategories[key]}</span>
-                        <span className={styles.tableFull} aria-hidden="true">{report.categories[key]}</span>
-                      </th>
-                    ))}
-                    <th scope="col">{report.total}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {chartRows.filter(row => row.inPeriod).map(row => (
-                    <tr key={row.month}>
-                      <th scope="row">{row.label}</th>
-                      {grouped && series.map(key => {
-                        const point = row.points[key]
-                        return <td key={key}>{point ? counts.format(point.count) : (
-                          <><span aria-hidden="true">—</span><span className="visually-hidden">{report.noData}</span></>
-                        )}</td>
-                      })}
-                      <td>{row.countLabel}</td>
+              <AnalyticsReportCoverage rows={visibleRows} series={series} />
+
+              <div className={styles.tablePanel}>
+                <div className={styles.pinPanel} hidden={!pinned}>
+                  <p aria-live="polite">{pinned && pinnedRow && pinnedValue !== undefined && (
+                    <>{copy.pinned} · {pinnedRow.periodLabel} · {report.categories[pinned.series]} · <strong>{counts.format(pinnedValue)}</strong></>
+                  )}</p>
+                  <button type="button" className="ui-pill" onClick={() => {
+                    setPinned(null)
+                    tableCaption.current?.focus({ preventScroll: true })
+                  }}>{copy.clearPin}</button>
+                </div>
+                <table className={styles.table}>
+                  <caption ref={tableCaption} tabIndex={-1}>{report.table}</caption>
+                  <thead>
+                    <tr>
+                      <th scope="col">{report.month}</th>
+                      {grouped && series.map(key => (
+                        <th scope="col" key={key} aria-label={report.categories[key]}>
+                          <span className={styles.tableShort} aria-hidden="true">{report.shortCategories[key]}</span>
+                          <span className={styles.tableFull} aria-hidden="true">{report.categories[key]}</span>
+                        </th>
+                      ))}
+                      <th scope="col">{report.total}</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {visibleRows.map(row => (
+                      <tr key={row.month}>
+                        <th scope="row">{row.label}</th>
+                        {grouped && series.map(key => {
+                          const point = row.points[key]
+                          const current = pinned?.month === row.month && pinned.series === key
+                          return (
+                            <td aria-current={current || undefined} key={key}>
+                              {point ? counts.format(point.count) : (
+                                <><span aria-hidden="true">—</span><span className="visually-hidden">{report.noData}</span></>
+                              )}
+                            </td>
+                          )
+                        })}
+                        <td aria-current={(!grouped && pinned?.month === row.month) || undefined}>{row.countLabel}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <AnalyticsReportComparison rows={visibleRows} series={series} counts={counts} changes={changes} percents={percents} />
             </div>
           </div>
         </div>

@@ -11,8 +11,8 @@
   cursor: pointer;
 }
 
-.skills-explorer :is(button, h4) { scroll-margin-block: 0.8rem; }
-.skills-explorer button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.skills-explorer :is(button, h4, a) { scroll-margin-block: 0.8rem; }
+.skills-explorer :is(button, a):focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 .skills-groups {
   display: grid;
@@ -168,9 +168,24 @@
   font-size: 1.3rem;
   line-height: 1;
 }
-.skills-detail :is(p, .skills-relations) { grid-column: 1 / -1; }
+.skills-detail :is(p, .skills-relations, .skills-project-link) { grid-column: 1 / -1; }
 .skills-detail p { font-size: 0.9rem; }
 .skills-detail .skills-context { font-size: 0.86rem; }
+.skills-project-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  justify-self: start;
+  min-block-size: 2.75rem;
+  padding-inline: 0.65rem;
+  background: var(--accent-soft);
+  color: var(--accent);
+  border-inline-start: 1px solid var(--accent-edge);
+  font-size: 0.84rem;
+  font-weight: 625;
+  overflow-wrap: anywhere;
+}
+.skills-project-link > span { flex: none; }
 .skills-relations { position: relative; margin-block-start: 0.35rem; padding-inline-start: 0.85rem; }
 .skills-relations::before {
   position: absolute;
@@ -186,6 +201,7 @@
   .skills-category-button:hover, .skills-tool:hover, .skills-relations button:hover { color: var(--accent); }
   .skills-back:hover { text-decoration: underline; text-underline-offset: 0.2em; }
   .skills-relations button:hover, .skills-close:hover { background: var(--accent-soft); }
+  .skills-project-link:hover { color: var(--accent-hover); background: var(--surface-raised); }
   .skills-group:has(.skills-category-button:is(:hover, :focus-visible)) .skills-tool img { opacity: 0.92; }
 }
 
@@ -203,6 +219,15 @@
     grid-row: 1 / span 2;
     justify-content: end;
   }
+  .skills-explorer[data-view='overview'] .skills-featured-surface::after {
+    position: absolute;
+    inset: 0;
+    border-inline-start: 1px solid var(--line-glass);
+    background: var(--surface);
+    content: '';
+    transform: scaleX(0.58);
+    transform-origin: right;
+  }
   .skills-group[data-detail='true'] .skills-group-body {
     display: grid;
     grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
@@ -212,6 +237,21 @@
   }
   .skills-group[data-detail='true'] .skills-tools { grid-column: 1; }
   .skills-detail { grid-column: 2; grid-row: 1 / span 2; margin-block-start: 0; }
+}
+
+@supports (animation-timeline: view()) {
+  @media (min-width: 66rem) and (prefers-reduced-motion: no-preference) {
+    .skills-explorer[data-view='overview'] .skills-groups { view-timeline-name: --skills-index; }
+    #main:not(:has([data-editing])) .skills-explorer[data-view='overview'] .skills-featured-surface::after {
+      animation: skills-index-margin auto linear both;
+      animation-timeline: --skills-index;
+      animation-range: entry 10% entry 95%;
+    }
+    @keyframes skills-index-margin {
+      from { transform: scaleX(0.96); }
+      to { transform: scaleX(0.58); }
+    }
+  }
 }
 
 @media (max-width: 40rem) {
@@ -233,26 +273,9 @@
   .skills-relations::before { animation: skills-branch-in 320ms var(--ease-out) both; }
   .skills-group[data-active='true'] .skills-group-description { animation: skills-detail-in 270ms var(--ease-out) both; }
   .skills-group[data-active='true'] .skills-tools { animation: skills-detail-in 270ms var(--ease-out) both; }
-  #main:not(:has([data-editing])) #skills[data-revealed] [data-reveal-complete='false'] .skills-tool > :is(img, span) {
-    animation: skills-index-in 245ms var(--ease-out) both;
-    animation-delay: calc(var(--skills-entry-delay, 65ms) + var(--skills-tool-delay, 30ms));
-  }
-  .skills-tools li:nth-child(3n + 2) { --skills-tool-delay: 48ms; }
-  .skills-tools li:nth-child(3n) { --skills-tool-delay: 66ms; }
-
-  #main:not(:has([data-editing])) #skills[data-revealed] [data-reveal-complete='false'] .skills-group {
-    animation: skills-index-in 360ms var(--ease-out) both;
-    animation-delay: var(--skills-entry-delay, 65ms);
-  }
-  .skills-group[data-group='analytics'] { --skills-entry-delay: 105ms; }
-  .skills-group[data-group='testing'] { --skills-entry-delay: 140ms; }
-  .skills-group[data-group='data'] { --skills-entry-delay: 175ms; }
-  .skills-group[data-group='delivery'] { --skills-entry-delay: 210ms; }
-
-  @keyframes skills-index-in {
-    from { opacity: 0.72; translate: 0 5px; }
-    to { opacity: 1; translate: none; }
-  }
+  .skills-project-link { transition: color var(--quick) ease, background-color var(--quick) ease; }
+  .skills-project-link > span { transition: transform var(--quick) var(--ease-out); }
+  .skills-project-link:is(:hover, :focus-visible) > span { transform: translate(2px, -2px); }
   @keyframes skills-detail-in {
     from { opacity: 0.57; translate: 0 5px; }
     to { opacity: 1; translate: none; }

@@ -13,7 +13,7 @@
 | `education` | Education & Certifications | [`education-certifications`](../src/features/education-certifications/) |
 | `contact` | Contact | [`contact`](../src/features/contact/) |
 
-The React features contain the public page copy. Selected Work presents the Mede Analytics case study through a native `details` disclosure and labels the reporting preview as an illustrative reconstruction using synthetic data. Kterio has its own project summary. SQL Server stores section order and separate rows available through the public sections endpoint.
+The React features contain the public page copy. Selected Work opens the Mede Analytics case study and the sample report with separate native `details` elements. The reporting preview widens as it enters the viewport in browsers that support view timelines. The preview uses illustrative data, while the interactive report uses its own synthetic observations. The Kterio summary separates work on the interface and service layer. Both projects have focusable anchors, `#work-mede` and `#work-kterio`. SQL Server stores section order and separate rows available through the public sections endpoint. [Selected Work](../src/features/selected-work/SelectedWork.tsx)
 
 [`PortfolioSection.tsx`](../src/components/shared/PortfolioSection.tsx) supplies section markup and heading IDs. [`Layout.tsx`](../src/components/shared/Layout.tsx) owns the Header, Footer, and mobile menu. Navigation uses native hash links and follows the current section order. [`sectionNavigation.ts`](../src/hooks/sectionNavigation.ts) manages the active link, initial hash alignment, and one-time section reveals. The current link uses `aria-current="location"`.
 
@@ -21,9 +21,13 @@ The React features contain the public page copy. Selected Work presents the Mede
 
 Open the sample report under Selected Work. The default view shows 15 synthetic counts across Quality, Utilization, and Operations from January through June 2026. Operations reporting starts in April. Each reported observation has its own bar in the monthly group. The table shows the selected months and categories with the same counts. A missing observation is marked as unreported. A reported zero is a valid count. [Report data](../src/features/selected-work/analyticsReport.ts)
 
-The period and category filters apply to the chart, table, and summary metrics. The total sums the reported observations. The monthly average divides the total by the number of selected months with data. Coverage shows how many months in the selected period have data. A selection with no observations shows an empty state. [Report component](../src/features/selected-work/AnalyticsReportDemo.tsx)
+The period and category filters apply to the chart, table, and summary metrics. The total sums the reported observations. The monthly average divides the total by the number of selected months with data. The coverage metric counts those months, and the coverage grid shows reported values, reported zeroes, and missing observations by category and month. A selection with no observations shows an empty state. [Report component](../src/features/selected-work/AnalyticsReportDemo.tsx)
 
 Hover over, focus, or tap a bar to see its exact count and the change in count and percentage from the previous calendar month for the same category. The comparison can use data outside the selected period. The comparison is unavailable if that month has no observation. A zero baseline supports a change in count and leaves the percentage unavailable. Escape dismisses the tooltip. The report uses the selected language and theme and respects reduced motion.
+
+Activate a bar by clicking, tapping, or pressing Enter or Space to mark its observation in the monthly table. Activate the same bar again, choose **Clear selection**, or change the main filters to remove the mark. Clearing the selection from the table moves focus to its caption. The marked observation and comparison selections survive a language or theme change.
+
+**Compare two months** uses one category and two months from the current report period. Both counts share the same scale as the monthly chart. The result gives the second count minus the first, and the percentage uses the first count as its baseline. April and June Operations counts of 24 and 30 give +6 and +25%. A repeated month or missing observation gets an explanation, and a zero baseline still gives the count difference. [Coverage and comparison](../src/features/selected-work/AnalyticsReportContext.tsx)
 
 ## Technical Skills
 
@@ -31,7 +35,7 @@ The `#skills` section starts with Frontend Engineering featured above four other
 
 The group catalog defines the order, names, and existing icon paths. The detail catalog supplies English and Serbian descriptions, project context supported by the portfolio, and links in both directions between related skills. Selection stays local to the section and survives a language change. Closing a detail returns focus to its technology. Returning to all categories restores focus to the last active category. [Group catalog](../src/features/technical-skills/skillGroups.ts) · [Detail catalog](../src/features/technical-skills/skillDetails.ts)
 
-Motion animates the featured surface between categories. On narrow screens, individual labels stay in their new positions while the surface moves. Reduced motion stops spatial movement while keeping the same controls. The category and technology entrance runs once, even if the motion preference interrupts it.
+Motion animates the featured surface between categories. On wider screens, the overview surface also narrows toward the technology column as the section enters the viewport in browsers with view timelines. Reduced motion shows the settled layout. The Highcharts and C# details link to `#work-mede` and `#experience-kterio`, respectively. These links use native fragment navigation. For a visit started in the Skills panel, Back restores the focused project link and its technology detail. [Technology details](../src/features/technical-skills/SkillDetailPanel.tsx)
 
 ## How I Engineer
 
@@ -39,13 +43,13 @@ The section keeps the `#expertise` anchor and its place in the reorderable conte
 
 Area and concept IDs come from [the feature model](../src/features/engineering-expertise/engineeringAreas.ts). The selected language supplies labels and descriptions. Selection lives in the section, and each demo owns its own state. Switching languages keeps the selection and the demo state. Opening another area starts a fresh demo. Motion and CSS animate the shared heading and transitions when the system setting allows it.
 
-The examples use local state and synthetic data. The sample chart computes an average from the visible weeks. The request simulation uses a cancellable timer and makes no network call. In Testing & Quality, the displayed component test illustrates the Vitest approach. **Run checks** evaluates the quantity rule in the browser.
+The examples use local state and synthetic data. The sample chart computes an average from the visible weeks. The request simulation uses a cancellable timer and makes no network call. In Testing & Quality, the displayed component test illustrates the Vitest approach. **Run checks** evaluates the quantity rule in the browser. **Compare both rules** applies the same functions to an input of three and shows the return expression and output for each case. With the limit, the result matches the expected three. Without the limit, the result is four. [Quantity rule demo](../src/features/engineering-expertise/QualityDemo.tsx)
 
 ## Professional Experience timeline
 
-The `#experience` section keeps the employment summary and three project assignments in their existing order. **Details** expands the published case study for Mede Analytics or the published project summary for Kterio. Those disclosures reuse the localized copy from Selected Work. [Experience component](../src/features/professional-experience/ProfessionalExperience.tsx)
+The `#experience` section keeps the employment summary and three project assignments in their existing order. The focusable project headings have the anchors `#experience-mede`, `#experience-kterio`, and `#experience-alpha`. **Details** expands the published case study for Mede Analytics or the published project summary for Kterio. Those disclosures reuse the localized copy from Selected Work. [Experience component](../src/features/professional-experience/ProfessionalExperience.tsx)
 
-The timeline fills as the midpoint below the sticky header passes through the project list. It marks the project at that point as current in both scroll directions. If Experience is last, progress uses the available scroll distance so it can reach every project before the page ends. The controller updates in an animation frame, including after details expand or the admin reorders sections. Its entrance observer reveals the heading, introduction, and project contents once. Reduced motion shows them immediately and stops disclosure transitions in progress. The text and controls are visible if the entrance observer is unavailable. [Timeline controller](../src/features/professional-experience/useExperienceTimeline.ts)
+The timeline fills as the midpoint below the sticky header passes through the project list. It marks the project at that point as current in both scroll directions. If Experience is last, progress uses the available scroll distance so it can reach every project before the page ends. The controller updates in an animation frame, including after details expand or the admin reorders sections. Its entrance observer reveals the heading, introduction, and project contents once. Reduced motion shows the content immediately, stops disclosure transitions, and keeps the rail static while the current marker updates. The text and controls are visible if the entrance observer is unavailable. [Timeline controller](../src/features/professional-experience/useExperienceTimeline.ts)
 
 Technology links use catalog fragments such as `#skill-react`. A linked technology opens its Skills detail and focuses the heading below the sticky header. Back returns to the originating project link and restores the prior Skills selection, even after closing the detail. Forward restores the Skills view and focus for that visit. Links for EF Core and the named .NET versions use their corresponding catalog entries. Technology names without a matching entry stay as text. [Skills catalog](../src/features/technical-skills/skillGroups.ts)
 
@@ -55,9 +59,11 @@ Technology links use catalog fragments such as `#skill-react`. A linked technolo
 
 The Hero keeps the localized heading as live text in a single `h1`. CSS reveals two text groups and opens a narrow rectangular crop of the staircase within a fixed frame. On short screens the photo opens on its first visible entry below the fixed header. The entrance controller settles the view on anchor navigation, exit during opening, or a switch to reduced motion. A photo that finishes loading after the entrance appears in its full frame as soon as it is ready. [Hero entrance](../src/features/hero/useHeroEntrance.ts)
 
-After the photo opens, Motion values translate the image within its frame for a precise pointer. The surrounding image pixels cover the edges throughout the move. Reduced motion settles both the reveal and the image immediately. CTA links stay visible and available throughout the entrance. [Hero photo](../src/features/hero/HeroPhoto.tsx)
+After the photo opens, Motion values translate the image within its frame for a precise pointer. The surrounding image pixels cover the edges throughout the move. A CSS view timeline tightens the crop around the staircase as the photo leaves the viewport. The frame keeps the same dimensions. Reduced motion settles the reveal and shows the full photo. CTA links stay visible and available throughout the entrance. [Hero photo](../src/features/hero/HeroPhoto.tsx) · [Hero styles](../src/features/hero/Hero.css)
 
-Section reordering uses Motion for React. The walkthrough uses SVG and CSS, with the same controls and state in reduced motion. Its text and phase controls remain available at every viewport size.
+The Hero, Selected Work preview, Skills overview, Engineering examples, report coverage, Education, and Contact use local CSS view timelines where supported. Their effects change the crop, surface, or decorative marks. The content and actions are available in the static layout and with reduced motion. While the administrator is editing, the reorderable sections use the settled styles for these decorative effects. Education dates use native `time` elements, and the contact links are available before its decorative background expands. The Footer offers a link to the top of the page. [Education](../src/features/education-certifications/EducationCertifications.tsx) · [Contact](../src/features/contact/Contact.tsx)
+
+Section reordering uses Motion for React. The walkthrough player uses SVG and CSS, with the same controls and state in reduced motion. Its text and phase controls remain available at every viewport size.
 
 ## Language
 
@@ -68,6 +74,8 @@ Section IDs, workflow state, and API paths stay independent of language. Authent
 The live walkthrough translates known default titles in the browser result cards using case-insensitive section keys and an exact English title match. Custom titles and bodies stay as returned by the API. The JSON excerpt shows the first record with its original key, title, and up to 100 characters of body text.
 
 ## Request walkthrough
+
+Before the player opens, the request cross section presents the browser, application server, and database. On wide, tall screens with motion enabled, the scene briefly sticks below the header. Scrolling separates the layers, then aligns them with distinct request and response paths. The moving planes and path endpoints share the same SVG coordinates. Narrow screens use a stepped diagram, and short viewports and reduced motion use a static layout. Layer buttons reveal explanations independently of the walkthrough and simulations. [Cross section](../src/features/request-flow/RequestCrossSection.tsx)
 
 **Behind every request** is labeled **Iza svakog zahteva** in Serbian. Choose **Explore the request**, then **Open walkthrough**. Start with **Load content** in the illustrated browser or **Play** in the player controls. Use **Pause**, the previous and next step, and **Replay** to control playback. Closing the panel returns focus to its opener.
 

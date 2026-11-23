@@ -54,16 +54,18 @@ export function HeroPhoto({ frameRef }: { frameRef: RefObject<HTMLDivElement | n
     <div className="hero-visual" ref={frameRef} aria-hidden="true"
       onPointerMove={move} onPointerLeave={center} onPointerCancel={center}>
       <div className="hero-window">
-        <motion.img
-          src={limestoneLarge}
-          srcSet={`${limestoneSmall} 480w, ${limestoneLarge} 960w`}
-          sizes={`(max-width: 47.5rem) calc(100vw - clamp(2.5rem, 9.6vw, 9rem)), max(min(33vw, 451px), ${desktopCoverWidth})`}
-          width={960}
-          height={1200}
-          fetchPriority="high"
-          alt=""
-          style={{ x, y, willChange }}
-        />
+        <div className="hero-photo-crop">
+          <motion.img
+            src={limestoneLarge}
+            srcSet={`${limestoneSmall} 480w, ${limestoneLarge} 960w`}
+            sizes={`(max-width: 47.5rem) calc(100vw - clamp(2.5rem, 9.6vw, 9rem)), max(min(33vw, 451px), ${desktopCoverWidth})`}
+            width={960}
+            height={1200}
+            fetchPriority="high"
+            alt=""
+            style={{ x, y, willChange }}
+          />
+        </div>
       </div>
     </div>
   )

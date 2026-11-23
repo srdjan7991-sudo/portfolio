@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest'
-import { defaultReportFilters, reportScaleMaximum, summarizeReport } from './analyticsReport'
+import { compareReportCounts, defaultReportFilters, reportScaleMaximum, summarizeReport } from './analyticsReport'
 
 test('aggregates the six months without rounding the underlying average', () => {
   const report = summarizeReport(defaultReportFilters)
@@ -57,4 +57,13 @@ test('returns an empty report when the selected category has no data in the peri
   expect(report.months.map(({ count }) => count)).toEqual([null, null, null])
   expect(report.chartMonths.map(({ points }) => points.operations)).toEqual([null, null, null, null, null, null])
   expect(report).toMatchObject({ total: 0, monthsWithData: 0, monthlyAverage: null })
+})
+
+test('calculates signed changes and distinguishes a zero baseline from missing observations', () => {
+  expect(compareReportCounts(24, 30)).toEqual({ amount: 6, rate: 0.25 })
+  expect(compareReportCounts(30, 24)).toEqual({ amount: -6, rate: -0.2 })
+  expect(compareReportCounts(0, 30)).toEqual({ amount: 30, rate: null })
+  expect(compareReportCounts(30, 0)).toEqual({ amount: -30, rate: -1 })
+  expect(compareReportCounts(null, 30)).toBeNull()
+  expect(compareReportCounts(30, null)).toBeNull()
 })

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useLanguage } from '../../i18n/language'
+import './QualityDemo.css'
 
 const itemLimit = 3
 const initialQuantity = itemLimit - 1
@@ -12,9 +13,15 @@ function addWithoutLimit(quantity: number) {
   return quantity + 1
 }
 
+const quantityRules = {
+  withLimit: { apply: addItem, expression: `Math.min(quantity + 1, ${itemLimit})` },
+  withoutLimit: { apply: addWithoutLimit, expression: 'quantity + 1' },
+}
+
+const atLimit = { id: 'limit', input: itemLimit, expected: itemLimit } as const
 const checks = [
   { id: 'increment', input: initialQuantity, expected: itemLimit },
-  { id: 'limit', input: itemLimit, expected: itemLimit },
+  atLimit,
 ] as const
 
 const copy = {
@@ -34,6 +41,12 @@ const copy = {
     failed: 'Failed',
     expected: 'Expected',
     actual: 'Actual',
+    compare: 'Compare both rules',
+    input: 'Input quantity',
+    withLimit: 'With the limit',
+    withoutLimit: 'Without the limit',
+    matches: 'Matches the expected quantity',
+    exceeds: 'Exceeds the expected quantity',
   },
   sr: {
     codeView: 'Prikaz koda',
@@ -51,12 +64,18 @@ const copy = {
     failed: 'Neuspešna',
     expected: 'Očekivano',
     actual: 'Dobijeno',
+    compare: 'Uporedi oba pravila',
+    input: 'Ulazna količina',
+    withLimit: 'Sa ograničenjem',
+    withoutLimit: 'Bez ograničenja',
+    matches: 'Odgovara očekivanoj količini',
+    exceeds: 'Premašuje očekivanu količinu',
   },
 }
 
-function implementationSnippet(removeLimit: boolean, text: typeof copy.en) {
+function implementationSnippet(expression: string, text: typeof copy.en) {
   return `function addItem(quantity: number) {
-  return ${removeLimit ? 'quantity + 1' : `Math.min(quantity + 1, ${itemLimit})`}
+  return ${expression}
 }
 
 function AddItem() {
@@ -86,6 +105,35 @@ function testSnippet(text: typeof copy.en) {
 
 type CheckResult = { id: typeof checks[number]['id']; expected: number; actual: number }
 
+function QuantityRuleComparison({ text }: { text: typeof copy.en }) {
+  return (
+    <details className="engineer-rule-comparison">
+      <summary>{text.compare} <span aria-hidden="true">+</span></summary>
+      <div className="engineer-rule-proof">
+        <dl className="engineer-rule-input">
+          <div><dt>{text.input}</dt><dd>{atLimit.input}</dd></div>
+          <div><dt>{text.expected}</dt><dd>{atLimit.expected}</dd></div>
+        </dl>
+        <div className="engineer-rule-paths">
+          {(['withLimit', 'withoutLimit'] as const).map(id => {
+            const rule = quantityRules[id]
+            const actual = rule.apply(atLimit.input)
+            const matches = actual === atLimit.expected
+            return (
+              <section key={id} className="engineer-rule-path" aria-label={text[id]} data-matches={matches}>
+                <h6>{text[id]}</h6>
+                <code>return <mark>{rule.expression}</mark></code>
+                <p className="engineer-rule-result">{text.actual} <strong>{actual}</strong></p>
+                <p className="engineer-rule-caption">{matches ? text.matches : text.exceeds}</p>
+              </section>
+            )
+          })}
+        </div>
+      </div>
+    </details>
+  )
+}
+
 export function QualityDemo() {
   const { language } = useLanguage()
   const text = copy[language]
@@ -93,7 +141,8 @@ export function QualityDemo() {
   const [removeLimit, setRemoveLimit] = useState(false)
   const [quantity, setQuantity] = useState(initialQuantity)
   const [results, setResults] = useState<CheckResult[]>([])
-  const updateQuantity = removeLimit ? addWithoutLimit : addItem
+  const activeRule = removeLimit ? quantityRules.withoutLimit : quantityRules.withLimit
+  const updateQuantity = activeRule.apply
 
   function changeLimit(removed: boolean) {
     setRemoveLimit(removed)
@@ -111,7 +160,8 @@ export function QualityDemo() {
         <button type="button" className="engineer-demo-button" aria-pressed={!testing} onClick={() => setTesting(false)}>{text.implementation}</button>
         <button type="button" className="engineer-demo-button" aria-pressed={testing} onClick={() => setTesting(true)}>{text.test}</button>
       </fieldset>
-      <pre className="engineer-demo-code"><code>{testing ? testSnippet(text) : implementationSnippet(removeLimit, text)}</code></pre>
+      <pre className="engineer-demo-code"><code>{testing ? testSnippet(text) : implementationSnippet(activeRule.expression, text)}</code></pre>
+      <QuantityRuleComparison text={text} />
       <div className="engineer-demo-detail engineer-quality-run">
         <output aria-live="polite">{text.quantity} <strong>{quantity}</strong></output>
         <div className="engineer-demo-controls">

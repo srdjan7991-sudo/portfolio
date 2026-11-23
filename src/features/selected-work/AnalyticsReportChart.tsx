@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
 import type { Messages } from '../../i18n/en'
 import { reportScaleMaximum, reportSeries } from './analyticsReport'
-import type { ReportFilters, ReportPoint, ReportSeries, summarizeReport } from './analyticsReport'
+import type { Observation, ReportFilters, ReportPoint, ReportSeries, summarizeReport } from './analyticsReport'
 import { useReportTooltipPosition } from './useReportTooltipPosition'
 import styles from './AnalyticsReportDemo.module.css'
 
@@ -20,6 +20,9 @@ type ChartProps = {
   changes: Intl.NumberFormat
   percents: Intl.NumberFormat
   text: Messages['work']['report']
+  pinned: Observation | null
+  pinHint: string
+  onPin: (point: Observation) => void
 }
 
 type Source = 'hover' | 'focus' | 'activation'
@@ -45,7 +48,7 @@ function formatChange(point: ReportPoint, { changes, percents, text }: ChartProp
 }
 
 export function AnalyticsReportChart(props: ChartProps) {
-  const { rows, series, filters, active, counts, text } = props
+  const { rows, series, filters, active, counts, text, pinned, pinHint, onPin } = props
   const id = useId()
   const figure = useRef<HTMLElement>(null)
   const tooltip = useRef<HTMLDivElement>(null)
@@ -131,7 +134,7 @@ export function AnalyticsReportChart(props: ChartProps) {
       <ul className={styles.legend}>
         {series.map(key => <li key={key} data-series={key}><span aria-hidden="true" />{text.categories[key]}</li>)}
       </ul>
-      <p className={styles.chartHint}>{text.chartHint}</p>
+      <p className={styles.chartHint}>{text.chartHint} {pinHint}</p>
       <div className={styles.chartBody}>
         <Scale counts={counts} className={`${styles.scale} ${styles.sharedScale}`} />
         {plots.map(months => (
@@ -146,6 +149,7 @@ export function AnalyticsReportChart(props: ChartProps) {
                       const point = row.points[key]
                       const enabled = active && point !== null
                       const highlight = open && selected?.month === row.month && selected.series === key
+                      const isPinned = pinned?.month === row.month && pinned.series === key
                       const descriptionId = `${id}-${row.month}-${key}`
                       return (
                         <div className={styles.mark} data-series={key} data-selected={series.includes(key)} key={key}
@@ -153,12 +157,16 @@ export function AnalyticsReportChart(props: ChartProps) {
                           <button type="button" className={styles.barButton} disabled={!enabled} data-highlight={highlight}
                             data-report-point={enabled ? '' : undefined}
                             aria-label={point ? `${text.categories[key]}, ${row.periodLabel}, ${text.total} ${counts.format(point.count)}` : undefined}
+                            aria-pressed={enabled ? isPinned : undefined}
                             aria-describedby={enabled ? descriptionId : undefined}
                             onPointerEnter={event => {
                               if (enabled && event.pointerType !== 'touch') inspect(event.currentTarget, row.month, key, 'hover')
                             }}
                             onFocus={event => inspect(event.currentTarget, row.month, key, 'focus')}
-                            onClick={event => inspect(event.currentTarget, row.month, key, 'activation')}>
+                            onClick={event => {
+                              inspect(event.currentTarget, row.month, key, 'activation')
+                              onPin({ month: row.month, series: key })
+                            }}>
                             <span className={styles.bar} data-zero={point?.count === 0} aria-hidden="true"
                               style={{ height: `${((point?.count ?? 0) / reportScaleMaximum) * 100}%` }} />
                           </button>

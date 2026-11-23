@@ -1,7 +1,28 @@
 .contact-section {
+  position: relative;
+  isolation: isolate;
   padding-block: var(--section-space);
-  border-top: 1px solid var(--line);
+}
+
+.contact-section::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
   background: var(--surface-subtle);
+  border-block-start: 1px solid var(--line);
+  pointer-events: none;
+}
+
+.contact-inner {
+  display: grid;
+  gap: 1.75rem clamp(2rem, 7vw, 7rem);
+}
+
+.contact-signature {
+  margin-block-end: 0.85rem;
+  color: var(--accent);
+  font: 0.8rem/1.4 var(--mono);
 }
 .contact-section .section-title { font-size: clamp(2.8rem, 7vw, 6rem); margin-bottom: 1rem; }
 .contact-section:focus { outline: none; }
@@ -9,15 +30,51 @@
   text-decoration: underline var(--accent) 2px;
   text-underline-offset: 0.15em;
 }
-.contact-section p { color: var(--muted); max-width: 44ch; font-size: clamp(1rem, 1.7vw, 1.2rem); }
+.contact-description { color: var(--muted); max-width: 44ch; font-size: clamp(1rem, 1.7vw, 1.2rem); }
 
 .contact-links {
   display: flex;
   flex-wrap: wrap;
   gap: 0.58rem;
   padding: 0;
-  margin: 1.8rem 0 0;
+  margin: 0;
   list-style: none;
 }
 
 .contact-file-type { font: 0.68rem var(--mono); color: var(--muted); }
+
+@media (width >= 51rem) {
+  .contact-inner {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: end;
+  }
+
+  .contact-links { display: grid; grid-template-columns: repeat(2, max-content); }
+  .contact-links a { justify-content: space-between; }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .contact-arrow { transition: transform var(--quick) var(--ease-out); }
+  .contact-links a:focus-visible .contact-arrow { transform: translate(2px, -2px); }
+  .contact-links a[download]:focus-visible .contact-arrow { transform: translateY(2px); }
+
+  @media (hover: hover) {
+    .contact-links a:hover .contact-arrow { transform: translate(2px, -2px); }
+    .contact-links a[download]:hover .contact-arrow { transform: translateY(2px); }
+  }
+
+  @supports (animation-timeline: view()) {
+    .contact-section { view-timeline-name: --contact-scene; }
+
+    #main:not(:has([data-editing])) .contact-section:not(:target, :focus-within)::before {
+      animation: contact-open-surface 1ms linear both;
+      animation-timeline: --contact-scene;
+      animation-range: entry 5% entry 85%;
+    }
+  }
+
+  @keyframes contact-open-surface {
+    from { transform: scaleX(0.88); }
+    to { transform: scaleX(1); }
+  }
+}

@@ -9,6 +9,8 @@ test('shows both projects and identifies the dashboard preview as synthetic', ()
     expect(screen.getByRole('heading', { name, level: 3 })).toBeInTheDocument()
   }
   expect(screen.getByText('Illustrative reconstruction using synthetic data.')).toBeInTheDocument()
+  expect(screen.getByRole('article', { name: 'Mede Analytics' })).toHaveAttribute('id', 'work-mede')
+  expect(screen.getByRole('article', { name: 'Kterio' })).toHaveAttribute('id', 'work-kterio')
 })
 
 test('lets readers open and close the case study', async () => {
