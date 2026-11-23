@@ -79,6 +79,11 @@ export const en = {
   },
   skills: {
     intro: 'React and TypeScript are my main tools, with practical experience across APIs, data, and testing.',
+    explorer: {
+      all: 'All categories',
+      close: 'Close details',
+      related: 'Works with',
+    },
     frontend: { title: 'Frontend Engineering', description: 'Reusable interfaces and predictable application state.' },
     analytics: { title: 'Analytics & Visualization', description: 'Dashboards, reporting, and interactive charts.' },
     testing: { title: 'Testing', description: 'Automated checks for frontend behavior and .NET code.' },

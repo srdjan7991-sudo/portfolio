@@ -25,6 +25,14 @@ The period and category filters apply to the chart, table, and summary metrics. 
 
 Hover over, focus, or tap a bar to see its exact count and the change in count and percentage from the previous calendar month for the same category. The comparison can use data outside the selected period. The comparison is unavailable if that month has no observation. A zero baseline supports a change in count and leaves the percentage unavailable. Escape dismisses the tooltip. The report uses the selected language and theme and respects reduced motion.
 
+## Technical Skills
+
+The `#skills` section starts with Frontend Engineering featured above four other categories. Choosing a category expands its technology list and puts the other categories in a compact list below it. Choosing a technology opens its description and related tools. These links can open a technology in another category. Hover and keyboard focus highlight related technologies with color. [TechnicalSkills.tsx](../src/features/technical-skills/TechnicalSkills.tsx)
+
+The group catalog defines the order, names, and existing icon paths. The detail catalog supplies English and Serbian descriptions, project context supported by the portfolio, and links in both directions between related skills. Selection stays local to the section and survives a language change. Closing a detail returns focus to its technology. Returning to all categories restores focus to the last active category. [Group catalog](../src/features/technical-skills/skillGroups.ts) · [Detail catalog](../src/features/technical-skills/skillDetails.ts)
+
+Motion animates the featured surface between categories. On narrow screens, individual labels stay in their new positions while the surface moves. Reduced motion stops spatial movement while keeping the same controls.
+
 ## How I Engineer
 
 The section keeps the `#expertise` anchor and its place in the reorderable content group. Its index opens five areas and shows a concept preview on wider screens. When an area opens, focus moves to its heading. **All areas** returns focus to that area's button. The concept tabs support Left, Right, Home, and End. [Index and focus management](../src/features/engineering-expertise/EngineeringExpertise.tsx) · [Concept workspace](../src/features/engineering-expertise/EngineeringWorkspace.tsx)
