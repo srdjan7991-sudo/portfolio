@@ -60,7 +60,7 @@ export function useExperienceTimeline(sectionRef: RefObject<HTMLElement | null>)
         ? entries.find(entry => entry.getBoundingClientRect().bottom > readingLine)
         : undefined
 
-      if (nextProgress !== progress) {
+      if (!reduced?.matches && nextProgress !== progress) {
         progress = nextProgress
         timeline.style.setProperty('--experience-progress', String(progress))
       }
@@ -90,7 +90,11 @@ export function useExperienceTimeline(sectionRef: RefObject<HTMLElement | null>)
     }
 
     function onMotionChange() {
-      if (reduced?.matches) clearEntrances()
+      if (reduced?.matches) {
+        clearEntrances()
+        timeline?.style.removeProperty('--experience-progress')
+        progress = -1
+      }
       scheduleUpdate()
     }
 

@@ -7,7 +7,13 @@
 
 .selected-work-featured {
   display: grid;
-  gap: clamp(1rem, 3.6vw, 3.4rem);
+  gap: clamp(1.1rem, 3.2vw, 2.7rem);
+}
+
+.selected-work-featured, .selected-work-secondary-project { scroll-margin-block-start: 1.25rem; }
+.selected-work-featured:focus-visible, .selected-work-secondary-project:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 0.45rem;
 }
 
 .selected-work-project-intro h3 {
@@ -15,7 +21,7 @@
   font-size: clamp(2rem, 4.3vw, 3.8rem);
   line-height: 1;
 }
-.selected-work-project-intro h3 + p, .selected-work-secondary-project > p:last-child { max-width: 62ch; }
+.selected-work-project-intro h3 + p, .selected-work-secondary-copy p { max-width: 62ch; }
 .selected-work-project-intro .technology-tags { margin-block-start: 1.35rem; }
 
 .selected-work-preview { min-width: 0; margin: 0; }
@@ -63,7 +69,34 @@
 .selected-work-legend span { display: inline-flex; gap: 0.35rem; align-items: center; }
 .selected-work-legend span::before { content: ''; width: 0.8rem; border-top: 2px solid var(--accent); }
 .selected-work-legend span + span::before { border-top: 2px dashed var(--quiet); }
-.selected-work-chart { display: block; width: 100%; height: auto; margin-block: 0.8rem 0.45rem; }
+.selected-work-plot-window { overflow: clip; margin-block: 0.8rem 0.45rem; }
+.selected-work-chart { display: block; width: 100%; height: auto; transform-origin: 72% 65%; }
+
+.selected-work-contribution {
+  display: grid;
+  gap: 0.48rem 1.2rem;
+  padding-block: 0.85rem;
+  border-block: 1px solid var(--line);
+}
+.selected-work-contribution ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem clamp(0.85rem, 2.5vw, 2.4rem);
+  margin: 0;
+  padding: 0;
+  color: var(--ink);
+  font-size: 0.86rem;
+  list-style: none;
+}
+.selected-work-contribution li { display: flex; align-items: baseline; gap: 0.45rem; }
+.selected-work-contribution li::before {
+  flex: none;
+  inline-size: 0.32rem;
+  block-size: 0.32rem;
+  align-self: center;
+  border: 1px solid var(--accent-edge);
+  content: '';
+}
 
 .selected-work-case-study { border-top: 1px solid var(--line); }
 .selected-work-case-study summary {
@@ -86,17 +119,43 @@
   padding-block-start: clamp(1.2rem, 3.2vw, 2.5rem);
   border-top: 1px solid var(--line);
 }
+.selected-work-secondary-project h3 { margin-block-start: 0.48rem; }
+.selected-work-kterio-stack {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 8.3rem), 1fr));
+  gap: 0.55rem 1.35rem;
+  margin-block-start: 0.9rem;
+  padding-inline-start: 0.8rem;
+  border-inline-start: 1px solid var(--accent-edge);
+}
+.selected-work-kterio-stack dt { color: var(--muted); font-size: 0.76rem; }
+.selected-work-kterio-stack dd { color: var(--ink); font: 0.78rem/1.6 var(--mono); }
 
 @media (min-width: 52rem) {
   .selected-work-featured { grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.2fr); align-items: center; row-gap: 1.25rem; }
   .selected-work-preview { grid-column: 2; }
+  .selected-work-contribution { grid-column: 1 / -1; grid-template-columns: max-content 1fr; align-items: baseline; }
   .selected-work-case-study { grid-column: 1 / -1; }
   .selected-work-case-details { grid-template-columns: 1fr 1fr; column-gap: 2rem; }
   .selected-work-secondary-project { grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.25fr); align-items: start; }
-  .selected-work-secondary-project > p:last-child { grid-column: 2; grid-row: 1 / span 2; align-self: center; }
 }
 
 @media (prefers-reduced-motion: no-preference) {
   .selected-work-case-study[open] .selected-work-case-details { animation: case-details-in 220ms var(--ease-out) both; }
   @keyframes case-details-in { from { opacity: 0.5; transform: translateY(-3px); } }
+}
+
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    #main:not(:has([data-editing])) .selected-work-plot-window { view-timeline: --work-plot block; }
+    #main:not(:has([data-editing])) .selected-work-chart {
+      animation: work-plot-pullback linear both;
+      animation-timeline: --work-plot;
+      animation-range: entry 5% cover 42%;
+    }
+    @keyframes work-plot-pullback {
+      from { clip-path: inset(0 0 0 28%); transform: scale(1.2); }
+      to { clip-path: inset(0); transform: none; }
+    }
+  }
 }

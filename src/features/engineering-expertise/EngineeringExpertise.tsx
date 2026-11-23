@@ -60,7 +60,7 @@ export function EngineeringExpertise() {
 
   return (
     <LayoutGroup id="how-i-engineer">
-      <PortfolioSection id="expertise" intro={expertise.intro}>
+      <PortfolioSection id="expertise" intro={expertise.intro} customReveal>
         <div className="engineer" data-view={area ? 'area' : 'index'}>
           <nav className="engineer-index" aria-label={expertise.areasLabel}>
             <ul>

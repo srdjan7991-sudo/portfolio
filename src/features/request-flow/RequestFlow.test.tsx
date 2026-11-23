@@ -32,6 +32,26 @@ async function openPlayer(live = false) {
   return { user, flow, button }
 }
 
+test('lets a visitor inspect a layer without starting playback or requesting data', async () => {
+  const fetch = vi.fn()
+  vi.stubGlobal('fetch', fetch)
+  const user = userEvent.setup()
+  render(<LanguageProvider><RequestFlow live /></LanguageProvider>)
+  const preview = screen.getByRole('figure', { name: 'Arhitektura zahteva' })
+  const server = within(preview).getByRole('button', { name: sr.flow.systems[1].name })
+  server.focus()
+
+  await user.keyboard('{Enter}')
+  expect(server).toHaveAttribute('aria-expanded', 'true')
+  expect(within(preview).getByText(sr.flow.systems[1].role)).toHaveAttribute('aria-hidden', 'false')
+  expect(server).toHaveFocus()
+  expect(fetch).not.toHaveBeenCalled()
+
+  await user.keyboard('{Enter}')
+  expect(server).toHaveAttribute('aria-expanded', 'false')
+  expect(within(preview).getByText(sr.flow.systems[1].role)).toHaveAttribute('aria-hidden', 'true')
+})
+
 test('opens inline, waits for explicit playback and restores focus after closing', async () => {
   const fetch = vi.fn()
   vi.stubGlobal('fetch', fetch)

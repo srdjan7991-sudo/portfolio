@@ -129,6 +129,33 @@ function LanguageControl() {
   return <button type="button" onClick={() => setLanguage('sr')}>Serbian</button>
 }
 
+test('compares both rules at the same limit and keeps the open comparison in Serbian', async () => {
+  const user = userEvent.setup()
+  try {
+    render(<LanguageProvider><LanguageControl /><EngineeringExpertise /></LanguageProvider>)
+    await user.click(screen.getByRole('button', { name: /Testing & Quality/ }))
+    const summary = screen.getByText('Compare both rules')
+    const disclosure = summary.closest('details')
+    expect(disclosure).not.toHaveAttribute('open')
+    await user.click(summary)
+    expect(disclosure).toHaveAttribute('open')
+    const limited = screen.getByRole('region', { name: 'With the limit' })
+    const unlimited = screen.getByRole('region', { name: 'Without the limit' })
+    expect(limited).toHaveTextContent('Actual 3')
+    expect(unlimited).toHaveTextContent('Actual 4')
+    expect(within(limited).getByText('Math.min(quantity + 1, 3)')).toBeVisible()
+    expect(within(unlimited).getByText('quantity + 1')).toBeVisible()
+    expect(screen.getByRole('status')).toHaveTextContent('Quantity 2')
+    await user.click(screen.getByRole('button', { name: 'Serbian' }))
+    expect(screen.getByRole('region', { name: 'Sa ograničenjem' })).toHaveTextContent('Dobijeno 3')
+    expect(screen.getByRole('region', { name: 'Bez ograničenja' })).toHaveTextContent('Dobijeno 4')
+  } finally {
+    localStorage.clear()
+    document.documentElement.lang = 'en'
+    document.title = ''
+  }
+})
+
 test('translates the open area without losing concept selection or demo state', async () => {
   const user = userEvent.setup()
   try {

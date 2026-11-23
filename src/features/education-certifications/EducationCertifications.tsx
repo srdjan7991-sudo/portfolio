@@ -11,13 +11,18 @@ const courseLists = {
 export function EducationCertifications() {
   const { language, text: { education } } = useLanguage()
   return (
-    <PortfolioSection id="education">
+    <PortfolioSection id="education" customReveal>
       <ul className="education-credentials">
-        <li><h3 lang="en">Certified Software Engineering Professional</h3><p>ITAcademy · {education.location} · 2018</p></li>
         <li>
+          <time dateTime="2018">2018</time>
+          <h3 lang="en">Certified Software Engineering Professional</h3>
+          <p>ITAcademy · {education.location}</p>
+        </li>
+        <li>
+          <time dateTime="2026-08">{education.date}</time>
           <h3>{education.courses}</h3>
           <p>{courseLists[language].map(({ type, value }) => type === 'element'
-            ? <span key={value} lang="en">{value}</span> : value)} · {education.date}</p>
+            ? <span key={value} lang="en">{value}</span> : value)}</p>
         </li>
       </ul>
     </PortfolioSection>

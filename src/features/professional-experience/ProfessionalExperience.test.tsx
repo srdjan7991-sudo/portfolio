@@ -10,12 +10,15 @@ test('distinguishes employment from project assignments and associates each proj
   expect(screen.getAllByRole('heading', { level: 4 }).map(heading => heading.textContent))
     .toEqual(['Mede Analytics', 'Kterio', 'Alpha Data Solutions'])
 
-  for (const [name, period, role] of [
-    ['Mede Analytics', '2024–2026', 'Frontend Developer'],
-    ['Kterio', '2022–2024', 'Full Stack Developer'],
-    ['Alpha Data Solutions', '2020–2022', 'Full Stack Developer'],
+  for (const [id, name, period, role] of [
+    ['experience-mede', 'Mede Analytics', '2024–2026', 'Frontend Developer'],
+    ['experience-kterio', 'Kterio', '2022–2024', 'Full Stack Developer'],
+    ['experience-alpha', 'Alpha Data Solutions', '2020–2022', 'Full Stack Developer'],
   ]) {
-    const item = screen.getByRole('heading', { name, level: 4 }).closest('li')!
+    const heading = screen.getByRole('heading', { name, level: 4 })
+    expect(heading).toHaveAttribute('id', id)
+    expect(heading).toHaveAttribute('tabindex', '-1')
+    const item = heading.closest('li')!
     expect(within(item).getByText(period)).toBeInTheDocument()
     expect(within(item).getByText(role)).toBeInTheDocument()
   }

@@ -67,7 +67,10 @@ export function ProfessionalExperience() {
         {projects.map(({ title, period, role, contribution, tools }) => (
           <li key={title}>
             <div className="experience-project">
-              <div className="experience-entry-heading"><h4>{title}</h4><p>{period}</p></div>
+              <div className="experience-entry-heading">
+                <h4 id={`experience-${contribution}`} tabIndex={-1}>{title}</h4>
+                <p>{period}</p>
+              </div>
               <p className="experience-role">{experience[role]}</p>
               <p>{experience[contribution]}</p>
               <TechnologyTags label={work.technologies(title)} tools={tools}

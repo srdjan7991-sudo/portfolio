@@ -19,6 +19,7 @@ export const reportCategories = ['all', ...reportSeries] as const
 export type ReportCategory = typeof reportCategories[number]
 
 export type ReportFilters = Readonly<{ period: ReportPeriod; category: ReportCategory }>
+export type Observation = Readonly<{ month: number; series: ReportSeries }>
 export const defaultReportFilters: ReportFilters = { period: 'firstHalf', category: 'all' }
 
 type MonthlyCounts = Readonly<Partial<Record<ReportSeries, number>>>
@@ -41,15 +42,14 @@ const monthlyCounts: readonly MonthlyCounts[] = [
 const highestObservation = Math.max(...monthlyCounts.flatMap(counts => Object.values(counts)))
 export const reportScaleMaximum = Math.max(20, Math.ceil(highestObservation / 20) * 20)
 
+export function compareReportCounts(start: number | null, end: number | null): ReportPoint['change'] {
+  if (start === null || end === null) return null
+  const amount = end - start
+  return { amount, rate: start === 0 ? null : amount / start }
+}
+
 function reportPoint(count: number | undefined, previous: number | undefined): ReportPoint | null {
-  if (count === undefined) return null
-  return {
-    count,
-    change: previous === undefined ? null : {
-      amount: count - previous,
-      rate: previous === 0 ? null : (count - previous) / previous,
-    },
-  }
+  return count === undefined ? null : { count, change: compareReportCounts(previous ?? null, count) }
 }
 
 export function summarizeReport({ period, category }: ReportFilters) {

@@ -1,5 +1,6 @@
 import { LayoutGroup, motion } from 'motion/react'
 import { useEffect, useEffectEvent, useId, useLayoutEffect, useRef, useState, useSyncExternalStore } from 'react'
+import type { MouseEvent } from 'react'
 import { PortfolioSection } from '../../components/shared/PortfolioSection'
 import { useLanguage } from '../../i18n/language'
 import { relatedSkills } from './skillDetails'
@@ -12,7 +13,11 @@ import './TechnicalSkills.css'
 type Selection = { group: SkillGroupId; skill?: SkillName; linked?: boolean }
 type SkillReturn = { visit: string; id: string; top: number; selection: Selection | null }
 type SkillView = { selection: Selection | null; focusId: string }
-let nextSkillVisit = 0
+type ProjectArrival = { visit: string; id: string }
+type ProjectReturn = ProjectArrival & { selection: Selection }
+type ProjectHistory = { skillProjectReturn?: ProjectReturn; skillProjectArrival?: ProjectArrival }
+type ProjectFocus = { id: string; hash: string; at: 'skills' | 'project' }
+let nextVisit = 0
 const layoutTransition = { duration: 0.36, ease: [0.22, 1, 0.36, 1] } as const
 const motionPreference = '(prefers-reduced-motion: reduce)'
 const compactLayout = '(max-width: 40rem)'
@@ -49,20 +54,26 @@ function initialSelection(): Selection | null {
   return group ? { group: group.id, skill, linked: true } : null
 }
 
+function createVisitId() {
+  return `${performance.timeOrigin}-${++nextVisit}`
+}
+
 export function TechnicalSkills() {
   const { text: { skills } } = useLanguage()
   const id = useId()
   const motionMode = useSyncExternalStore(subscribeToMotionMode, getMotionMode)
   const [selection, setSelection] = useState(initialSelection)
   const [returnToLink, setReturnToLink] = useState<SkillReturn | null>(null)
+  const [projectFocus, setProjectFocus] = useState<ProjectFocus | null>(null)
   const [hovered, setHovered] = useState<SkillName | null>(null)
   const [focused, setFocused] = useState<SkillName | null>(null)
-  const [revealComplete, setRevealComplete] = useState(Boolean(selection?.linked))
   const explorer = useRef<HTMLDivElement>(null)
   const back = useRef<HTMLButtonElement>(null)
   const pendingFocus = useRef<string | null>(null)
   const selectionBeforeLink = useRef<Selection | null>(null)
   const currentSkillVisit = useRef<string | undefined>(history.state?.skillVisit)
+  const projectHistory = useRef<ProjectHistory>(history.state ?? {})
+  const pendingProject = useRef<ProjectArrival | null>(null)
   const handledHistoryUrl = useRef<string | null>(null)
   const visitFrame = useRef(0)
   const activeGroup = selection?.group
@@ -108,6 +119,23 @@ export function TechnicalSkills() {
     return () => cancelAnimationFrame(frame)
   }, [returnToLink])
 
+  useLayoutEffect(() => {
+    if (!projectFocus) return
+    // The browser restores native scroll and focus after popstate. Skills can also resize above the project.
+    const frame = requestAnimationFrame(() => {
+      const target = document.getElementById(projectFocus.id)
+      if (target && location.hash === projectFocus.hash) {
+        if (projectFocus.at === 'skills') focusInSkills(target, false, null)
+        else {
+          target.focus({ preventScroll: true })
+          target.scrollIntoView?.({ block: 'start', behavior: 'instant' })
+        }
+      }
+      setProjectFocus(null)
+    })
+    return () => cancelAnimationFrame(frame)
+  }, [projectFocus, selection])
+
   function updateSelection(next: Selection | null, focusId: string, remember = true) {
     const skillInUrl = linkedSkill(location.hash)
     const changedFragment = skillInUrl && skillInUrl !== next?.skill
@@ -117,7 +145,6 @@ export function TechnicalSkills() {
       const state = rememberView ? { ...history.state, skillView } : history.state
       history.replaceState(state, '', changedFragment ? '#skills' : location.href)
     }
-    setRevealComplete(true)
     setHovered(null)
     setFocused(skill => skill && skillButtonId(skill) === focusId ? skill : null)
     pendingFocus.current = focusId
@@ -142,6 +169,31 @@ export function TechnicalSkills() {
     if (activeGroup) updateSelection(null, groupButtonId(activeGroup))
   }
 
+  function rememberProjectLink(event: MouseEvent<HTMLAnchorElement>) {
+    if (event.defaultPrevented || event.button !== 0 || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return
+    const { id: linkId, hash } = event.currentTarget
+    if (!selection || hash === location.hash) return
+
+    // Keep native fragment navigation and identify both entries of this visit.
+    const visit = createVisitId()
+    const skillProjectReturn: ProjectReturn = { visit, id: linkId, selection }
+    const state = { ...history.state, skillProjectReturn }
+    history.replaceState(state, '')
+    projectHistory.current = state
+    pendingProject.current = { visit, id: hash.slice(1) }
+  }
+
+  function recordProjectArrival() {
+    const arrival = pendingProject.current
+    if (!arrival || location.hash !== `#${arrival.id}`) return null
+
+    if (history.state?.skillProjectArrival?.visit !== arrival.visit) {
+      history.replaceState({ ...history.state, skillProjectArrival: arrival }, '')
+    }
+    projectHistory.current = history.state
+    return arrival
+  }
+
   const handleEscape = useEffectEvent((event: KeyboardEvent) => {
     if (event.key !== 'Escape' || event.defaultPrevented || !activeGroup) return
     event.preventDefault()
@@ -151,6 +203,12 @@ export function TechnicalSkills() {
 
   const followSkillLink = useEffectEvent((event: HashChangeEvent) => {
     currentSkillVisit.current = history.state?.skillVisit
+    if (event.newURL === location.href) {
+      const arrival = recordProjectArrival()
+      pendingProject.current = null
+      if (arrival) setProjectFocus({ id: arrival.id, hash: location.hash, at: 'project' })
+    }
+    projectHistory.current = history.state ?? {}
     // The traversal already handled this URL before the browser dispatched hashchange.
     const handled = handledHistoryUrl.current === event.newURL
     handledHistoryUrl.current = null
@@ -174,14 +232,17 @@ export function TechnicalSkills() {
     event.preventDefault()
     cancelAnimationFrame(visitFrame.current)
     setReturnToLink(null)
-    const visit = `${performance.timeOrigin}-${++nextSkillVisit}`
+    const visit = createVisitId()
     const state = { ...history.state }
     delete state.skillReturn
     const skillReturn: SkillReturn = { visit, id: link.id, top: link.getBoundingClientRect().top, selection }
     history.replaceState({ ...state, skillReturn }, '')
     delete state.skillView
+    delete state.skillProjectReturn
+    delete state.skillProjectArrival
     history.pushState({ ...state, skillVisit: visit }, '', link.hash)
     currentSkillVisit.current = visit
+    projectHistory.current = {}
     openLinkedSkill(skill)
   })
 
@@ -199,15 +260,31 @@ export function TechnicalSkills() {
 
   const traverseSkillHistory = useEffectEvent((event: PopStateEvent) => {
     cancelAnimationFrame(visitFrame.current)
+    const previousProject = projectHistory.current
+    const nextProject: ProjectHistory = event.state ?? {}
+    projectHistory.current = nextProject
+    const project = nextProject.skillProjectReturn
+    const arrival = nextProject.skillProjectArrival
     const origin: SkillReturn | undefined = event.state?.skillReturn
     const returning = origin?.visit === currentSkillVisit.current ? origin : undefined
     currentSkillVisit.current = event.state?.skillVisit
     handledHistoryUrl.current = null
     setReturnToLink(returning ?? null)
+    setProjectFocus(null)
+    // A native fragment click can dispatch popstate before its focus and hashchange events.
+    if (recordProjectArrival()) return
+
     if (returning) {
       handledHistoryUrl.current = location.href
       pendingFocus.current = null
       setSelection(returning.selection)
+      setHovered(null)
+      setFocused(null)
+    } else if (project?.visit && project.visit === previousProject.skillProjectArrival?.visit) {
+      handledHistoryUrl.current = location.href
+      pendingFocus.current = null
+      setProjectFocus({ id: project.id, hash: location.hash, at: 'skills' })
+      setSelection(project.selection)
       setHovered(null)
       setFocused(null)
     } else if (currentSkillVisit.current) {
@@ -215,6 +292,8 @@ export function TechnicalSkills() {
       const visit = currentSkillVisit.current
       // The browser restores its scroll after popstate. Focus the destination after that.
       visitFrame.current = requestAnimationFrame(() => resumeSkillVisit(visit))
+    } else if (arrival && arrival.visit === previousProject.skillProjectReturn?.visit) {
+      pendingProject.current = arrival
     }
   })
 
@@ -222,22 +301,13 @@ export function TechnicalSkills() {
     const node = explorer.current
     if (!node) return
 
-    function finishReveal(event: AnimationEvent) {
-      if (event.animationName === 'skills-index-in' && event.target instanceof HTMLElement &&
-          event.target.dataset.group === 'delivery') setRevealComplete(true)
-    }
-
     node.addEventListener('keydown', handleEscape)
-    node.addEventListener('animationend', finishReveal)
-    node.addEventListener('animationcancel', finishReveal)
     window.addEventListener('hashchange', followSkillLink)
     window.addEventListener(skillLinkRequest, openRequestedSkill)
     window.addEventListener('popstate', traverseSkillHistory)
     return () => {
       cancelAnimationFrame(visitFrame.current)
       node.removeEventListener('keydown', handleEscape)
-      node.removeEventListener('animationend', finishReveal)
-      node.removeEventListener('animationcancel', finishReveal)
       window.removeEventListener('hashchange', followSkillLink)
       window.removeEventListener(skillLinkRequest, openRequestedSkill)
       window.removeEventListener('popstate', traverseSkillHistory)
@@ -245,10 +315,9 @@ export function TechnicalSkills() {
   }, [])
 
   return (
-    <PortfolioSection id="skills" intro={skills.intro}>
+    <PortfolioSection id="skills" intro={skills.intro} customReveal>
       <LayoutGroup id={id}>
-        <div className="skills-explorer" ref={explorer}
-          data-view={activeGroup ? 'category' : 'overview'} data-reveal-complete={revealComplete}>
+        <div className="skills-explorer" ref={explorer} data-view={activeGroup ? 'category' : 'overview'}>
           {activeGroup && (
             <button className="skills-back" type="button" onClick={showOverview} ref={back}>
               <span aria-hidden="true">←</span> {skills.explorer.all}
@@ -319,7 +388,7 @@ export function TechnicalSkills() {
                         </ul>
                         {detail && (
                           <SkillDetailPanel key={detail[0]} tool={detail} id={detailId} headingId={skillAnchor(detail[0])}
-                            linked={selection?.linked} onClose={clearSkill} onSelect={openSkill} />
+                            linked={selection?.linked} onClose={clearSkill} onSelect={openSkill} onProjectLink={rememberProjectLink} />
                         )}
                       </>
                     )}

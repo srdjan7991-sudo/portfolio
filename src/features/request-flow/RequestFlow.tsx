@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { RequestCrossSection } from './RequestCrossSection'
 import { RequestFlowPlayer } from './RequestFlowPlayer'
 import { RequestScenarios } from './scenarios/RequestScenarios'
 import { systems } from './requestFlowSteps'
@@ -24,15 +25,14 @@ export function RequestFlow({ live }: { live: boolean }) {
   const [expanded, setExpanded] = useState(false)
   const [screen, setScreen] = useState<'intro' | 'player' | 'scenarios'>('intro')
   const [scenarioSession, setScenarioSession] = useState(0)
-  const section = useRef<HTMLElement>(null)
   const openButton = useRef<HTMLButtonElement>(null)
   const closeButton = useRef<HTMLButtonElement>(null)
   const introTitle = useRef<HTMLHeadingElement>(null)
   const scenariosTitle = useRef<HTMLHeadingElement>(null)
 
   useEffect(() => {
-    if (expanded && scenariosTitle.current) {
-      const title = scenariosTitle.current
+    const title = scenariosTitle.current ?? introTitle.current
+    if (expanded && title) {
       const close = closeButton.current
       title.focus({ preventScroll: true })
       const header = Number.parseFloat(getComputedStyle(document.documentElement).scrollPaddingBlockStart) || 0
@@ -40,13 +40,9 @@ export function RequestFlow({ live }: { live: boolean }) {
       const height = close ? title.getBoundingClientRect().bottom - close.getBoundingClientRect().top : 0
       const target = close && header + closeMargin + height <= window.innerHeight ? close : title
       target.scrollIntoView({ block: 'start' })
-    } else if (expanded) {
-      introTitle.current?.focus({ preventScroll: true })
-      section.current?.scrollIntoView({ block: 'start' })
-    } else if (openButton.current) {
+    } else if (!expanded && openButton.current) {
       openButton.current.focus({ preventScroll: true })
-      if (scenariosTitle.current) openButton.current.scrollIntoView({ block: 'center' })
-      else section.current?.scrollIntoView({ block: 'start' })
+      openButton.current.scrollIntoView({ block: 'center' })
     }
   }, [expanded])
 
@@ -58,34 +54,33 @@ export function RequestFlow({ live }: { live: boolean }) {
   }
 
   return (
-    <section id="request-flow" ref={section} className={styles.section}
+    <section id="request-flow" className={styles.section}
       aria-labelledby="request-flow-title" data-expanded={expanded} data-view={screen}>
       <div className="container">
-        <div className={styles.teaser}>
-          <div>
-            <p className={styles.eyebrow}>{flow.eyebrow}</p>
-            <h2 id="request-flow-title">{flow.teaser}</h2>
-            <p className={styles.lead}>{flow.lead}</p>
-          </div>
-          <div className={styles.teaserAction}>
-            <ol className={styles.route}>
-              {systems.map((system, i) => <li key={system.id}><SystemIcon index={i} /><span>{flow.systems[i].name}</span></li>)}
-            </ol>
-            <p className={styles.stack}>React · ASP.NET Core · SQL Server</p>
-            <div className={styles.teaserButton} inert={expanded}>
-              <div>
-                <button type="button" className="ui-pill ui-pill--accent"
-                  onClick={event => open('intro', event.currentTarget)} aria-expanded={expanded && screen !== 'scenarios'} aria-controls="request-flow-panel">
-                  {flow.open} <span aria-hidden="true">↓</span>
-                </button>
-                <button type="button" className="ui-pill" onClick={event => open('scenarios', event.currentTarget)}
-                  aria-expanded={expanded && screen === 'scenarios'} aria-controls="request-flow-panel">
-                  {flow.scenarios.open} <span aria-hidden="true">↓</span>
-                </button>
+        <RequestCrossSection expanded={expanded}>
+          <div className={styles.teaser}>
+            <div>
+              <p className={styles.eyebrow}>{flow.eyebrow}</p>
+              <h2 id="request-flow-title">{flow.teaser}</h2>
+              <p className={styles.lead}>{flow.lead}</p>
+            </div>
+            <div className={styles.teaserAction}>
+              <p className={styles.stack}>React · ASP.NET Core · SQL Server</p>
+              <div className={styles.teaserButton} inert={expanded}>
+                <div>
+                  <button type="button" className="ui-pill ui-pill--accent"
+                    onClick={event => open('intro', event.currentTarget)} aria-expanded={expanded && screen !== 'scenarios'} aria-controls="request-flow-panel">
+                    {flow.open} <span aria-hidden="true">↓</span>
+                  </button>
+                  <button type="button" className="ui-pill" onClick={event => open('scenarios', event.currentTarget)}
+                    aria-expanded={expanded && screen === 'scenarios'} aria-controls="request-flow-panel">
+                    {flow.scenarios.open} <span aria-hidden="true">↓</span>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        </RequestCrossSection>
         <div id="request-flow-panel" className={styles.expand} inert={!expanded}>
           <div>
             <div className={styles.panel}>

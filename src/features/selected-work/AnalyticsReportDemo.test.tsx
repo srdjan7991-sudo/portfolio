@@ -1,6 +1,6 @@
 import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { afterEach, expect, test } from 'vitest'
+import { afterEach, expect, test, vi } from 'vitest'
 import { LanguageProvider, languageStorageKey } from '../../i18n/language'
 import { LanguageSwitch } from '../../i18n/LanguageSwitch'
 import { SelectedWork } from './SelectedWork'
@@ -159,4 +159,96 @@ test('opens the point on keyboard focus, supports activation and Escape, and kee
   await user.click(disclosure)
   await user.click(disclosure)
   expect(chart.querySelector('[data-open="true"]')).toBeNull()
+})
+
+test('marks the matching table cell until the reader clears it or changes the report filters', async () => {
+  const user = userEvent.setup()
+  render(<SelectedWork />)
+  await user.click(screen.getByText('Try a sample report', { selector: 'summary' }))
+  const table = await screen.findByRole('table', { name: 'Monthly data' })
+  const operations = screen.getByRole('button', { name: 'Operations, April 2026, Completed reports 24' })
+
+  operations.focus()
+  await user.keyboard('{Enter}{Escape}')
+  const april = within(table).getByRole('cell', { name: '24' })
+  expect(operations).toHaveAttribute('aria-pressed', 'true')
+  expect(april).toHaveAttribute('aria-current', 'true')
+  await user.click(april)
+  expect(april).toHaveAttribute('aria-current', 'true')
+
+  const caption = within(table).getByText('Monthly data')
+  const scrollCaption = vi.fn(() => {
+    expect(screen.queryByRole('button', { name: 'Clear selection' })).not.toBeInTheDocument()
+    expect(caption).toHaveFocus()
+  })
+  caption.scrollIntoView = scrollCaption
+  await user.click(screen.getByRole('button', { name: 'Clear selection' }))
+  expect(april).not.toHaveAttribute('aria-current')
+  expect(scrollCaption).toHaveBeenCalledExactlyOnceWith({ block: 'nearest', behavior: 'instant' })
+
+  await user.click(operations)
+  await user.selectOptions(screen.getByRole('combobox', { name: 'Report category' }), 'operations')
+  expect(operations).toHaveAttribute('aria-pressed', 'false')
+  expect(within(table).getByRole('cell', { name: '24' })).not.toHaveAttribute('aria-current')
+})
+
+test('maps coverage and compares reported Operations counts on the same scale in both languages', async () => {
+  const user = userEvent.setup()
+  render(<LanguageProvider><LanguageSwitch /><SelectedWork /></LanguageProvider>)
+  await user.click(screen.getByText('Try a sample report', { selector: 'summary' }))
+  const coverage = await screen.findByRole('table', { name: 'Coverage by category' })
+  const operations = within(coverage).getByRole('rowheader', { name: 'Operations' }).closest('tr')!
+  expect(within(operations).getAllByRole('cell', { name: 'Unreported' })).toHaveLength(3)
+  expect(within(operations).getAllByRole('cell', { name: 'Reported' })).toHaveLength(3)
+
+  await user.click(screen.getByText('Compare two months', { selector: 'summary' }))
+  const category = screen.getByRole('combobox', { name: 'Category to compare' })
+  const from = screen.getByRole('combobox', { name: 'Starting month' })
+  const to = screen.getByRole('combobox', { name: 'Comparison month' })
+  await user.selectOptions(category, 'operations')
+  expect(from).toHaveValue('3')
+  expect(to).toHaveValue('5')
+  expect(screen.getByText('Shared count scale')).toHaveTextContent('0–140')
+  expect(screen.getByText('Difference')).toHaveTextContent('+6')
+  expect(screen.getByText('+25%')).toBeVisible()
+
+  await user.selectOptions(to, '3')
+  await user.selectOptions(to, '5')
+  await user.selectOptions(from, '0')
+  expect(screen.getByText('No value was reported for January 2026 in this category.')).toBeVisible()
+  await user.selectOptions(from, '5')
+  expect(screen.getByText('Choose two different months.')).toBeVisible()
+  await user.selectOptions(from, '3')
+  await user.click(screen.getByRole('switch', { name: /Serbian language/ }))
+  expect(screen.getByRole('combobox', { name: 'Kategorija za poređenje' })).toHaveValue('operations')
+  expect(screen.getByRole('combobox', { name: 'Početni mesec' })).toHaveValue('3')
+  expect(screen.getByRole('combobox', { name: 'Mesec za poređenje' })).toHaveValue('5')
+  expect(screen.getByText('Razlika')).toHaveTextContent('+6')
+  expect(screen.getByText(/\+25\s?%/)).toBeVisible()
+})
+
+test.each([
+  {
+    endpoint: 'Comparison month', month: '3', filter: 'Category to compare', value: 'operations',
+    expectedStart: '4', expectedEnd: '3', difference: '-4',
+  },
+  {
+    endpoint: 'Starting month', month: '2', filter: 'Reporting period', value: 'firstQuarter',
+    expectedStart: '2', expectedEnd: '1', difference: '-7',
+  },
+])('keeps the $endpoint distinct from the automatic month after changing $filter', async ({
+  endpoint, month, filter, value, expectedStart, expectedEnd, difference,
+}) => {
+  const user = userEvent.setup()
+  render(<SelectedWork />)
+  await user.click(screen.getByText('Try a sample report', { selector: 'summary' }))
+  await screen.findByRole('table', { name: 'Monthly data' })
+  await user.click(screen.getByText('Compare two months', { selector: 'summary' }))
+
+  await user.selectOptions(screen.getByRole('combobox', { name: endpoint }), month)
+  await user.selectOptions(screen.getByRole('combobox', { name: filter }), value)
+
+  expect(screen.getByRole('combobox', { name: 'Starting month' })).toHaveValue(expectedStart)
+  expect(screen.getByRole('combobox', { name: 'Comparison month' })).toHaveValue(expectedEnd)
+  expect(screen.getByText('Difference')).toHaveTextContent(difference)
 })

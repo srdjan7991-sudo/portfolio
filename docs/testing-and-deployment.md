@@ -17,19 +17,19 @@ Vitest uses jsdom and the setup in [`src/setupTests.ts`](../src/setupTests.ts). 
 npm test -- src/features/request-flow
 ```
 
-Run the sample report's data and interaction tests with this command.
+Run the Selected Work and report tests for project anchors, bar selection, coverage, and month comparisons.
 
 ```sh
-npm test -- src/features/selected-work/analyticsReport.test.ts src/features/selected-work/AnalyticsReportDemo.test.tsx
+npm test -- src/features/selected-work
 ```
 
-Run the How I Engineer interaction tests for focus, concept navigation, chart filtering, simulated requests, regression checks, and language changes.
+Run the How I Engineer interaction tests for focus, concept navigation, chart filtering, simulated requests, quantity rule comparisons, and language changes.
 
 ```sh
 npm test -- src/features/engineering-expertise/EngineeringExpertise.test.tsx
 ```
 
-Run the Technical Skills tests for category reordering, related tools, focus restoration, and language changes.
+Run the Technical Skills tests for category navigation, related tools, project links, focus restoration, and language changes.
 
 ```sh
 npm test -- src/features/technical-skills/TechnicalSkills.test.tsx
@@ -41,14 +41,7 @@ Run the Experience disclosure, Skills link, and section navigation tests togethe
 npm test -- src/features/professional-experience src/features/technical-skills src/hooks/sectionNavigation.test.ts
 ```
 
-Run `npm run test:coverage` to generate the V8 report. Open `coverage/index.html` for file-level results. The local run on 18 November 2026 passed 76 tests across 15 files.
-
-| Metric | Local snapshot |
-| --- | ---: |
-| Statements | 86.37% |
-| Branches | 81.29% |
-| Functions | 86.89% |
-| Lines | 90.27% |
+Run `npm run test:coverage` to generate the V8 report. Open `coverage/index.html` for file-level results from your checkout.
 
 The simulated DOM tests cover state, controls, and response handling. SVG geometry, rendered CSS timing, and pointer dragging require browser checks.
 
@@ -70,16 +63,24 @@ Run the static build locally with `npm run build` followed by `npm run preview`.
 | Area | What to verify |
 | --- | --- |
 | Hero | Reload to see the staircase open in step with the heading. Check that the frame keeps its size and both links work by keyboard from the first frame. On a short mobile viewport, skip past the photo and return slowly from below. Check that the entrance waits until the photo clears the fixed header, including after device rotation. Tap the contact link and use Back to check that the underline and arrow return to rest. Delay the image beyond the entrance and check that it appears in the full frame once loaded. On desktop, move the pointer through the photo and check the return to center and coverage at the corners. Switch on reduced motion during the reveal and while the photo is moving. Follow a CTA during the reveal, then return to the top and verify that the Hero stays open. |
+| Request cross section | On a wide, tall desktop viewport, scroll past the Hero and back up. Verify that the photo crop changes within a fixed frame and that the three layers separate and align as you scroll through the request section. Check that each request and response line stays connected to its port. Select a layer by keyboard and on a touch screen. On a narrow viewport, check the stepped diagram and tap a layer button. Open and close the walkthrough and scenarios on a short screen, including 320 × 350 px, and check the visible focus target and return to the opener. In the HTTPS build, verify that scrolling past the cross section produces no request to the public sections endpoint. |
 | Public page | Review the layout at 320, 375, 390, 768, 1024, 1280, 1440, and 1920 px in both languages and themes. Check keyboard focus, the mobile menu, section hash links, the case study, and asset loading. Switch languages with the menu or case study open. From the language switch, press Escape to return focus to the menu trigger. Reopen the menu and tab out of the header to check that the focused content is visible. Reload to verify the saved language on the first render. |
-| Sample analytics report | Open the report in Selected Work and check for 15 bars grouped across January through June. Verify that the chart and table show the same category counts and that Operations is unreported through March. Select Q2 and Quality. April's tooltip should show a count of 102 and an increase of 9 (about 9.7%) from March, which is outside Q2. Switch the category to Operations. April should show a count of 24 and an unavailable comparison. Select Q1 to check the empty state, then reset the filters. Open tooltips by hovering, tabbing to a bar, and tapping on a touch screen. Press Escape to dismiss a tooltip. Repeat on narrow and wide screens in both languages and themes. Switch the language while the report is open and verify that the filters stay selected. |
+| Selected Work and analytics | Open `#work-mede` and check visible focus below the header. Open the report and check for 15 bars grouped across January through June. Confirm the chart and table counts match and Operations is unreported through March. Activate April's Operations bar and check that the table marks its 24. Press Escape and verify that the tooltip closes while the mark remains. Use **Clear selection** and check focus on the table caption. Open **Compare two months**, choose Operations, and compare April and June for 24, 30, +6, and +25%. Choose January to check the missing value message. Select Q2 and Quality and verify April's tooltip includes an increase of 9 from March, outside Q2. Switch to Operations and Q1 to check the empty state, then reset. Switch languages and themes with a mark and comparison active and check that the choices persist. |
 | How I Engineer | Open each area and navigate its concept tabs with arrow keys, Home, and End. On a short viewport, check that the heading stays visible after the transition and that **All areas** returns to the visible opener. On a touch screen, choose three weeks and tap a bar to check its reading. Focus one bar with the keyboard, hover another, and press Space to verify that the reading follows the keyboard selection. In the API example, trigger an error and retry with success. In Testing & Quality, add two items with the limit on and off. Check that the quantity stops at three with the limit and reaches four without it, with one failed result. Switch languages with a demo open and verify that its state is preserved. Turn on reduced motion during a transition and check that movement stops. |
+| Quantity rule comparison | Open **Compare both rules** and verify that input three produces three with the limit and four without it. Read each displayed return expression and result. Switch language with the disclosure open and check that both outputs remain available. |
 | Technical Skills | Hover React and check that TypeScript and Highcharts change color without underlines. Open React using Enter or touch, then choose Highcharts in its related list. Check the new category and detail. Shift+Tab from the Highcharts detail heading back to its technology button. Press Enter or Escape and check that the detail closes and the focused technology stays highlighted. On a short viewport, verify that the focused control and the return button are visible when opening a category. Check that the selected technology remains distinguishable in forced colors. Switch languages with a detail open and turn on reduced motion during a transition. |
+| Skills project links | Open the Highcharts and C# details and activate each project link. Check visible focus at `#work-mede` or `#experience-kterio`, then use Back to return to the project link in Skills. Use Forward to return focus to the project. Start at Kterio and follow C# and its project link, then use Back twice and Forward once. That visit should focus the C# heading. Repeat from a direct `#skill-highcharts` visit. |
 | Professional Experience | Scroll past the three projects in both directions. Check the rail, current marker, and one-time entrances. Open **Details** for Mede Analytics and Kterio by keyboard and touch. Open .NET 5 from the last project and check the heading below the sticky header. Use Back and confirm that the same link returns to focus and the next Tab continues in the project. Repeat after closing the detail in Skills and with another Skills category previously open. Use Back and Forward after following two project links in succession. Follow a header link and check that Back follows regular section navigation. Reload a direct link such as `/portfolio/#skill-highcharts`. Check stacked dates on mobile. Turn on reduced motion while details are moving, and repeat with IntersectionObserver or ResizeObserver unavailable. |
 | Guided walkthrough | Start the request, advance through all six stages, pause and resume, step manually, replay, and close. Check that the outgoing and returning fills meet their SVG endpoints, the server rotates, and the three database slots seat in order. Switch languages mid-stage to verify that the scene keeps its size and the animation keeps its place. |
 | HTTP scenarios | Open **Try HTTP scenarios** and check that its focused heading is visible in short viewports. Select a scenario with the arrow keys. Send both race requests and compare the two results. Cancel a slow request and send a replacement. Retry after HTTP 500 and verify that both attempts remain visible. Reset or close during processing and watch for stale updates. Repeat in both languages and themes on mobile and desktop. |
-| Reduced motion | Emulate `prefers-reduced-motion: reduce`. Check that the walkthrough can still start, pause, and step through each stage. Verify that the HTTP simulator displays static phase indicators and completes each run. In the sample report, check that filters and bar tooltips update without motion. |
+| Reduced motion | Emulate `prefers-reduced-motion: reduce` during a scene. The cross section shows the static diagram, the Experience rail stays static while its current marker changes, and the Hero shows the full photo. Verify that the walkthrough can still start, pause, and step through each stage. Check that HTTP simulations complete, and that filters, marks, and comparisons still work in the report. |
+| Education and Contact | Check the dates and reading order with two columns and on mobile. Open `#contact` directly, tab to the email link, and check the download and footer link. Check that the decorative surface stays clear of the focus target while scrolling. |
 | Live walkthrough | In the HTTPS frontend, run the demonstration and check `GET /api/sections` in the browser Network panel. Compare the HTTP status and row count with the player. An empty response should show the empty state. A failed request should show an error with a replay option. |
-| Administration | Check sign-in, reload with the session intact, and sign-out. In **Editing mode**, click or tap the up and down buttons, check the controls at both ends of the list, and reload to confirm the saved order. Start a keyboard move, switch languages, and return to the handle to save. Repeat and cancel by leaving the handle and switch. Check drag sorting and the fixed positions of Header, Hero, the walkthrough, and Footer. |
+| Administration | Check sign-in, reload with the session intact, and sign-out. In **Editing mode**, click or tap the up and down buttons, check the controls at both ends of the list, and reload to confirm the saved order. Start a keyboard move, switch languages, and return to the handle to save. Repeat and cancel by leaving the handle and switch. Check drag sorting and the fixed positions of Header, Hero, the walkthrough, and Footer. Confirm the reorderable sections use their settled decorative styles while editing and that project links still work after reordering. |
+
+For a performance comparison, build the base revision and the candidate and use the same browser, viewport, throttling, and page state. Record initial LCP and layout shift, then sample frame intervals while scrolling the page in both directions. Use multiple runs and report the median, device or emulation settings, and browser version. Browser fixtures can verify rendering and API request timing. Use the HTTPS setup and an isolated SQL Server instance when verifying live database behavior.
+
+At 320 px, check that grouped report bars are easy to activate individually. In a short viewport, place **Clear selection** just below the fixed header and activate it by keyboard. The table caption should receive visible focus. For comparison defaults, choose April as the comparison month with Quality selected, then switch the comparison category to Operations. April should remain selected and the automatic starting month should be different.
 
 ## GitHub Actions and Pages
 

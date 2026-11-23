@@ -1,4 +1,4 @@
-import { act, render, screen, waitFor, within } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { expect, test, vi } from 'vitest'
 import { LanguageProvider, useLanguage } from '../../i18n/language'
@@ -115,6 +115,82 @@ test('retains the selected technology when the language changes', async () => {
     localStorage.clear()
     document.documentElement.lang = 'en'
     document.title = ''
+  }
+})
+
+test.each([
+  ['Highcharts', 'View work on Mede Analytics', '#work-mede'],
+  ['C#', 'View work on Kterio', '#experience-kterio'],
+])('links %s to its confirmed project', async (skill, label, href) => {
+  const user = userEvent.setup()
+  render(<TechnicalSkills />)
+  const tool = screen.getByRole('button', { name: skill })
+  tool.focus()
+  await user.keyboard('{Enter}')
+  const heading = screen.getByRole('heading', { name: skill, level: 4 })
+  expect(heading).toHaveFocus()
+  expect(within(heading.parentElement!).getByRole('link', { name: label })).toHaveAttribute('href', href)
+})
+
+test('restores focus in both directions of a native project visit', async () => {
+  const user = userEvent.setup()
+  const originalState = history.state
+  const originalUrl = location.href
+  const projectId = 'work-mede'
+  try {
+    history.replaceState(null, '', '#skills')
+    const replaceState = vi.spyOn(history, 'replaceState')
+    render(<><TechnicalSkills /><article id={projectId} tabIndex={-1}>Mede Analytics</article></>)
+    await user.click(screen.getByRole('button', { name: 'Highcharts' }))
+    const link = screen.getByRole('link', { name: 'View work on Mede Analytics' })
+    // jsdom activates modified links in the same context. Cancel the browser default after React handles the event.
+    window.addEventListener('click', event => event.preventDefault(), { once: true })
+    fireEvent.click(link, { ctrlKey: true })
+    expect(replaceState).not.toHaveBeenCalled()
+
+    const project = document.getElementById(projectId)
+    link.focus()
+    await user.keyboard('{Enter}')
+    await waitFor(() => expect(project).toHaveFocus())
+    expect(location.hash).toBe('#work-mede')
+    history.back()
+    await waitFor(() => expect(link).toHaveFocus())
+    expect(location.hash).toBe('#skills')
+    history.forward()
+    await waitFor(() => expect(project).toHaveFocus())
+    expect(location.hash).toBe('#work-mede')
+  } finally {
+    history.replaceState(originalState, '', originalUrl)
+  }
+})
+
+test('distinguishes two history entries for the same project surrounding a Skills visit', async () => {
+  const user = userEvent.setup()
+  const originalState = history.state
+  const originalUrl = location.href
+  vi.spyOn(window, 'scrollTo').mockImplementation(() => {})
+  try {
+    history.replaceState(null, '', '#experience-kterio')
+    render(<><TechnicalSkills /><ProfessionalExperience /></>)
+    const project = screen.getByRole('heading', { name: 'Kterio', level: 4 })
+    const technology = within(project.closest('li')!).getByRole('link', { name: 'C#' })
+    await user.click(technology)
+    const skill = () => screen.getByRole('heading', { name: 'C#', level: 4 })
+    const link = () => screen.getByRole('link', { name: 'View work on Kterio' })
+    expect(skill()).toHaveFocus()
+    await user.click(link())
+    await waitFor(() => expect(project).toHaveFocus())
+    expect(location.hash).toBe('#experience-kterio')
+    history.back()
+    await waitFor(() => expect(link()).toHaveFocus())
+    history.back()
+    await waitFor(() => expect(technology).toHaveFocus())
+    expect(location.hash).toBe('#experience-kterio')
+    history.forward()
+    await waitFor(() => expect(skill()).toHaveFocus())
+    expect(location.hash).toBe('#skill-c-sharp')
+  } finally {
+    history.replaceState(originalState, '', originalUrl)
   }
 })
 
