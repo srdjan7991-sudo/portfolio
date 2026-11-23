@@ -26,7 +26,7 @@ For live API calls, Swagger, and administrator controls, follow the [local backe
 | Feature | What it shows |
 | --- | --- |
 | Kinetic typography | The Hero heading reveals in two stages and responds to pointer hover. Reduced motion shows the finished heading immediately. |
-| Selected Work | The Mede Analytics case study, a reporting preview, and an independent analytics demo with period and category filters, a chart, and a matching table. The demo uses synthetic data. Kterio has a separate project summary. |
+| Selected Work | The Mede Analytics case study, a reporting preview, and an independent analytics demo with period and category filters. The demo shows synthetic category counts in a grouped monthly chart and a matching table. Hover over, focus, or tap a bar to see the month-over-month change. Kterio has a separate project summary. |
 | Behind every request | A six-stage walkthrough of a request through the browser, application server, and database. With the API enabled, it can show the result of a public request to the local backend. |
 | English and Serbian | A header switch changes the language in place and remembers the selection on the next visit. |
 | Light and dark themes | A switch in the header with a saved preference. The interface respects reduced motion. |
@@ -72,6 +72,6 @@ For live API calls, Swagger, and administrator controls, follow the [local backe
 
 ## Documentation
 
-- [Architecture and request walkthrough](docs/architecture.md) covers page composition, themes, navigation, section ordering, and the SVG animation timeline.
+- [Architecture and request walkthrough](docs/architecture.md) covers page composition, the sample analytics report, themes, navigation, section ordering, and the SVG animation timeline.
 - [Local backend and API](docs/backend.md) covers SQL Server, migrations, HTTPS, administrator setup, and endpoint behavior.
 - [Testing and deployment](docs/testing-and-deployment.md) covers frontend and backend checks, browser verification, and what GitHub Pages publishes.
