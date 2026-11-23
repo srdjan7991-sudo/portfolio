@@ -3,12 +3,12 @@ import { useEffect, useEffectEvent, useId, useLayoutEffect, useRef, useState, us
 import { PortfolioSection } from '../../components/shared/PortfolioSection'
 import { useLanguage } from '../../i18n/language'
 import { relatedSkills } from './skillDetails'
-import { groupForSkill, skillGroups, skillLogo } from './skillGroups'
+import { groupForSkill, linkedSkill, skillAnchor, skillGroups, skillLogo } from './skillGroups'
 import type { SkillGroupId, SkillName } from './skillGroups'
 import { SkillDetailPanel } from './SkillDetailPanel'
 import './TechnicalSkills.css'
 
-type Selection = { group: SkillGroupId; skill?: SkillName }
+type Selection = { group: SkillGroupId; skill?: SkillName; linked?: boolean }
 const layoutTransition = { duration: 0.36, ease: [0.22, 1, 0.36, 1] } as const
 const motionPreference = '(prefers-reduced-motion: reduce)'
 const compactLayout = '(max-width: 40rem)'
@@ -24,33 +24,43 @@ function getMotionMode() {
   return window.matchMedia?.(compactLayout).matches ? 'compact' : 'full'
 }
 
-function focusInSkills(target: HTMLElement, readingDetails: boolean, context: HTMLElement | null) {
+function focusInSkills(target: HTMLElement, readingDetails: boolean, context: HTMLElement | null, align = false) {
   if (target !== document.activeElement) target.focus({ preventScroll: true })
   const scroller = document.scrollingElement
+  // Cancel a smooth scroll that may still be heading toward the activated link.
   scroller?.scrollTo({ top: scroller.scrollTop, behavior: 'instant' })
   const anchor = context ?? target
   const top = anchor.getBoundingClientRect().top
   const bottom = target.getBoundingClientRect().bottom
   const header = parseFloat(getComputedStyle(document.documentElement).scrollPaddingBlockStart) || 0
   const readingSpace = readingDetails ? 160 : 0
-  if (top < header || bottom + readingSpace > window.innerHeight) {
-    anchor.scrollIntoView({ block: context || readingDetails ? 'start' : 'nearest', behavior: 'instant' })
+  if (align || top < header || bottom + readingSpace > window.innerHeight) {
+    anchor.scrollIntoView?.({ block: context || readingDetails ? 'start' : 'nearest', behavior: 'instant' })
   }
+}
+
+function initialSelection(): Selection | null {
+  const skill = linkedSkill(location.hash)
+  const group = skill && groupForSkill(skill)
+  return group ? { group: group.id, skill, linked: true } : null
 }
 
 export function TechnicalSkills() {
   const { text: { skills } } = useLanguage()
   const id = useId()
   const motionMode = useSyncExternalStore(subscribeToMotionMode, getMotionMode)
-  const [selection, setSelection] = useState<Selection | null>(null)
+  const [selection, setSelection] = useState(initialSelection)
   const [hovered, setHovered] = useState<SkillName | null>(null)
   const [focused, setFocused] = useState<SkillName | null>(null)
-  const [revealComplete, setRevealComplete] = useState(false)
+  const [revealComplete, setRevealComplete] = useState(Boolean(selection?.linked))
   const explorer = useRef<HTMLDivElement>(null)
   const back = useRef<HTMLButtonElement>(null)
   const pendingFocus = useRef<string | null>(null)
+  const selectionBeforeLink = useRef<Selection | null>(null)
   const activeGroup = selection?.group
   const current = selection?.skill
+  const animateSurface = !selection?.linked && motionMode !== 'reduced'
+  const animatePositions = animateSurface && motionMode === 'full'
   const highlighted = hovered ?? focused ?? current
   const matches = highlighted ? relatedSkills[highlighted] ?? [] : []
   const groups = activeGroup
@@ -59,7 +69,7 @@ export function TechnicalSkills() {
   const groupButtonIds = `${id}-group-`
   const groupButtonId = (group: SkillGroupId) => groupButtonIds + group
   const skillButtonId = (name: SkillName) => `${id}-tool-${name.replaceAll(' ', '-')}`
-  const detailHeadingId = `${id}-detail-heading`
+  const detailHeadingId = current ? skillAnchor(current) : undefined
   const detailId = `${id}-detail`
 
   useLayoutEffect(() => {
@@ -67,10 +77,14 @@ export function TechnicalSkills() {
     const focusId = pendingFocus.current
     const target = document.getElementById(focusId)
     pendingFocus.current = null
-    if (target) focusInSkills(target, focusId === detailHeadingId, focusId.startsWith(groupButtonIds) ? back.current : null)
+    if (!target) return
+    focusInSkills(target, focusId === detailHeadingId,
+      focusId.startsWith(groupButtonIds) ? back.current : null, selection?.linked)
   }, [detailHeadingId, groupButtonIds, selection])
 
   function updateSelection(next: Selection | null, focusId: string) {
+    const skillInUrl = linkedSkill(location.hash)
+    if (skillInUrl && skillInUrl !== next?.skill) history.replaceState(history.state, '', '#skills')
     setRevealComplete(true)
     setHovered(null)
     setFocused(skill => skill && skillButtonId(skill) === focusId ? skill : null)
@@ -78,9 +92,9 @@ export function TechnicalSkills() {
     setSelection(next)
   }
 
-  function openSkill(name: SkillName) {
+  function openSkill(name: SkillName, fromLink = false) {
     const group = groupForSkill(name)
-    if (group) updateSelection({ group: group.id, skill: name }, detailHeadingId)
+    if (group) updateSelection({ group: group.id, skill: name, linked: fromLink }, skillAnchor(name))
   }
 
   function clearSkill() {
@@ -98,6 +112,18 @@ export function TechnicalSkills() {
     else showOverview()
   })
 
+  const followSkillLink = useEffectEvent(() => {
+    const skill = linkedSkill(location.hash)
+    if (skill) {
+      if (!selection?.linked) selectionBeforeLink.current = selection
+      openSkill(skill, true)
+    } else if (selection?.linked) {
+      setSelection(selectionBeforeLink.current)
+      setHovered(null)
+      setFocused(null)
+    }
+  })
+
   useEffect(() => {
     const node = explorer.current
     if (!node) return
@@ -110,10 +136,12 @@ export function TechnicalSkills() {
     node.addEventListener('keydown', handleEscape)
     node.addEventListener('animationend', finishReveal)
     node.addEventListener('animationcancel', finishReveal)
+    window.addEventListener('hashchange', followSkillLink)
     return () => {
       node.removeEventListener('keydown', handleEscape)
       node.removeEventListener('animationend', finishReveal)
       node.removeEventListener('animationcancel', finishReveal)
+      window.removeEventListener('hashchange', followSkillLink)
     }
   }, [])
 
@@ -144,7 +172,7 @@ export function TechnicalSkills() {
                   data-active={selected} data-expanded={expanded} data-detail={Boolean(detail)}>
                   {featured && (
                     <motion.span className="skills-featured-surface" aria-hidden="true"
-                      layoutId={motionMode === 'reduced' ? undefined : 'skills-featured-surface'}
+                      layoutId={animateSurface ? 'skills-featured-surface' : undefined}
                       layoutDependency={selection} transition={layoutTransition} />
                   )}
                   <h3 className="skills-category">
@@ -153,7 +181,7 @@ export function TechnicalSkills() {
                       onClick={() => {
                         if (!selected) updateSelection({ group: groupId }, groupButtonId(groupId))
                       }}>
-                      <motion.span className="skills-category-name" layout={motionMode === 'full' ? 'position' : false}
+                      <motion.span className="skills-category-name" layout={animatePositions ? 'position' : false}
                         layoutDependency={selection} transition={layoutTransition}>
                         {title}
                       </motion.span>
@@ -172,7 +200,7 @@ export function TechnicalSkills() {
                             return (
                               <li key={name} className={groupId === 'frontend' && index < 2 ? 'skills-primary-tool' : undefined}>
                                 <motion.button className="skills-tool" type="button" id={skillButtonId(name)}
-                                  layout={motionMode === 'full' && selected ? 'position' : false}
+                                  layout={animatePositions && selected ? 'position' : false}
                                   layoutDependency={selection} transition={layoutTransition}
                                   aria-pressed={active} aria-controls={active ? detailId : undefined}
                                   data-relation={relation} data-muted={Boolean(highlighted && !relation && !active)}
@@ -191,8 +219,8 @@ export function TechnicalSkills() {
                           })}
                         </ul>
                         {detail && (
-                          <SkillDetailPanel key={detail[0]} tool={detail} id={detailId} headingId={detailHeadingId}
-                            onClose={clearSkill} onSelect={openSkill} />
+                          <SkillDetailPanel key={detail[0]} tool={detail} id={detailId} headingId={skillAnchor(detail[0])}
+                            linked={selection?.linked} onClose={clearSkill} onSelect={openSkill} />
                         )}
                       </>
                     )}

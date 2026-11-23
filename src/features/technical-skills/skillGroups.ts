@@ -29,3 +29,18 @@ export function skillLogo(logo: string | undefined) {
 export function groupForSkill(name: SkillName) {
   return skillGroups.find(group => group.tools.some(tool => tool[0] === name))
 }
+
+const skillNames = skillGroups.flatMap(group => group.tools.map(([name]) => name))
+
+export function findSkill(name: string) {
+  return skillNames.find(skill => skill === name)
+}
+
+export function skillAnchor(name: SkillName) {
+  const slug = name === '.NET' ? 'dotnet' : name.toLowerCase().replace('#', '-sharp').replaceAll(' ', '-')
+  return `skill-${slug}`
+}
+
+export function linkedSkill(hash: string) {
+  return hash.startsWith('#skill-') ? skillNames.find(name => `#${skillAnchor(name)}` === hash) : undefined
+}

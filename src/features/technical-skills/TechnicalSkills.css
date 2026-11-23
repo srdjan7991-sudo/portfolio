@@ -152,6 +152,13 @@
 .skills-detail-title img { width: 1.2rem; height: 1.2rem; }
 .skills-detail-title:focus { outline: none; }
 .skills-detail-title:focus-visible { text-decoration: underline 2px var(--accent); text-underline-offset: 0.16em; }
+.skills-detail-title[data-linked]:focus { color: var(--accent); }
+@media (prefers-reduced-motion: no-preference) {
+  .skills-detail-title[data-linked]:focus { animation: linked-skill-in 560ms var(--ease-out); }
+  @keyframes linked-skill-in {
+    from { background-color: var(--accent-soft); }
+  }
+}
 .skills-explorer .skills-close {
   min-width: 2.75rem;
   border: 1px solid var(--line-glass);

@@ -127,3 +127,38 @@ test('links only documented skills and keeps all relationships reversible', () =
     for (const target of connections) expect(relatedSkills[target]).toContain(name)
   }
 })
+
+test('opens an addressed skill even when its group is closed and clears the address when closing details', async () => {
+  const user = userEvent.setup()
+  const previousUrl = location.href
+  const navigateTo = (hash: string) => act(() => {
+    history.replaceState(null, '', hash)
+    window.dispatchEvent(new HashChangeEvent('hashchange'))
+  })
+  try {
+    history.replaceState(null, '', '#skill-highcharts')
+    render(<TechnicalSkills />)
+    expect(screen.getByRole('heading', { level: 4, name: 'Highcharts' })).toHaveAttribute('id', 'skill-highcharts')
+    expect(screen.queryByRole('button', { name: 'SQL Server' })).toBeNull()
+
+    navigateTo('#skills')
+    expect(screen.queryByRole('heading', { level: 4 })).toBeNull()
+    const testing = screen.getByRole('button', { name: 'Testing' })
+    await user.click(testing)
+
+    navigateTo('#skill-sql-server')
+    const linkedHeading = screen.getByRole('heading', { level: 4, name: 'SQL Server' })
+    expect(linkedHeading).toHaveFocus()
+    expect(linkedHeading).toHaveAttribute('data-linked')
+    navigateTo('#skills')
+    expect(testing).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.queryByRole('heading', { level: 4 })).toBeNull()
+
+    navigateTo('#skill-sql-server')
+    await user.keyboard('{Escape}')
+    expect(screen.getByRole('button', { name: 'SQL Server' })).toHaveFocus()
+    expect(location.hash).toBe('#skills')
+  } finally {
+    history.replaceState(null, '', previousUrl)
+  }
+})

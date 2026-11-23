@@ -30,6 +30,7 @@ For live API calls, Swagger, and administrator controls, follow the [local backe
 | Behind every request | Follow the six-stage walkthrough or choose **Try HTTP scenarios** to compare out-of-order responses, cancel a slow request, and retry after HTTP 500. The scenarios are simulated. With the API enabled, the walkthrough can show the response from the portfolio backend. |
 | How I Engineer | Explore 26 concepts across frontend engineering, data visualization, API integration, application architecture, and testing. Try a component tree, filter sample measurements, simulate a request, compare module boundaries, or introduce a regression and run checks. |
 | Technical Skills | Explore 21 technologies across five categories. Open a technology for its role, documented project context where available, and links to related tools. |
+| Professional Experience | Follow the project timeline as you scroll, expand existing details for Mede Analytics and Kterio, and open related entries in Technical Skills from the project stack. |
 | English and Serbian | A header switch changes the language in place and remembers the selection on the next visit. |
 | Light and dark themes | A switch in the header with a saved preference. The interface respects reduced motion. |
 | Section ordering | In the HTTPS setup, the administrator can sort six content sections by dragging, using the up and down buttons, or using the keyboard. The API saves the order in SQL Server. |
@@ -74,6 +75,6 @@ For live API calls, Swagger, and administrator controls, follow the [local backe
 
 ## Documentation
 
-- [Architecture](docs/architecture.md) covers page composition, Technical Skills, How I Engineer, the sample analytics report, themes, navigation, section ordering, the guided walkthrough, and the HTTP simulator.
+- [Architecture](docs/architecture.md) covers page composition, Technical Skills, How I Engineer, the experience timeline, the sample analytics report, themes, navigation, section ordering, the guided walkthrough, and the HTTP simulator.
 - [Local backend and API](docs/backend.md) covers SQL Server, migrations, HTTPS, administrator setup, and endpoint behavior.
 - [Testing and deployment](docs/testing-and-deployment.md) covers frontend and backend checks, browser verification, and what GitHub Pages publishes.

@@ -14,24 +14,40 @@
 .experience-project-heading { margin-top: clamp(1.8rem, 4vw, 3.3rem); }
 
 .experience-timeline {
-  list-style: none;
+  position: relative;
+  list-style: decimal outside;
   padding: 0;
   margin: 1.4rem 0 0 0.33rem;
   border-inline-start: 1px solid var(--line-glass);
 }
+.experience-timeline::before {
+  content: '';
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: -1.5px;
+  inline-size: 2px;
+  background: var(--accent);
+  transform: scaleY(var(--experience-progress, 0));
+  transform-origin: top;
+  pointer-events: none;
+}
+
 .experience-timeline > li { position: relative; padding: 0.25rem 0 1.8rem clamp(1.2rem, 3vw, 2.35rem); }
 .experience-timeline > li:last-child { padding-bottom: 0; }
+.experience-timeline > li::marker { content: ''; }
 .experience-timeline > li::before {
   content: '';
   position: absolute;
-  inset: 0.65rem auto auto -0.26rem;
+  inset-block-start: 0.65rem;
+  inset-inline-start: calc(-0.25rem - 0.5px);
+  z-index: 1;
   width: 0.5rem;
   height: 0.5rem;
   border: 1px solid var(--quiet);
   border-radius: 50%;
   background: var(--paper);
 }
-.experience-timeline > li:first-child::before { border-color: var(--accent); background: var(--accent); }
+.experience-timeline > li[data-active]::before { border-color: var(--accent); background: var(--accent); }
 
 .experience-entry-heading h4 {
   margin: 0;
@@ -41,7 +57,39 @@
   line-height: 1.2;
 }
 .experience-timeline .experience-role { margin-block: 0.3rem 0.65rem; color: var(--ink); font-size: 0.89rem; }
-.experience-timeline .technology-tags { margin-top: 0.85rem; }
+.experience-timeline .technology-tags { margin-top: 0.85rem; align-items: center; }
+/* A delayed scroll to the source link can obscure the newly focused skill. */
+:root:has(#experience .technology-tags a:focus) { scroll-behavior: auto; }
+.experience-timeline .technology-tags a {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: 1.5rem;
+  color: var(--accent);
+  text-decoration-color: var(--accent-edge);
+}
+.experience-timeline .technology-tags a:hover {
+  color: var(--accent-hover);
+  text-decoration-color: currentColor;
+}
+
+.experience-details { margin-block-start: 0.75rem; }
+.experience-details-toggle { gap: 0.5rem; }
+.experience-details-toggle[aria-expanded='true'] > span { transform: rotate(45deg); }
+.experience-details-panel {
+  display: grid;
+  grid-template-rows: 0fr;
+}
+.experience-details-panel[data-open='true'] { grid-template-rows: 1fr; }
+.experience-details-clip { min-block-size: 0; overflow: hidden; }
+.experience-details-content {
+  margin-block-start: 0.8rem;
+  max-inline-size: 66ch;
+  padding-inline-start: 0.8rem;
+  border-inline-start: 1px solid var(--accent-edge);
+  font-size: 0.9rem;
+}
+.experience-details-content dl { display: grid; gap: 0.65rem; }
+.experience-details-content dt { color: var(--ink); font-weight: 560; }
 
 @media (max-width: 36rem) {
   .experience-entry-heading { grid-template-columns: 1fr; }
@@ -50,5 +98,19 @@
   .experience-timeline > li:hover::before { border-color: var(--accent); }
 }
 @media (prefers-reduced-motion: no-preference) {
-  .experience-timeline > li::before { transition: border-color var(--quick) ease; }
+  [data-experience-revealed]:not(:focus-within) { animation: experience-enter 360ms var(--ease-out) both; }
+  .experience-timeline > li::before { transition: border-color var(--quick) ease, background-color var(--quick) ease; }
+  .experience-timeline .technology-tags a { transition: color var(--quick) ease, text-decoration-color var(--quick) ease; }
+  .experience-details-panel { transition: grid-template-rows 360ms var(--ease-out); }
+  .experience-details-toggle > span { transition: transform var(--quick) var(--ease-out); }
+
+  @keyframes experience-enter {
+    from { opacity: 0.76; translate: 0 10px; }
+    to { opacity: 1; translate: none; }
+  }
+}
+
+@media (forced-colors: active) {
+  .experience-timeline::before { background: Highlight; forced-color-adjust: none; }
+  .experience-timeline > li[data-active]::before { background: Highlight; forced-color-adjust: none; }
 }

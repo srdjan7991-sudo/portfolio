@@ -41,6 +41,14 @@ Area and concept IDs come from [the feature model](../src/features/engineering-e
 
 The examples use local state and synthetic data. The sample chart computes an average from the visible weeks. The request simulation uses a cancellable timer and makes no network call. In Testing & Quality, the displayed component test illustrates the Vitest approach. **Run checks** evaluates the quantity rule in the browser.
 
+## Professional Experience timeline
+
+The `#experience` section keeps the employment summary and three project assignments in their existing order. **Details** expands the published case study for Mede Analytics or the published project summary for Kterio. Those disclosures reuse the localized copy from Selected Work. [Experience component](../src/features/professional-experience/ProfessionalExperience.tsx)
+
+The timeline fills as the midpoint below the sticky header passes through the project list. It marks the project at that point as current in both scroll directions. The controller updates the rail and current marker in an animation frame. Its entrance observer reveals the heading, introduction, and project contents once. Reduced motion shows them immediately, and the text and controls are visible if the observer is unavailable. [Timeline controller](../src/features/professional-experience/useExperienceTimeline.ts)
+
+Technology links use stable fragments such as `#skill-react`. A linked technology opens its Skills detail and focuses the heading below the sticky header. Back restores the previous selection and scroll position. Links for EF Core and the named .NET versions use their corresponding catalog entries. Technology names without a matching entry stay as text. [Skills catalog](../src/features/technical-skills/skillGroups.ts)
+
 ## Themes and motion
 
 [`index.html`](../index.html) applies the saved dark preference before React runs. [`theme.css`](../src/theme.css) supplies color and surface tokens for both themes. [`global.css`](../src/global.css) supplies Geist and Geist Mono, layout widths, spacing, focus outlines, and shared control styles. [`useTheme.ts`](../src/features/theme/useTheme.ts) updates the document theme, browser theme color, and `localStorage` from the Header switch. Light is the default.

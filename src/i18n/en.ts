@@ -158,6 +158,7 @@ export const en = {
     frontend: 'Frontend Developer', fullstack: 'Full Stack Developer', since: 'September 2020 – Present',
     description: 'I build and maintain enterprise web applications, working with designers and backend engineers from requirements through implementation and testing.',
     assignments: 'Project assignments at Midenas',
+    details: 'Details', detailsFor: (project: string) => `Details for ${project}`,
     mede: 'Built dashboard and reporting features, maintained shared React components, and added frontend tests during an MVC-to-React migration.',
     kterio: 'Built frontend features for a building data management platform, integrated APIs, and contributed to REST endpoints and service-layer logic.',
     alpha: 'Developed frontend functionality and .NET Web API features for an investment analytics and reporting platform.',

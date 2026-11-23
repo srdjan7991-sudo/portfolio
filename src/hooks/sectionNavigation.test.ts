@@ -161,10 +161,13 @@ test.each([
   render(createElement('main', null,
     createElement('section', { id: 'work', 'aria-label': 'Work already in view' }),
     createElement('section', { id: 'skills', 'aria-label': 'Skills below the fold' }),
+    createElement('section', { id: 'experience', 'aria-label': 'Experience with custom reveal', 'data-custom-reveal': true }),
   ))
   const work = screen.getByRole('region', { name: 'Work already in view' })
   const skills = screen.getByRole('region', { name: 'Skills below the fold' })
   vi.spyOn(skills, 'getBoundingClientRect').mockReturnValue(DOMRect.fromRect({ y: window.innerHeight + 100 }))
+  const experience = screen.getByRole('region', { name: 'Experience with custom reveal' })
+  vi.spyOn(experience, 'getBoundingClientRect').mockReturnValue(DOMRect.fromRect({ y: window.innerHeight + 100 }))
   const { unmount } = renderHook(useSectionNavigation)
 
   expect(observe).toHaveBeenCalledExactlyOnceWith(skills)
