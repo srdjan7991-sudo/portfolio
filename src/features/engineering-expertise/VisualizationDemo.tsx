@@ -107,7 +107,10 @@ export function VisualizationDemo() {
             onPointerLeave={() => setHoveredWeek(null)}
             onFocus={() => { setFocusedWeek(week); setHoveredWeek(null) }}
             onBlur={() => setFocusedWeek(null)}
-            onClick={() => setSelectedWeek(week)}
+            onClick={event => {
+              if (event.detail === 0) setHoveredWeek(null)
+              setSelectedWeek(week)
+            }}
           >
             <span className="engineer-chart-track" aria-hidden="true">
               <span className="engineer-chart-bar" style={{ height: `${latency / chartMax * 100}%` }} />

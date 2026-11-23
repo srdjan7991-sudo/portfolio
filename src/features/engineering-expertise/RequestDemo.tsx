@@ -100,7 +100,6 @@ export function RequestDemo() {
         <button
           className="engineer-demo-button"
           type="button"
-          data-request-action="success"
           aria-disabled={phase === 'loading'}
           onClick={() => run('success')}
         >
@@ -109,7 +108,6 @@ export function RequestDemo() {
         <button
           className="engineer-demo-button"
           type="button"
-          data-request-action="error"
           aria-disabled={phase === 'loading'}
           onClick={() => run('error')}
         >
@@ -118,7 +116,6 @@ export function RequestDemo() {
         <button
           className="engineer-demo-button"
           type="button"
-          data-request-action="reset"
           aria-disabled={phase === 'idle'}
           onClick={reset}
         >

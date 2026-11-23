@@ -25,10 +25,16 @@ function getReducedMotion() {
 function focusVisibleTarget(target: HTMLElement | null | undefined) {
   if (!target) return
   target.focus({ preventScroll: true })
-  const { top, bottom } = target.getBoundingClientRect()
+  // A previous native focus change can leave a smooth scroll aimed at the old view.
+  const scroller = document.scrollingElement
+  scroller?.scrollTo({ top: scroller.scrollTop, behavior: 'instant' })
+  // The parent is in its final layout even while Motion projects the focused control.
+  const anchor = target.parentElement ?? target
+  const { top } = anchor.getBoundingClientRect()
+  const bottom = top + target.offsetHeight
   const scrollPadding = parseFloat(getComputedStyle(document.documentElement).scrollPaddingBlockStart) || 0
   if (top < scrollPadding || bottom > window.innerHeight) {
-    target.scrollIntoView({ block: 'start', behavior: 'instant' })
+    anchor.scrollIntoView({ block: 'start', behavior: 'instant' })
   }
 }
 
@@ -36,7 +42,8 @@ export function EngineeringExpertise() {
   const { text: { expertise } } = useLanguage()
   const reducedMotion = useSyncExternalStore(subscribeToReducedMotion, getReducedMotion)
   const [area, setArea] = useState<EngineeringArea | null>(null)
-  const [preview, setPreview] = useState(engineeringAreaIds[0])
+  const [focusedArea, setFocusedArea] = useState<EngineeringArea | null>(null)
+  const [hoveredArea, setHoveredArea] = useState<EngineeringArea | null>(null)
   const previousArea = useRef<EngineeringArea | null>(null)
   const areaButtons = useRef<Partial<Record<EngineeringArea, HTMLButtonElement | null>>>({})
   const areaHeading = useRef<HTMLHeadingElement>(null)
@@ -49,6 +56,7 @@ export function EngineeringExpertise() {
   }, [area])
 
   const activeArea = area ? expertise.areas[area] : null
+  const preview = hoveredArea ?? focusedArea ?? engineeringAreaIds[0]
 
   return (
     <LayoutGroup id="how-i-engineer">
@@ -57,16 +65,20 @@ export function EngineeringExpertise() {
           <nav className="engineer-index" aria-label={expertise.areasLabel}>
             <ul>
               {engineeringAreaIds.map(id => (
-                <motion.li key={id} layout={reducedMotion ? false : 'position'} transition={layoutTransition}>
-                  <button
+                <li key={id}>
+                  <motion.button
                     ref={element => { areaButtons.current[id] = element }}
+                    layout={reducedMotion ? false : 'position'}
+                    transition={layoutTransition}
                     type="button"
                     aria-current={area === id ? 'true' : undefined}
                     aria-controls="engineer-explore"
                     data-preview={!area && preview === id}
-                    onFocus={() => setPreview(id)}
-                    onPointerEnter={event => { if (event.pointerType === 'mouse') setPreview(id) }}
-                    onClick={() => setArea(id)}
+                    onFocus={() => { setFocusedArea(id); setHoveredArea(null) }}
+                    onBlur={() => setFocusedArea(null)}
+                    onPointerEnter={event => { if (!area && event.pointerType === 'mouse') setHoveredArea(id) }}
+                    onPointerLeave={() => setHoveredArea(null)}
+                    onClick={() => { setHoveredArea(null); setArea(id) }}
                   >
                     <motion.span className="engineer-index-name"
                       layoutId={!reducedMotion && !area ? `engineer-area-${id}` : undefined}>
@@ -74,8 +86,8 @@ export function EngineeringExpertise() {
                     </motion.span>
                     <span className="engineer-index-description">{expertise.areas[id].description}</span>
                     <span className="engineer-index-arrow" aria-hidden="true">→</span>
-                  </button>
-                </motion.li>
+                  </motion.button>
+                </li>
               ))}
             </ul>
           </nav>
