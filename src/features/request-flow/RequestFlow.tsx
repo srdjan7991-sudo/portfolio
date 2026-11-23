@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { RequestFlowPlayer } from './RequestFlowPlayer'
+import { RequestScenarios } from './scenarios/RequestScenarios'
 import { systems } from './requestFlowSteps'
 import { useLanguage } from '../../i18n/language'
 import styles from './RequestFlow.module.css'
@@ -21,25 +22,38 @@ function SystemIcon({ index }: { index: number }) {
 export function RequestFlow({ live }: { live: boolean }) {
   const { text: { flow } } = useLanguage()
   const [expanded, setExpanded] = useState(false)
-  const [screen, setScreen] = useState<'intro' | 'player'>('intro')
+  const [screen, setScreen] = useState<'intro' | 'player' | 'scenarios'>('intro')
+  const [scenarioSession, setScenarioSession] = useState(0)
   const section = useRef<HTMLElement>(null)
   const openButton = useRef<HTMLButtonElement>(null)
+  const closeButton = useRef<HTMLButtonElement>(null)
   const introTitle = useRef<HTMLHeadingElement>(null)
-  const restore = useRef(false)
+  const scenariosTitle = useRef<HTMLHeadingElement>(null)
 
   useEffect(() => {
-    if (expanded) {
+    if (expanded && scenariosTitle.current) {
+      const title = scenariosTitle.current
+      const close = closeButton.current
+      title.focus({ preventScroll: true })
+      const header = Number.parseFloat(getComputedStyle(document.documentElement).scrollPaddingBlockStart) || 0
+      const closeMargin = close ? Number.parseFloat(getComputedStyle(close).scrollMarginBlockStart) || 0 : 0
+      const height = close ? title.getBoundingClientRect().bottom - close.getBoundingClientRect().top : 0
+      const target = close && header + closeMargin + height <= window.innerHeight ? close : title
+      target.scrollIntoView({ block: 'start' })
+    } else if (expanded) {
       introTitle.current?.focus({ preventScroll: true })
       section.current?.scrollIntoView({ block: 'start' })
-    } else if (restore.current) {
-      openButton.current?.focus({ preventScroll: true })
-      section.current?.scrollIntoView({ block: 'start' })
+    } else if (openButton.current) {
+      openButton.current.focus({ preventScroll: true })
+      if (scenariosTitle.current) openButton.current.scrollIntoView({ block: 'center' })
+      else section.current?.scrollIntoView({ block: 'start' })
     }
   }, [expanded])
 
-  function open() {
-    restore.current = true
-    setScreen('intro')
+  function open(view: 'intro' | 'scenarios', button: HTMLButtonElement) {
+    openButton.current = button
+    if (view === 'scenarios') setScenarioSession(current => current + 1)
+    setScreen(view)
     setExpanded(true)
   }
 
@@ -60,9 +74,13 @@ export function RequestFlow({ live }: { live: boolean }) {
             <p className={styles.stack}>React · ASP.NET Core · SQL Server</p>
             <div className={styles.teaserButton} inert={expanded}>
               <div>
-                <button ref={openButton} type="button" className="ui-pill ui-pill--accent"
-                  onClick={open} aria-expanded={expanded} aria-controls="request-flow-panel">
+                <button type="button" className="ui-pill ui-pill--accent"
+                  onClick={event => open('intro', event.currentTarget)} aria-expanded={expanded && screen !== 'scenarios'} aria-controls="request-flow-panel">
                   {flow.open} <span aria-hidden="true">↓</span>
+                </button>
+                <button type="button" className="ui-pill" onClick={event => open('scenarios', event.currentTarget)}
+                  aria-expanded={expanded && screen === 'scenarios'} aria-controls="request-flow-panel">
+                  {flow.scenarios.open} <span aria-hidden="true">↓</span>
                 </button>
               </div>
             </div>
@@ -71,8 +89,8 @@ export function RequestFlow({ live }: { live: boolean }) {
         <div id="request-flow-panel" className={styles.expand} inert={!expanded}>
           <div>
             <div className={styles.panel}>
-              <button type="button" className={styles.close} onClick={() => setExpanded(false)}>
-                <span aria-hidden="true">×</span> {flow.close}
+              <button ref={closeButton} type="button" className={styles.close} onClick={() => setExpanded(false)}>
+                <span aria-hidden="true">×</span> {screen === 'scenarios' ? flow.scenarios.close : flow.close}
               </button>
               {screen === 'intro' ? (
                 <div>
@@ -93,7 +111,8 @@ export function RequestFlow({ live }: { live: boolean }) {
                     {flow.show} <span aria-hidden="true">→</span>
                   </button>
                 </div>
-              ) : <RequestFlowPlayer active={expanded} live={live} />}
+              ) : screen === 'player' ? <RequestFlowPlayer active={expanded} live={live} />
+                : <RequestScenarios key={scenarioSession} active={expanded} headingRef={scenariosTitle} />}
             </div>
           </div>
         </div>
