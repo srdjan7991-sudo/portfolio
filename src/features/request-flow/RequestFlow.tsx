@@ -32,8 +32,14 @@ export function RequestFlow({ live }: { live: boolean }) {
 
   useEffect(() => {
     if (expanded && scenariosTitle.current) {
-      scenariosTitle.current.focus({ preventScroll: true })
-      closeButton.current?.scrollIntoView({ block: 'start' })
+      const title = scenariosTitle.current
+      const close = closeButton.current
+      title.focus({ preventScroll: true })
+      const header = Number.parseFloat(getComputedStyle(document.documentElement).scrollPaddingBlockStart) || 0
+      const closeMargin = close ? Number.parseFloat(getComputedStyle(close).scrollMarginBlockStart) || 0 : 0
+      const height = close ? title.getBoundingClientRect().bottom - close.getBoundingClientRect().top : 0
+      const target = close && header + closeMargin + height <= window.innerHeight ? close : title
+      target.scrollIntoView({ block: 'start' })
     } else if (expanded) {
       introTitle.current?.focus({ preventScroll: true })
       section.current?.scrollIntoView({ block: 'start' })

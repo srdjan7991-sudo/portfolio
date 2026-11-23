@@ -89,7 +89,7 @@ Choose **Try HTTP scenarios** in the same section. The simulator runs locally in
 
 | Scenario | What to try |
 | --- | --- |
-| Responses out of order | Send the first request and then a newer one. The simulator holds the older response until the newer one arrives. The unchecked view applies both responses in arrival order and ends on the old period. The checked view keeps the result of the most recently issued request. |
+| Responses out of order | Send the first request and then a newer one. The simulator holds the older response until the newer one arrives. **Without a response check** applies both responses in arrival order and ends on the old period. **With a response check** keeps the result of the most recently issued request. |
 | Cancel a slow request | Cancel the pending request or send a replacement that cancels it. A cancelled lane stops before delivering a result. In a real application, aborting `fetch` stops the browser from waiting or reading the response. Server-side work may continue. |
 | Recover from HTTP 500 | Send the request and wait for the error to arrive. Retry the same simulated GET and watch the screen move from loading to success. The failed attempt stays in the diagram. |
 
