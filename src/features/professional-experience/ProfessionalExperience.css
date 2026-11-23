@@ -114,3 +114,10 @@
   .experience-timeline::before { background: Highlight; forced-color-adjust: none; }
   .experience-timeline > li[data-active]::before { background: Highlight; forced-color-adjust: none; }
 }
+
+@media (prefers-reduced-motion: reduce) {
+  .experience-timeline > li::before,
+  .experience-timeline .technology-tags a,
+  .experience-details-panel,
+  .experience-details-toggle > span { transition: none; }
+}

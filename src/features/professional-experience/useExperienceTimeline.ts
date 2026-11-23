@@ -24,6 +24,7 @@ export function useExperienceTimeline(sectionRef: RefObject<HTMLElement | null>)
     const introduction = section.querySelector('.experience-employment')
     const projects = timeline.querySelectorAll('.experience-project')
     const orderGroup = section.closest('.portfolio-order-group')
+    const orderItem = section.closest('.portfolio-order-item')
     const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)')
     let frame = 0
     let progress = -1
@@ -37,9 +38,26 @@ export function useExperienceTimeline(sectionRef: RefObject<HTMLElement | null>)
       const { top, bottom, height } = timeline.getBoundingClientRect()
       if (height <= 0) return
 
-      const nextProgress = Math.min(1, Math.max(0, (center - top) / height))
-      const nextActive = center >= top && center < bottom
-        ? entries.find(entry => entry.getBoundingClientRect().bottom > center)
+      let distance = center - top
+      let scrollRange = height
+      let atEnd = false
+      if (orderItem && orderItem === orderGroup?.lastElementChild) {
+        const scrollLimit = root.scrollHeight - root.clientHeight
+        const remainingScroll = Math.max(0, scrollLimit - root.scrollTop)
+        if (scrollLimit > 0) {
+          // Fit the rail to the remaining scroll and start earlier if the center cannot reach it.
+          const centerRange = distance + remainingScroll
+          const visibleRange = root.clientHeight - top + remainingScroll
+          const minimumRange = Math.min(height / 2, visibleRange)
+          scrollRange = Math.max(1, Math.min(height, Math.max(centerRange, minimumRange)))
+          distance += Math.max(0, scrollRange - centerRange)
+          atEnd = remainingScroll <= 1
+        }
+      }
+      const nextProgress = atEnd ? 1 : Math.min(1, Math.max(0, distance / scrollRange))
+      const readingLine = top + nextProgress * height
+      const nextActive = atEnd ? entries.at(-1) : distance >= 0 && readingLine < bottom
+        ? entries.find(entry => entry.getBoundingClientRect().bottom > readingLine)
         : undefined
 
       if (nextProgress !== progress) {
@@ -102,8 +120,22 @@ export function useExperienceTimeline(sectionRef: RefObject<HTMLElement | null>)
     )
     const order = orderGroup && typeof MutationObserver !== 'undefined' ? startObserver(
       () => new MutationObserver(scheduleUpdate),
-      observer => { observer.observe(orderGroup, { childList: true }) },
+      observer => {
+        observer.observe(orderGroup, { childList: true })
+        // Sortable sections move through transforms without changing the list's size.
+        if (orderItem) observer.observe(orderItem, { attributeFilter: ['style'] })
+      },
     ) : undefined
+    function trackDisclosure(event: Event) {
+      if (event.target instanceof Element && event.target.closest('.experience-details-toggle, .experience-details-panel')) {
+        scheduleUpdate()
+      }
+    }
+    if (!size) {
+      timeline.addEventListener('click', trackDisclosure)
+      timeline.addEventListener('transitionend', trackDisclosure)
+      timeline.addEventListener('transitioncancel', trackDisclosure)
+    }
     reduced?.addEventListener?.('change', onMotionChange)
     section.addEventListener('animationend', finishEntrance)
     section.addEventListener('animationcancel', finishEntrance)
@@ -115,6 +147,11 @@ export function useExperienceTimeline(sectionRef: RefObject<HTMLElement | null>)
       visibility?.disconnect()
       size?.disconnect()
       order?.disconnect()
+      if (!size) {
+        timeline.removeEventListener('click', trackDisclosure)
+        timeline.removeEventListener('transitionend', trackDisclosure)
+        timeline.removeEventListener('transitioncancel', trackDisclosure)
+      }
       reduced?.removeEventListener?.('change', onMotionChange)
       section.removeEventListener('animationend', finishEntrance)
       section.removeEventListener('animationcancel', finishEntrance)

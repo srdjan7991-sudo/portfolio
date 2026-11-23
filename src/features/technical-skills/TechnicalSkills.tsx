@@ -6,9 +6,13 @@ import { relatedSkills } from './skillDetails'
 import { groupForSkill, linkedSkill, skillAnchor, skillGroups, skillLogo } from './skillGroups'
 import type { SkillGroupId, SkillName } from './skillGroups'
 import { SkillDetailPanel } from './SkillDetailPanel'
+import { skillLinkRequest } from './skillLinkNavigation'
 import './TechnicalSkills.css'
 
 type Selection = { group: SkillGroupId; skill?: SkillName; linked?: boolean }
+type SkillReturn = { visit: string; id: string; top: number; selection: Selection | null }
+type SkillView = { selection: Selection | null; focusId: string }
+let nextSkillVisit = 0
 const layoutTransition = { duration: 0.36, ease: [0.22, 1, 0.36, 1] } as const
 const motionPreference = '(prefers-reduced-motion: reduce)'
 const compactLayout = '(max-width: 40rem)'
@@ -50,6 +54,7 @@ export function TechnicalSkills() {
   const id = useId()
   const motionMode = useSyncExternalStore(subscribeToMotionMode, getMotionMode)
   const [selection, setSelection] = useState(initialSelection)
+  const [returnToLink, setReturnToLink] = useState<SkillReturn | null>(null)
   const [hovered, setHovered] = useState<SkillName | null>(null)
   const [focused, setFocused] = useState<SkillName | null>(null)
   const [revealComplete, setRevealComplete] = useState(Boolean(selection?.linked))
@@ -57,6 +62,9 @@ export function TechnicalSkills() {
   const back = useRef<HTMLButtonElement>(null)
   const pendingFocus = useRef<string | null>(null)
   const selectionBeforeLink = useRef<Selection | null>(null)
+  const currentSkillVisit = useRef<string | undefined>(history.state?.skillVisit)
+  const handledHistoryUrl = useRef<string | null>(null)
+  const visitFrame = useRef(0)
   const activeGroup = selection?.group
   const current = selection?.skill
   const animateSurface = !selection?.linked && motionMode !== 'reduced'
@@ -82,9 +90,33 @@ export function TechnicalSkills() {
       focusId.startsWith(groupButtonIds) ? back.current : null, selection?.linked)
   }, [detailHeadingId, groupButtonIds, selection])
 
-  function updateSelection(next: Selection | null, focusId: string) {
+  useLayoutEffect(() => {
+    if (!returnToLink) return
+    // Align after the previous Skills layout and the browser's history scroll have settled.
+    const frame = requestAnimationFrame(() => {
+      const link = document.getElementById(returnToLink.id)
+      if (!link) return
+      link.focus({ preventScroll: true })
+      const bounds = link.getBoundingClientRect()
+      const header = parseFloat(getComputedStyle(document.documentElement).scrollPaddingBlockStart) || 0
+      const targetTop = Math.max(header, Math.min(returnToLink.top, window.innerHeight - bounds.height))
+      window.scrollTo({
+        top: window.scrollY + bounds.top - targetTop,
+        behavior: 'instant',
+      })
+    })
+    return () => cancelAnimationFrame(frame)
+  }, [returnToLink])
+
+  function updateSelection(next: Selection | null, focusId: string, remember = true) {
     const skillInUrl = linkedSkill(location.hash)
-    if (skillInUrl && skillInUrl !== next?.skill) history.replaceState(history.state, '', '#skills')
+    const changedFragment = skillInUrl && skillInUrl !== next?.skill
+    const rememberView = remember && !next?.linked && history.state?.skillVisit
+    if (changedFragment || rememberView) {
+      const skillView: SkillView = { selection: next, focusId }
+      const state = rememberView ? { ...history.state, skillView } : history.state
+      history.replaceState(state, '', changedFragment ? '#skills' : location.href)
+    }
     setRevealComplete(true)
     setHovered(null)
     setFocused(skill => skill && skillButtonId(skill) === focusId ? skill : null)
@@ -95,6 +127,11 @@ export function TechnicalSkills() {
   function openSkill(name: SkillName, fromLink = false) {
     const group = groupForSkill(name)
     if (group) updateSelection({ group: group.id, skill: name, linked: fromLink }, skillAnchor(name))
+  }
+
+  function openLinkedSkill(skill: SkillName) {
+    if (!selection?.linked) selectionBeforeLink.current = selection
+    openSkill(skill, true)
   }
 
   function clearSkill() {
@@ -112,15 +149,72 @@ export function TechnicalSkills() {
     else showOverview()
   })
 
-  const followSkillLink = useEffectEvent(() => {
+  const followSkillLink = useEffectEvent((event: HashChangeEvent) => {
+    currentSkillVisit.current = history.state?.skillVisit
+    // The traversal already handled this URL before the browser dispatched hashchange.
+    const handled = handledHistoryUrl.current === event.newURL
+    handledHistoryUrl.current = null
+    if (handled) return
     const skill = linkedSkill(location.hash)
     if (skill) {
-      if (!selection?.linked) selectionBeforeLink.current = selection
-      openSkill(skill, true)
+      openLinkedSkill(skill)
     } else if (selection?.linked) {
       setSelection(selectionBeforeLink.current)
       setHovered(null)
       setFocused(null)
+    }
+  })
+
+  const openRequestedSkill = useEffectEvent((event: Event) => {
+    if (!(event instanceof CustomEvent) || !(event.detail instanceof HTMLAnchorElement)) return
+    const link = event.detail
+    const skill = linkedSkill(link.hash)
+    if (!skill) return
+
+    event.preventDefault()
+    cancelAnimationFrame(visitFrame.current)
+    setReturnToLink(null)
+    const visit = `${performance.timeOrigin}-${++nextSkillVisit}`
+    const state = { ...history.state }
+    delete state.skillReturn
+    const skillReturn: SkillReturn = { visit, id: link.id, top: link.getBoundingClientRect().top, selection }
+    history.replaceState({ ...state, skillReturn }, '')
+    delete state.skillView
+    history.pushState({ ...state, skillVisit: visit }, '', link.hash)
+    currentSkillVisit.current = visit
+    openLinkedSkill(skill)
+  })
+
+  const resumeSkillVisit = useEffectEvent((visit: string) => {
+    if (history.state?.skillVisit !== visit) return
+    const skill = linkedSkill(location.hash)
+    const view: SkillView | undefined = history.state?.skillView
+    if (skill) openLinkedSkill(skill)
+    else if (view) {
+      const alreadyVisible = view.selection === selection && document.getElementById(view.focusId)
+      if (alreadyVisible) focusInSkills(alreadyVisible, false, null)
+      else updateSelection(view.selection, view.focusId, false)
+    }
+  })
+
+  const traverseSkillHistory = useEffectEvent((event: PopStateEvent) => {
+    cancelAnimationFrame(visitFrame.current)
+    const origin: SkillReturn | undefined = event.state?.skillReturn
+    const returning = origin?.visit === currentSkillVisit.current ? origin : undefined
+    currentSkillVisit.current = event.state?.skillVisit
+    handledHistoryUrl.current = null
+    setReturnToLink(returning ?? null)
+    if (returning) {
+      handledHistoryUrl.current = location.href
+      pendingFocus.current = null
+      setSelection(returning.selection)
+      setHovered(null)
+      setFocused(null)
+    } else if (currentSkillVisit.current) {
+      handledHistoryUrl.current = location.href
+      const visit = currentSkillVisit.current
+      // The browser restores its scroll after popstate. Focus the destination after that.
+      visitFrame.current = requestAnimationFrame(() => resumeSkillVisit(visit))
     }
   })
 
@@ -137,11 +231,16 @@ export function TechnicalSkills() {
     node.addEventListener('animationend', finishReveal)
     node.addEventListener('animationcancel', finishReveal)
     window.addEventListener('hashchange', followSkillLink)
+    window.addEventListener(skillLinkRequest, openRequestedSkill)
+    window.addEventListener('popstate', traverseSkillHistory)
     return () => {
+      cancelAnimationFrame(visitFrame.current)
       node.removeEventListener('keydown', handleEscape)
       node.removeEventListener('animationend', finishReveal)
       node.removeEventListener('animationcancel', finishReveal)
       window.removeEventListener('hashchange', followSkillLink)
+      window.removeEventListener(skillLinkRequest, openRequestedSkill)
+      window.removeEventListener('popstate', traverseSkillHistory)
     }
   }, [])
 

@@ -1,10 +1,11 @@
 import { useId, useRef, useState } from 'react'
-import type { MouseEvent, ReactNode } from 'react'
+import type { ReactNode } from 'react'
 import { PortfolioSection } from '../../components/shared/PortfolioSection'
 import { TechnologyTags } from '../../components/shared/TechnologyTags'
 import { useLanguage } from '../../i18n/language'
 import { findSkill, skillAnchor } from '../technical-skills/skillGroups'
 import type { SkillName } from '../technical-skills/skillGroups'
+import { requestSkillLink } from '../technical-skills/skillLinkNavigation'
 import { useExperienceTimeline } from './useExperienceTimeline'
 import './ProfessionalExperience.css'
 
@@ -20,20 +21,11 @@ const skillAliases = new Map<string, SkillName>([
   ['.NET 5', '.NET'],
 ])
 
-function skillLink(tool: string) {
+function skillLink(project: string, tool: string) {
   const skill = skillAliases.get(tool) ?? findSkill(tool)
-  return skill ? `#${skillAnchor(skill)}` : undefined
-}
-
-function followSkillLink(event: MouseEvent<HTMLAnchorElement>) {
-  if (event.defaultPrevented || event.button !== 0 || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return
-
-  // The Skills heading is mounted on navigation. Let it own focus and scrolling.
-  const oldURL = location.href
-  const { hash } = event.currentTarget
-  event.preventDefault()
-  if (location.hash !== hash) history.pushState(history.state, '', hash)
-  window.dispatchEvent(new HashChangeEvent('hashchange', { oldURL, newURL: location.href }))
+  if (!skill) return
+  const anchor = skillAnchor(skill)
+  return { href: `#${anchor}`, id: `experience-${project}-${anchor}` }
 }
 
 function ProjectDetails({ label, title, children }: { label: string; title: string; children: ReactNode }) {
@@ -78,7 +70,8 @@ export function ProfessionalExperience() {
               <div className="experience-entry-heading"><h4>{title}</h4><p>{period}</p></div>
               <p className="experience-role">{experience[role]}</p>
               <p>{experience[contribution]}</p>
-              <TechnologyTags label={work.technologies(title)} tools={tools} linkFor={skillLink} onLinkClick={followSkillLink} />
+              <TechnologyTags label={work.technologies(title)} tools={tools}
+                linkFor={tool => skillLink(contribution, tool)} onLinkClick={requestSkillLink} />
               {contribution === 'mede' && (
                 <ProjectDetails label={experience.details} title={experience.detailsFor(title)}>
                   <dl>
