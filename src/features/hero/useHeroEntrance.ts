@@ -18,34 +18,63 @@ export function useHeroEntrance(
 
     const section = hero
     const frame = visual
+    const header = document.querySelector('header')
     const viewportBottom = document.documentElement.clientHeight
     if (section.getBoundingClientRect().bottom <= 0) return
 
+    let viewportTop = 0
     let observer: IntersectionObserver | undefined
-    try {
-      observer = new IntersectionObserver(entries => {
-        const entry = entries.at(-1)
-        if (!entry || !frame.dataset.heroWindow) return
-        if (entry.isIntersecting && entry.intersectionRatio >= visibleFraction) frame.dataset.heroWindow = 'opening'
-        else if (frame.dataset.heroWindow === 'opening') settle()
-      }, { threshold: [0, visibleFraction] })
-      observer.observe(frame)
-    } catch {
+    let headerSize: ResizeObserver | undefined
+
+    function observeWindow() {
+      const nextTop = Math.max(0, header?.getBoundingClientRect().bottom ?? 0)
+      if (observer && nextTop === viewportTop) return true
+      viewportTop = nextTop
       observer?.disconnect()
-      return
+      try {
+        const current = new IntersectionObserver(entries => {
+          const entry = entries.at(-1)
+          if (observer !== current || !entry || !frame.dataset.heroWindow) return
+          if (entry.isIntersecting && entry.intersectionRatio >= visibleFraction) frame.dataset.heroWindow = 'opening'
+          else if (frame.dataset.heroWindow === 'opening') settle()
+        }, { rootMargin: `-${viewportTop}px 0px 0px 0px`, threshold: [0, visibleFraction] })
+        observer = current
+        current.observe(frame)
+        return true
+      } catch {
+        observer?.disconnect()
+        observer = undefined
+        return false
+      }
     }
+    if (!observeWindow()) return
 
     section.dataset.heroIntro = ''
     const bounds = frame.getBoundingClientRect()
-    if (bounds.bottom <= 0) observer.disconnect()
-    else {
-      const visibleHeight = Math.min(bounds.bottom, viewportBottom) - Math.max(bounds.top, 0)
+    if (bounds.bottom > 0) {
+      const visibleHeight = Math.min(bounds.bottom, viewportBottom) - Math.max(bounds.top, viewportTop)
       frame.dataset.heroWindow = visibleHeight >= bounds.height * visibleFraction ? 'opening' : 'waiting'
+      if (header && typeof ResizeObserver === 'function') {
+        try {
+          headerSize = new ResizeObserver(() => {
+            if (headerSize && frame.dataset.heroWindow && !observeWindow()) settle()
+          })
+          headerSize.observe(header, { box: 'border-box' })
+        } catch {
+          headerSize?.disconnect()
+          headerSize = undefined
+        }
+      }
+    } else {
+      finishWindow()
     }
 
     function finishWindow() {
       delete frame.dataset.heroWindow
       observer?.disconnect()
+      observer = undefined
+      headerSize?.disconnect()
+      headerSize = undefined
     }
 
     function settle() {

@@ -40,25 +40,31 @@ test('opens the photograph on actual visibility and finishes permanently when re
   vi.stubGlobal('CSS', { supports: () => true })
   vi.spyOn(document.documentElement, 'clientHeight', 'get').mockReturnValue(450)
   vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (this: HTMLElement) {
-    return this.matches('.hero-visual') ? new DOMRect(0, 500, 350, 208) : new DOMRect(0, 0, 390, 760)
+    if (this.matches('.hero-visual')) return new DOMRect(0, 500, 350, 208)
+    return new DOMRect(0, 0, 390, this.matches('header') ? 65 : 760)
   })
   const motion = new EventTarget()
   const preference = Object.assign(motion, { matches: false })
   vi.stubGlobal('matchMedia', () => preference)
   let observed: IntersectionObserverCallback | undefined
+  let margin: string | undefined
   const disconnect = vi.fn()
   vi.stubGlobal('IntersectionObserver', class {
-    constructor(callback: IntersectionObserverCallback) { observed = callback }
+    constructor(callback: IntersectionObserverCallback, options?: IntersectionObserverInit) {
+      observed = callback
+      margin = options?.rootMargin
+    }
     observe = vi.fn()
     disconnect = disconnect
   })
 
-  const { container } = render(<Hero />)
+  const { container } = render(<><header /><Hero /></>)
   const visual = container.querySelector('.hero-visual')
   const entry = (intersectionRatio: number) => ({ isIntersecting: intersectionRatio >= 0, intersectionRatio })
   const notify = (...ratios: number[]) => act(() =>
     observed?.(ratios.map(entry) as IntersectionObserverEntry[], {} as IntersectionObserver))
   expect(visual).toHaveAttribute('data-hero-window', 'waiting')
+  expect(margin).toBe('-65px 0px 0px 0px')
   notify(0)
   expect(visual).toHaveAttribute('data-hero-window', 'waiting')
   notify(0.2, -1)

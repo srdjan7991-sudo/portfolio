@@ -54,7 +54,7 @@
 }
 
 .hero-work:focus-visible { background: var(--accent-hover); }
-.hero-contact:is(:hover, :focus-visible) { color: var(--accent-hover); }
+.hero-contact:focus-visible { color: var(--accent-hover); }
 .hero-contact-label { position: relative; }
 .hero-contact-label::after {
   content: '';
@@ -65,7 +65,7 @@
   opacity: 0;
   pointer-events: none;
 }
-.hero-contact:is(:hover, :focus-visible) .hero-contact-label::after { opacity: 0.8; }
+.hero-contact:focus-visible .hero-contact-label::after { opacity: 0.8; }
 .hero-arrow { font-size: 1rem; line-height: 1; pointer-events: none; }
 
 .hero-visual {
@@ -118,8 +118,18 @@
   .hero-contact { transition: color var(--quick) var(--ease-out); }
   .hero-contact-label::after { transition: opacity var(--quick) var(--ease-out); }
   .hero-arrow { transition: transform var(--quick) var(--ease-out); }
-  .hero-work:is(:hover, :focus-visible) .hero-arrow { transform: translateY(3px); }
-  .hero-contact:is(:hover, :focus-visible) .hero-arrow { transform: translate(3px, -3px); }
+  .hero-work:focus-visible .hero-arrow { transform: translateY(3px); }
+  .hero-contact:focus-visible .hero-arrow { transform: translate(3px, -3px); }
+}
+
+@media (hover: hover) {
+  .hero-contact:hover { color: var(--accent-hover); }
+  .hero-contact:hover .hero-contact-label::after { opacity: 0.8; }
+}
+
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .hero-work:hover .hero-arrow { transform: translateY(3px); }
+  .hero-contact:hover .hero-arrow { transform: translate(3px, -3px); }
 }
 
 @media (prefers-reduced-motion: reduce) {
