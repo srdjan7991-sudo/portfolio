@@ -45,6 +45,7 @@ Run the static build locally with `npm run build` followed by `npm run preview`.
 
 | Area | What to verify |
 | --- | --- |
+| Hero typography | Reload to see the heading and description reveal in order. Check that the layout stays steady, hovering over either line remains smooth near its edges, and both links remain visible and reachable by keyboard from the first frame. With reduced motion enabled, check that the full heading appears immediately. |
 | Public page | Review the layout at 320, 375, 390, 768, 1024, 1280, 1440, and 1920 px in both languages and themes. Check keyboard focus, the mobile menu, section hash links, the case study, and asset loading. Switch languages with the menu or case study open. From the language switch, press Escape to return focus to the menu trigger. Reopen the menu and tab out of the header to check that the focused content is visible. Reload to verify the saved language on the first render. |
 | Guided walkthrough | Start the request, advance through all six stages, pause and resume, step manually, replay, and close. Check that the outgoing and returning fills meet their SVG endpoints, the server rotates, and the three database slots seat in order. Switch languages mid-stage to verify that the scene keeps its size and the animation keeps its place. |
 | Reduced motion | Emulate `prefers-reduced-motion: reduce`. Check that the walkthrough can still start, pause, and step through each stage while the illustrations show the current state. |

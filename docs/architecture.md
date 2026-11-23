@@ -21,7 +21,7 @@ The React features contain the public page copy. Selected Work presents the Mede
 
 [`index.html`](../index.html) applies the saved dark preference before React runs. [`theme.css`](../src/theme.css) supplies color and surface tokens for both themes. [`global.css`](../src/global.css) supplies Geist and Geist Mono, layout widths, spacing, focus outlines, and shared control styles. [`useTheme.ts`](../src/features/theme/useTheme.ts) updates the document theme, browser theme color, and `localStorage` from the Header switch. Light is the default.
 
-Hero entrance motion and section reordering use Motion for React. The walkthrough uses SVG and CSS. Reduced motion uses the same controls and state with simpler presentation. The walkthrough text and phase controls remain available at every viewport size.
+The Hero keeps the localized heading as live text in a single `h1`. CSS reveals it in two stages and gives the title a small response to pointer hover. The Hero skips this motion when the browser requests reduced motion. Section reordering uses Motion for React. The walkthrough uses SVG and CSS, with the same controls and state in reduced motion. Its text and phase controls remain available at every viewport size.
 
 ## Language
 

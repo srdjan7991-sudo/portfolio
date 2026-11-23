@@ -25,6 +25,7 @@ For live API calls, Swagger, and administrator controls, follow the [local backe
 
 | Feature | What it shows |
 | --- | --- |
+| Kinetic typography | The Hero heading reveals in two stages and responds to pointer hover. Reduced motion shows the finished heading immediately. |
 | Selected Work | The Mede Analytics case study, a reporting preview, and an independent analytics demo with period and category filters, a chart, and a matching table. The demo uses synthetic data. Kterio has a separate project summary. |
 | Behind every request | A six-stage walkthrough of a request through the browser, application server, and database. With the API enabled, it can show the result of a public request to the local backend. |
 | English and Serbian | A header switch changes the language in place and remembers the selection on the next visit. |
@@ -36,7 +37,7 @@ For live API calls, Swagger, and administrator controls, follow the [local backe
 | Area | Tools |
 | --- | --- |
 | Frontend | React, TypeScript, Vite, CSS Modules, CSS custom properties, locally hosted Geist and Geist Mono |
-| Interaction | Motion for React for Hero and section reordering, Radix UI Collapsible for the mobile menu, SVG and CSS for the walkthrough |
+| Interaction | CSS for the Hero entrance, Motion for React for section reordering, Radix UI Collapsible for the mobile menu, SVG and CSS for the walkthrough |
 | API and data | ASP.NET Core Minimal APIs on .NET 10, Entity Framework Core, SQL Server, Swashbuckle and Swagger UI |
 | Authentication | ASP.NET Core Identity and JWT bearer authentication |
 | Testing | Vitest, React Testing Library, jest-dom, user-event, jsdom, V8 coverage, xUnit, ASP.NET Core TestServer |
