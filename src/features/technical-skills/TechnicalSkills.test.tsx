@@ -79,6 +79,21 @@ test('keeps pointer highlighting transient while keyboard focus remains on its s
   expect(screen.queryByRole('heading', { level: 4 })).toBeNull()
 })
 
+test.each(['Enter', 'Escape'])('keeps the focused skill highlighted when %s closes its detail', async (key) => {
+  const user = userEvent.setup()
+  render(<TechnicalSkills />)
+  const highcharts = screen.getByRole('button', { name: 'Highcharts' })
+  highcharts.focus()
+  await user.keyboard('{Enter}')
+  expect(screen.getByRole('heading', { name: 'Highcharts', level: 4 })).toHaveFocus()
+  await user.tab({ shift: true })
+  expect(highcharts).toHaveFocus()
+  await user.keyboard(`{${key}}`)
+  expect(screen.queryByRole('heading', { level: 4 })).toBeNull()
+  expect(highcharts).toHaveFocus()
+  expect(highcharts).toHaveAttribute('data-relation', 'highlighted')
+})
+
 function LanguageControl() {
   const { setLanguage } = useLanguage()
   return <button type="button" onClick={() => setLanguage('sr')}>Serbian</button>

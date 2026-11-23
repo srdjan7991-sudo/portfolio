@@ -73,7 +73,7 @@ export function TechnicalSkills() {
   function updateSelection(next: Selection | null, focusId: string) {
     setRevealComplete(true)
     setHovered(null)
-    setFocused(null)
+    setFocused(skill => skill && skillButtonId(skill) === focusId ? skill : null)
     pendingFocus.current = focusId
     setSelection(next)
   }
@@ -100,19 +100,28 @@ export function TechnicalSkills() {
 
   useEffect(() => {
     const node = explorer.current
-    node?.addEventListener('keydown', handleEscape)
-    return () => node?.removeEventListener('keydown', handleEscape)
+    if (!node) return
+
+    function finishReveal(event: AnimationEvent) {
+      if (event.animationName === 'skills-index-in' && event.target instanceof HTMLElement &&
+          event.target.dataset.group === 'delivery') setRevealComplete(true)
+    }
+
+    node.addEventListener('keydown', handleEscape)
+    node.addEventListener('animationend', finishReveal)
+    node.addEventListener('animationcancel', finishReveal)
+    return () => {
+      node.removeEventListener('keydown', handleEscape)
+      node.removeEventListener('animationend', finishReveal)
+      node.removeEventListener('animationcancel', finishReveal)
+    }
   }, [])
 
   return (
     <PortfolioSection id="skills" intro={skills.intro}>
       <LayoutGroup id={id}>
         <div className="skills-explorer" ref={explorer}
-          data-view={activeGroup ? 'category' : 'overview'} data-reveal-complete={revealComplete}
-          onAnimationEnd={event => {
-            if (event.animationName === 'skills-index-in' && event.target instanceof HTMLElement &&
-                event.target.dataset.group === 'delivery') setRevealComplete(true)
-          }}>
+          data-view={activeGroup ? 'category' : 'overview'} data-reveal-complete={revealComplete}>
           {activeGroup && (
             <button className="skills-back" type="button" onClick={showOverview} ref={back}>
               <span aria-hidden="true">←</span> {skills.explorer.all}
@@ -167,7 +176,9 @@ export function TechnicalSkills() {
                                   layoutDependency={selection} transition={layoutTransition}
                                   aria-pressed={active} aria-controls={active ? detailId : undefined}
                                   data-relation={relation} data-muted={Boolean(highlighted && !relation && !active)}
-                                  onPointerEnter={event => { if (event.pointerType === 'mouse') setHovered(name) }}
+                                  onPointerMove={event => {
+                                    if (event.pointerType === 'mouse' && hovered !== name) setHovered(name)
+                                  }}
                                   onPointerLeave={() => setHovered(null)}
                                   onFocus={() => { setFocused(name); setHovered(null) }}
                                   onBlur={() => setFocused(null)}

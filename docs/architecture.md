@@ -31,7 +31,7 @@ The `#skills` section starts with Frontend Engineering featured above four other
 
 The group catalog defines the order, names, and existing icon paths. The detail catalog supplies English and Serbian descriptions, project context supported by the portfolio, and links in both directions between related skills. Selection stays local to the section and survives a language change. Closing a detail returns focus to its technology. Returning to all categories restores focus to the last active category. [Group catalog](../src/features/technical-skills/skillGroups.ts) · [Detail catalog](../src/features/technical-skills/skillDetails.ts)
 
-Motion animates the featured surface between categories. On narrow screens, individual labels stay in their new positions while the surface moves. Reduced motion stops spatial movement while keeping the same controls.
+Motion animates the featured surface between categories. On narrow screens, individual labels stay in their new positions while the surface moves. Reduced motion stops spatial movement while keeping the same controls. The category and technology entrance runs once, even if the motion preference interrupts it.
 
 ## How I Engineer
 

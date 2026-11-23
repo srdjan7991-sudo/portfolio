@@ -98,7 +98,7 @@
   opacity: 0.74;
   filter: var(--brand-icon-filter, none);
 }
-.skills-explorer .skills-primary-tool .skills-tool { color: var(--accent); font-size: 0.96rem; font-weight: 650; }
+.skills-explorer .skills-primary-tool .skills-tool { color: var(--ink); font-size: 0.96rem; font-weight: 650; }
 .skills-primary-tool img { width: 1.14rem; height: 1.14rem; }
 .skills-explorer .skills-tool[data-muted='true'] { color: var(--quiet); }
 .skills-tool[data-muted='true'] img { opacity: 0.56; }
@@ -264,6 +264,7 @@
 }
 
 @media (forced-colors: active) {
-  .skills-tool[aria-pressed='true'], .skills-group[data-active='true'] { border-color: Highlight; }
-  .skills-tool[data-relation='related'] { color: LinkText; }
+  .skills-group[data-active='true'] { border-color: Highlight; }
+  .skills-explorer .skills-tool[aria-pressed='true'] { border-bottom: 2px dashed Highlight; }
+  .skills-explorer .skills-tool[data-relation='related'] { color: LinkText; }
 }
