@@ -1,7 +1,8 @@
-import { act, render, screen, within } from '@testing-library/react'
+import { act, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { expect, test } from 'vitest'
+import { expect, test, vi } from 'vitest'
 import { LanguageProvider, useLanguage } from '../../i18n/language'
+import { ProfessionalExperience } from '../professional-experience/ProfessionalExperience'
 import { relatedSkills, skillDetails } from './skillDetails'
 import { skillGroups } from './skillGroups'
 import { TechnicalSkills } from './TechnicalSkills'
@@ -125,5 +126,76 @@ test('links only documented skills and keeps all relationships reversible', () =
     expect(connections).not.toContain(name)
     expect(new Set(connections).size).toBe(connections.length)
     for (const target of connections) expect(relatedSkills[target]).toContain(name)
+  }
+})
+
+test('opens an addressed skill even when its group is closed and clears the address when closing details', async () => {
+  const user = userEvent.setup()
+  const previousUrl = location.href
+  const navigateTo = (hash: string) => act(() => {
+    history.replaceState(null, '', hash)
+    window.dispatchEvent(new HashChangeEvent('hashchange'))
+  })
+  try {
+    history.replaceState(null, '', '#skill-highcharts')
+    render(<TechnicalSkills />)
+    expect(screen.getByRole('heading', { level: 4, name: 'Highcharts' })).toHaveAttribute('id', 'skill-highcharts')
+    expect(screen.queryByRole('button', { name: 'SQL Server' })).toBeNull()
+
+    navigateTo('#skills')
+    expect(screen.queryByRole('heading', { level: 4 })).toBeNull()
+    const testing = screen.getByRole('button', { name: 'Testing' })
+    await user.click(testing)
+
+    navigateTo('#skill-sql-server')
+    const linkedHeading = screen.getByRole('heading', { level: 4, name: 'SQL Server' })
+    expect(linkedHeading).toHaveFocus()
+    expect(linkedHeading).toHaveAttribute('data-linked')
+    navigateTo('#skills')
+    expect(testing).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.queryByRole('heading', { level: 4 })).toBeNull()
+
+    navigateTo('#skill-sql-server')
+    await user.keyboard('{Escape}')
+    expect(screen.getByRole('button', { name: 'SQL Server' })).toHaveFocus()
+    expect(location.hash).toBe('#skills')
+  } finally {
+    history.replaceState(null, '', previousUrl)
+  }
+})
+
+test.each([
+  { action: 'Close details', restoreTesting: true, destination: '.NET' },
+  { action: 'All categories', restoreTesting: false, destination: 'APIs & Data' },
+])('restores history focus and selection after $action', async ({ action, restoreTesting, destination }) => {
+  const user = userEvent.setup()
+  const previousUrl = location.href
+  const previousState = history.state
+  const scrollTo = vi.spyOn(window, 'scrollTo').mockImplementation(() => {})
+  try {
+    history.replaceState(null, '', '#experience')
+    render(<><TechnicalSkills /><ProfessionalExperience /></>)
+    const testing = screen.getByRole('button', { name: 'Testing' })
+    if (restoreTesting) await user.click(testing)
+    const link = screen.getByRole('link', { name: '.NET 5' })
+    link.focus()
+    await user.keyboard('{Enter}')
+    expect(screen.getByRole('heading', { name: '.NET', level: 4 })).toHaveFocus()
+
+    await user.click(screen.getByRole('button', { name: action }))
+    expect(location.hash).toBe('#skills')
+    history.back()
+
+    await waitFor(() => expect(link).toHaveFocus())
+    expect(location.hash).toBe('#experience')
+    expect(testing).toHaveAttribute('aria-pressed', String(restoreTesting))
+    await user.tab()
+    expect(within(link.closest('ul')!).getByRole('link', { name: 'EF Core' })).toHaveFocus()
+    history.forward()
+    await waitFor(() => expect(screen.getByRole('button', { name: destination })).toHaveFocus())
+    expect(location.hash).toBe('#skills')
+  } finally {
+    history.replaceState(previousState, '', previousUrl)
+    scrollTo.mockRestore()
   }
 })

@@ -159,6 +159,7 @@ export const sr = {
     frontend: 'Frontend programer', fullstack: 'Full stack programer', since: 'Od septembra 2020.',
     description: 'Razvijam i održavam poslovne veb aplikacije. Sa dizajnerima i backend inženjerima radim od zahteva do implementacije i testiranja.',
     assignments: 'Projekti na kojima sam radio u Midenasu',
+    details: 'Detaljnije', detailsFor: project => `Detaljnije o projektu ${project}`,
     mede: 'Razvijao sam analitičke prikaze i izveštaje, održavao zajedničke React komponente i dodavao testove tokom prelaska sa MVC-a na React.',
     kterio: 'Razvijao sam frontend platforme za upravljanje podacima o objektima, povezivao je sa API-jima i radio na REST rutama i logici servisa.',
     alpha: 'Razvijao sam funkcije na frontendu i u .NET Web API-ju za platformu za analizu ulaganja i izveštavanje.',

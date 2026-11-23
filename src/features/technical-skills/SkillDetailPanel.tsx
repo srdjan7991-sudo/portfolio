@@ -7,11 +7,12 @@ type Props = {
   tool: SkillTool
   id: string
   headingId: string
+  linked?: boolean
   onClose: () => void
   onSelect: (skill: SkillName) => void
 }
 
-export function SkillDetailPanel({ tool: [name, logo], id, headingId, onClose, onSelect }: Props) {
+export function SkillDetailPanel({ tool: [name, logo], id, headingId, linked, onClose, onSelect }: Props) {
   const { language, text: { skills: { explorer } } } = useLanguage()
   const { description, context } = skillDetails[name][language]
   const source = skillLogo(logo)
@@ -19,7 +20,7 @@ export function SkillDetailPanel({ tool: [name, logo], id, headingId, onClose, o
 
   return (
     <div id={id} className="skills-detail">
-      <h4 className="skills-detail-title" id={headingId} tabIndex={-1}>
+      <h4 className="skills-detail-title" id={headingId} tabIndex={-1} data-linked={linked || undefined}>
         {source && <img src={source} alt="" width="20" height="20" />}
         {name}
       </h4>

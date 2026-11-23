@@ -110,7 +110,7 @@ export function useSectionNavigation(orderReady = true) {
     for (const id of defaultSectionOrder) {
       const section = document.getElementById(id)
       // Preserve the initial view, including direct links and restored scroll positions.
-      if (section && section.getBoundingClientRect().top >= window.innerHeight) {
+      if (section && !section.hasAttribute('data-custom-reveal') && section.getBoundingClientRect().top >= window.innerHeight) {
         observer.observe(section)
       }
     }
