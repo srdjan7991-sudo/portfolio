@@ -1,6 +1,6 @@
 import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { afterEach, expect, test } from 'vitest'
+import { afterEach, expect, test, vi } from 'vitest'
 import { LanguageProvider, languageStorageKey } from '../../i18n/language'
 import { LanguageSwitch } from '../../i18n/LanguageSwitch'
 import { SelectedWork } from './SelectedWork'
@@ -176,9 +176,15 @@ test('marks the matching table cell until the reader clears it or changes the re
   await user.click(april)
   expect(april).toHaveAttribute('aria-current', 'true')
 
+  const caption = within(table).getByText('Monthly data')
+  const scrollCaption = vi.fn(() => {
+    expect(screen.queryByRole('button', { name: 'Clear selection' })).not.toBeInTheDocument()
+    expect(caption).toHaveFocus()
+  })
+  caption.scrollIntoView = scrollCaption
   await user.click(screen.getByRole('button', { name: 'Clear selection' }))
   expect(april).not.toHaveAttribute('aria-current')
-  expect(within(table).getByText('Monthly data')).toHaveFocus()
+  expect(scrollCaption).toHaveBeenCalledExactlyOnceWith({ block: 'nearest', behavior: 'instant' })
 
   await user.click(operations)
   await user.selectOptions(screen.getByRole('combobox', { name: 'Report category' }), 'operations')
@@ -206,6 +212,8 @@ test('maps coverage and compares reported Operations counts on the same scale in
   expect(screen.getByText('Difference')).toHaveTextContent('+6')
   expect(screen.getByText('+25%')).toBeVisible()
 
+  await user.selectOptions(to, '3')
+  await user.selectOptions(to, '5')
   await user.selectOptions(from, '0')
   expect(screen.getByText('No value was reported for January 2026 in this category.')).toBeVisible()
   await user.selectOptions(from, '5')
@@ -217,4 +225,30 @@ test('maps coverage and compares reported Operations counts on the same scale in
   expect(screen.getByRole('combobox', { name: 'Mesec za poređenje' })).toHaveValue('5')
   expect(screen.getByText('Razlika')).toHaveTextContent('+6')
   expect(screen.getByText(/\+25\s?%/)).toBeVisible()
+})
+
+test.each([
+  {
+    endpoint: 'Comparison month', month: '3', filter: 'Category to compare', value: 'operations',
+    expectedStart: '4', expectedEnd: '3', difference: '-4',
+  },
+  {
+    endpoint: 'Starting month', month: '2', filter: 'Reporting period', value: 'firstQuarter',
+    expectedStart: '2', expectedEnd: '1', difference: '-7',
+  },
+])('keeps the $endpoint distinct from the automatic month after changing $filter', async ({
+  endpoint, month, filter, value, expectedStart, expectedEnd, difference,
+}) => {
+  const user = userEvent.setup()
+  render(<SelectedWork />)
+  await user.click(screen.getByText('Try a sample report', { selector: 'summary' }))
+  await screen.findByRole('table', { name: 'Monthly data' })
+  await user.click(screen.getByText('Compare two months', { selector: 'summary' }))
+
+  await user.selectOptions(screen.getByRole('combobox', { name: endpoint }), month)
+  await user.selectOptions(screen.getByRole('combobox', { name: filter }), value)
+
+  expect(screen.getByRole('combobox', { name: 'Starting month' })).toHaveValue(expectedStart)
+  expect(screen.getByRole('combobox', { name: 'Comparison month' })).toHaveValue(expectedEnd)
+  expect(screen.getByText('Difference')).toHaveTextContent(difference)
 })

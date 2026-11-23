@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react'
+import { useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useLanguage } from '../../i18n/language'
 import { AnalyticsReportChart } from './AnalyticsReportChart'
 import { AnalyticsReportComparison, AnalyticsReportCoverage } from './AnalyticsReportContext'
@@ -36,6 +36,16 @@ function AnalyticsReport({ active }: { active: boolean }) {
   const [filters, setFilters] = useState(defaultReportFilters)
   const [pinned, setPinned] = useState<Observation | null>(null)
   const tableCaption = useRef<HTMLTableCaptionElement>(null)
+  const restoreCaptionFocus = useRef(false)
+
+  useLayoutEffect(() => {
+    if (pinned || !restoreCaptionFocus.current) return
+    restoreCaptionFocus.current = false
+    const caption = tableCaption.current
+    caption?.focus({ preventScroll: true })
+    caption?.scrollIntoView?.({ block: 'nearest', behavior: 'instant' })
+  }, [pinned])
+
   const { dates, shortDates, periods, counts, averages, changes, percents } = useMemo(() => {
     const locale = language === 'sr' ? 'sr-Latn-RS' : 'en-US'
     return {
@@ -128,8 +138,8 @@ function AnalyticsReport({ active }: { active: boolean }) {
                     <>{copy.pinned} · {pinnedRow.periodLabel} · {report.categories[pinned.series]} · <strong>{counts.format(pinnedValue)}</strong></>
                   )}</p>
                   <button type="button" className="ui-pill" onClick={() => {
+                    restoreCaptionFocus.current = true
                     setPinned(null)
-                    tableCaption.current?.focus({ preventScroll: true })
                   }}>{copy.clearPin}</button>
                 </div>
                 <table className={styles.table}>

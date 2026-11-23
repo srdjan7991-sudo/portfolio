@@ -77,8 +77,16 @@ export function AnalyticsReportComparison({ rows, series, counts, changes, perce
   const [to, selectTo] = useState<number>()
   const category = series.includes(preferredSeries) ? preferredSeries : series[0]
   const measured = rows.filter(row => row.points[category] !== null)
-  const first = rows.find(row => row.month === from) ?? measured[0] ?? rows[0]
-  const last = rows.find(row => row.month === to) ?? measured.at(-1) ?? rows.at(-1) ?? first
+  const selectedFirst = rows.find(row => row.month === from)
+  const selectedLast = rows.find(row => row.month === to)
+  const first = selectedFirst
+    ?? measured.find(row => row.month !== selectedLast?.month)
+    ?? rows.find(row => row.month !== selectedLast?.month)
+    ?? rows[0]
+  const last = selectedLast
+    ?? measured.filter(row => row.month !== first.month).at(-1)
+    ?? rows.filter(row => row.month !== first.month).at(-1)
+    ?? first
   const initial = first.points[category]?.count ?? null
   const next = last.points[category]?.count ?? null
   const change = first.month === last.month ? null : compareReportCounts(initial, next)

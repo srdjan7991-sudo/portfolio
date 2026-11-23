@@ -132,35 +132,64 @@ test.each([
   expect(within(heading.parentElement!).getByRole('link', { name: label })).toHaveAttribute('href', href)
 })
 
-test('restores focus to the project link after returning through native fragment history', async () => {
+test('restores focus in both directions of a native project visit', async () => {
   const user = userEvent.setup()
   const originalState = history.state
   const originalUrl = location.href
-  const replaceState = vi.spyOn(history, 'replaceState')
+  const projectId = 'work-mede'
   try {
-    render(<><TechnicalSkills /><article id="work-mede" tabIndex={-1}>Mede Analytics</article></>)
+    history.replaceState(null, '', '#skills')
+    const replaceState = vi.spyOn(history, 'replaceState')
+    render(<><TechnicalSkills /><article id={projectId} tabIndex={-1}>Mede Analytics</article></>)
     await user.click(screen.getByRole('button', { name: 'Highcharts' }))
     const link = screen.getByRole('link', { name: 'View work on Mede Analytics' })
+    // jsdom activates modified links in the same context. Cancel the browser default after React handles the event.
+    window.addEventListener('click', event => event.preventDefault(), { once: true })
     fireEvent.click(link, { ctrlKey: true })
     expect(replaceState).not.toHaveBeenCalled()
 
-    expect(fireEvent.click(link)).toBe(true)
-    const entry = replaceState.mock.calls.at(-1)?.[0]
-    expect(entry).toBeDefined()
-
-    // jsdom does not model the browser's native focus and history restoration.
-    const project = document.getElementById('work-mede')
-    act(() => {
-      project?.focus()
-      history.replaceState(entry, '', originalUrl)
-      window.dispatchEvent(new HashChangeEvent('hashchange', {
-        oldURL: new URL('#work-mede', originalUrl).href,
-        newURL: originalUrl,
-      }))
-    })
-    expect(link).toHaveFocus()
+    const project = document.getElementById(projectId)
+    link.focus()
+    await user.keyboard('{Enter}')
+    await waitFor(() => expect(project).toHaveFocus())
+    expect(location.hash).toBe('#work-mede')
+    history.back()
+    await waitFor(() => expect(link).toHaveFocus())
+    expect(location.hash).toBe('#skills')
+    history.forward()
+    await waitFor(() => expect(project).toHaveFocus())
+    expect(location.hash).toBe('#work-mede')
   } finally {
-    replaceState.mockRestore()
+    history.replaceState(originalState, '', originalUrl)
+  }
+})
+
+test('distinguishes two history entries for the same project surrounding a Skills visit', async () => {
+  const user = userEvent.setup()
+  const originalState = history.state
+  const originalUrl = location.href
+  vi.spyOn(window, 'scrollTo').mockImplementation(() => {})
+  try {
+    history.replaceState(null, '', '#experience-kterio')
+    render(<><TechnicalSkills /><ProfessionalExperience /></>)
+    const project = screen.getByRole('heading', { name: 'Kterio', level: 4 })
+    const technology = within(project.closest('li')!).getByRole('link', { name: 'C#' })
+    await user.click(technology)
+    const skill = () => screen.getByRole('heading', { name: 'C#', level: 4 })
+    const link = () => screen.getByRole('link', { name: 'View work on Kterio' })
+    expect(skill()).toHaveFocus()
+    await user.click(link())
+    await waitFor(() => expect(project).toHaveFocus())
+    expect(location.hash).toBe('#experience-kterio')
+    history.back()
+    await waitFor(() => expect(link()).toHaveFocus())
+    history.back()
+    await waitFor(() => expect(technology).toHaveFocus())
+    expect(location.hash).toBe('#experience-kterio')
+    history.forward()
+    await waitFor(() => expect(skill()).toHaveFocus())
+    expect(location.hash).toBe('#skill-c-sharp')
+  } finally {
     history.replaceState(originalState, '', originalUrl)
   }
 })
