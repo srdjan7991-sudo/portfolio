@@ -25,8 +25,11 @@ For live API calls, Swagger, and administrator controls, follow the [local backe
 
 | Feature | What it shows |
 | --- | --- |
-| Selected Work | The Mede Analytics case study, a reporting preview, and an independent analytics demo with period and category filters, a chart, and a matching table. The demo uses synthetic data. Kterio has a separate project summary. |
-| Behind every request | Follow the six-stage walkthrough or choose **Try HTTP scenarios** to compare out-of-order responses, cancel a slow request, and retry after HTTP 500. The scenarios use simulated data. With the API enabled, the six-stage walkthrough can show the actual response from the portfolio backend. |
+| Kinetic typography | The Hero heading reveals in two stages and responds to pointer hover. Reduced motion shows the finished heading immediately. |
+| Selected Work | The Mede Analytics case study, a reporting preview, and an independent analytics demo with period and category filters. The demo shows synthetic category counts in a grouped monthly chart and a matching table. Hover over, focus, or tap a bar to see the month-over-month change. Kterio has a separate project summary. |
+| Behind every request | Follow the six-stage walkthrough or choose **Try HTTP scenarios** to compare out-of-order responses, cancel a slow request, and retry after HTTP 500. The scenarios are simulated. With the API enabled, the walkthrough can show the response from the portfolio backend. |
+| How I Engineer | Explore 26 concepts across frontend engineering, data visualization, API integration, application architecture, and testing. Try a component tree, filter sample measurements, simulate a request, compare module boundaries, or introduce a regression and run checks. |
+| Technical Skills | Explore 21 technologies across five categories. Open a technology for its role, documented project context where available, and links to related tools. |
 | English and Serbian | A header switch changes the language in place and remembers the selection on the next visit. |
 | Light and dark themes | A switch in the header with a saved preference. The interface respects reduced motion. |
 | Section ordering | In the HTTPS setup, the administrator can sort six content sections by dragging, using the up and down buttons, or using the keyboard. The API saves the order in SQL Server. |
@@ -36,7 +39,7 @@ For live API calls, Swagger, and administrator controls, follow the [local backe
 | Area | Tools |
 | --- | --- |
 | Frontend | React, TypeScript, Vite, CSS Modules, CSS custom properties, locally hosted Geist and Geist Mono |
-| Interaction | Motion for React for Hero and section reordering, Radix UI Collapsible for the mobile menu, SVG and CSS for the walkthrough and HTTP scenarios |
+| Interaction | CSS for the Hero entrance, Motion for React for section reordering, Technical Skills, and How I Engineer, Radix UI Collapsible for the mobile menu, SVG and CSS for the walkthrough and HTTP scenarios |
 | API and data | ASP.NET Core Minimal APIs on .NET 10, Entity Framework Core, SQL Server, Swashbuckle and Swagger UI |
 | Authentication | ASP.NET Core Identity and JWT bearer authentication |
 | Testing | Vitest, React Testing Library, jest-dom, user-event, jsdom, V8 coverage, xUnit, ASP.NET Core TestServer |
@@ -71,6 +74,6 @@ For live API calls, Swagger, and administrator controls, follow the [local backe
 
 ## Documentation
 
-- [Architecture and request walkthrough](docs/architecture.md) covers page composition, themes, navigation, section ordering, the SVG animation timeline, and the HTTP simulation.
+- [Architecture](docs/architecture.md) covers page composition, Technical Skills, How I Engineer, the sample analytics report, themes, navigation, section ordering, the guided walkthrough, and the HTTP simulator.
 - [Local backend and API](docs/backend.md) covers SQL Server, migrations, HTTPS, administrator setup, and endpoint behavior.
 - [Testing and deployment](docs/testing-and-deployment.md) covers frontend and backend checks, browser verification, and what GitHub Pages publishes.

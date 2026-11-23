@@ -56,7 +56,7 @@ test('switches by keyboard, preserves a case study and theme, and restores the s
   expect(document.documentElement).toHaveAttribute('data-theme', 'dark')
   expect(study).toHaveTextContent('Pročitaj o projektu')
   expect(study.parentElement).toHaveAttribute('open')
-  for (const name of ['Izdvojeni projekti', 'Tehničke veštine', 'Oblasti rada', 'Radno iskustvo', 'Obrazovanje i sertifikati', 'Kontakt']) {
+  for (const name of ['Izdvojeni projekti', 'Tehničke veštine', 'Kako razvijam softver', 'Radno iskustvo', 'Obrazovanje i sertifikati', 'Kontakt']) {
     expect(screen.getByRole('heading', { name, level: 2 })).toBeInTheDocument()
   }
   expect(within(screen.getByRole('navigation', { name: 'Glavna navigacija' }))

@@ -8,7 +8,7 @@
 | --- | --- | --- |
 | `work` | Selected Work | [`selected-work`](../src/features/selected-work/) |
 | `skills` | Technical Skills | [`technical-skills`](../src/features/technical-skills/) |
-| `expertise` | Engineering Expertise | [`engineering-expertise`](../src/features/engineering-expertise/) |
+| `expertise` | How I Engineer | [`engineering-expertise`](../src/features/engineering-expertise/) |
 | `experience` | Professional Experience | [`professional-experience`](../src/features/professional-experience/) |
 | `education` | Education & Certifications | [`education-certifications`](../src/features/education-certifications/) |
 | `contact` | Contact | [`contact`](../src/features/contact/) |
@@ -17,11 +17,35 @@ The React features contain the public page copy. Selected Work presents the Mede
 
 [`PortfolioSection.tsx`](../src/components/shared/PortfolioSection.tsx) supplies section markup and heading IDs. [`Layout.tsx`](../src/components/shared/Layout.tsx) owns the Header, Footer, and mobile menu. Navigation uses native hash links and follows the current section order. [`sectionNavigation.ts`](../src/hooks/sectionNavigation.ts) manages the active link, initial hash alignment, and one-time section reveals. The current link uses `aria-current="location"`.
 
+## Sample analytics report
+
+Open the sample report under Selected Work. The default view shows 15 synthetic counts across Quality, Utilization, and Operations from January through June 2026. Operations reporting starts in April. Each reported observation has its own bar in the monthly group. The table shows the selected months and categories with the same counts. A missing observation is marked as unreported. A reported zero is a valid count. [Report data](../src/features/selected-work/analyticsReport.ts)
+
+The period and category filters apply to the chart, table, and summary metrics. The total sums the reported observations. The monthly average divides the total by the number of selected months with data. Coverage shows how many months in the selected period have data. A selection with no observations shows an empty state. [Report component](../src/features/selected-work/AnalyticsReportDemo.tsx)
+
+Hover over, focus, or tap a bar to see its exact count and the change in count and percentage from the previous calendar month for the same category. The comparison can use data outside the selected period. The comparison is unavailable if that month has no observation. A zero baseline supports a change in count and leaves the percentage unavailable. Escape dismisses the tooltip. The report uses the selected language and theme and respects reduced motion.
+
+## Technical Skills
+
+The `#skills` section starts with Frontend Engineering featured above four other categories. Choosing a category expands its technology list and puts the other categories in a compact list below it. Choosing a technology opens its description and related tools. These links can open a technology in another category. Hover and keyboard focus highlight related technologies with color. [TechnicalSkills.tsx](../src/features/technical-skills/TechnicalSkills.tsx)
+
+The group catalog defines the order, names, and existing icon paths. The detail catalog supplies English and Serbian descriptions, project context supported by the portfolio, and links in both directions between related skills. Selection stays local to the section and survives a language change. Closing a detail returns focus to its technology. Returning to all categories restores focus to the last active category. [Group catalog](../src/features/technical-skills/skillGroups.ts) · [Detail catalog](../src/features/technical-skills/skillDetails.ts)
+
+Motion animates the featured surface between categories. On narrow screens, individual labels stay in their new positions while the surface moves. Reduced motion stops spatial movement while keeping the same controls. The category and technology entrance runs once, even if the motion preference interrupts it.
+
+## How I Engineer
+
+The section keeps the `#expertise` anchor and its place in the reorderable content group. Its index opens five areas and shows a concept preview on wider screens. When an area opens, focus moves to its heading. **All areas** returns focus to that area's button. The concept tabs support Left, Right, Home, and End. [Index and focus management](../src/features/engineering-expertise/EngineeringExpertise.tsx) · [Concept workspace](../src/features/engineering-expertise/EngineeringWorkspace.tsx)
+
+Area and concept IDs come from [the feature model](../src/features/engineering-expertise/engineeringAreas.ts). The selected language supplies labels and descriptions. Selection lives in the section, and each demo owns its own state. Switching languages keeps the selection and the demo state. Opening another area starts a fresh demo. Motion and CSS animate the shared heading and transitions when the system setting allows it.
+
+The examples use local state and synthetic data. The sample chart computes an average from the visible weeks. The request simulation uses a cancellable timer and makes no network call. In Testing & Quality, the displayed component test illustrates the Vitest approach. **Run checks** evaluates the quantity rule in the browser.
+
 ## Themes and motion
 
 [`index.html`](../index.html) applies the saved dark preference before React runs. [`theme.css`](../src/theme.css) supplies color and surface tokens for both themes. [`global.css`](../src/global.css) supplies Geist and Geist Mono, layout widths, spacing, focus outlines, and shared control styles. [`useTheme.ts`](../src/features/theme/useTheme.ts) updates the document theme, browser theme color, and `localStorage` from the Header switch. Light is the default.
 
-Hero entrance motion and section reordering use Motion for React. The walkthrough uses SVG and CSS. Reduced motion uses the same controls and state with simpler presentation. The walkthrough text and phase controls remain available at every viewport size.
+The Hero keeps the localized heading as live text in a single `h1`. CSS reveals it in two stages and gives the title a small response to pointer hover. The Hero skips this motion when the browser requests reduced motion. Section reordering uses Motion for React. The walkthrough uses SVG and CSS, with the same controls and state in reduced motion. Its text and phase controls remain available at every viewport size.
 
 ## Language
 
