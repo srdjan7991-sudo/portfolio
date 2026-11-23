@@ -53,7 +53,11 @@ Technology links use catalog fragments such as `#skill-react`. A linked technolo
 
 [`index.html`](../index.html) applies the saved dark preference before React runs. [`theme.css`](../src/theme.css) supplies color and surface tokens for both themes. [`global.css`](../src/global.css) supplies Geist and Geist Mono, layout widths, spacing, focus outlines, and shared control styles. [`useTheme.ts`](../src/features/theme/useTheme.ts) updates the document theme, browser theme color, and `localStorage` from the Header switch. Light is the default.
 
-The Hero keeps the localized heading as live text in a single `h1`. CSS reveals it in two stages and gives the title a small response to pointer hover. The Hero skips this motion when the browser requests reduced motion. Section reordering uses Motion for React. The walkthrough uses SVG and CSS, with the same controls and state in reduced motion. Its text and phase controls remain available at every viewport size.
+The Hero keeps the localized heading as live text in a single `h1`. CSS reveals two text groups and opens a narrow rectangular crop of the staircase within a fixed frame. On short screens the photo opens on its first visible entry. The entrance controller settles the view on anchor navigation, exit during opening, or a switch to reduced motion. [Hero entrance](../src/features/hero/useHeroEntrance.ts)
+
+After the photo opens, Motion values translate the image within its frame for a precise pointer. The surrounding image pixels cover the edges throughout the move. Reduced motion settles both the reveal and the image immediately. CTA links stay visible and available throughout the entrance. [Hero photo](../src/features/hero/HeroPhoto.tsx)
+
+Section reordering uses Motion for React. The walkthrough uses SVG and CSS, with the same controls and state in reduced motion. Its text and phase controls remain available at every viewport size.
 
 ## Language
 

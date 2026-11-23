@@ -25,7 +25,7 @@ For live API calls, Swagger, and administrator controls, follow the [local backe
 
 | Feature | What it shows |
 | --- | --- |
-| Kinetic typography | The Hero heading reveals in two stages and responds to pointer hover. Reduced motion shows the finished heading immediately. |
+| Architectural Window | A narrow view of the staircase opens as the two parts of the Hero heading appear. The photo responds to a precise pointer after opening. With reduced motion the full composition is visible immediately. |
 | Selected Work | The Mede Analytics case study, a reporting preview, and an independent analytics demo with period and category filters. The demo shows synthetic category counts in a grouped monthly chart and a matching table. Hover over, focus, or tap a bar to see the month-over-month change. Kterio has a separate project summary. |
 | Behind every request | Follow the six-stage walkthrough or choose **Try HTTP scenarios** to compare out-of-order responses, cancel a slow request, and retry after HTTP 500. The scenarios are simulated. With the API enabled, the walkthrough can show the response from the portfolio backend. |
 | How I Engineer | Explore 26 concepts across frontend engineering, data visualization, API integration, application architecture, and testing. Try a component tree, filter sample measurements, simulate a request, compare module boundaries, or introduce a regression and run checks. |
@@ -40,7 +40,7 @@ For live API calls, Swagger, and administrator controls, follow the [local backe
 | Area | Tools |
 | --- | --- |
 | Frontend | React, TypeScript, Vite, CSS Modules, CSS custom properties, locally hosted Geist and Geist Mono |
-| Interaction | CSS for the Hero entrance, Motion for React for section reordering, Technical Skills, and How I Engineer, Radix UI Collapsible for the mobile menu, SVG and CSS for the walkthrough and HTTP scenarios |
+| Interaction | CSS for the Hero entrance, Motion for React for the Hero photo, section reordering, Technical Skills, and How I Engineer, Radix UI Collapsible for the mobile menu, SVG and CSS for the walkthrough and HTTP scenarios |
 | API and data | ASP.NET Core Minimal APIs on .NET 10, Entity Framework Core, SQL Server, Swashbuckle and Swagger UI |
 | Authentication | ASP.NET Core Identity and JWT bearer authentication |
 | Testing | Vitest, React Testing Library, jest-dom, user-event, jsdom, V8 coverage, xUnit, ASP.NET Core TestServer |
