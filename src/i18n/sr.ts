@@ -80,6 +80,11 @@ export const sr = {
   },
   skills: {
     intro: 'Najviše radim u Reactu i TypeScriptu. Radim i sa API-jima, bazama podataka i automatizovanim testovima.',
+    explorer: {
+      all: 'Sve kategorije',
+      close: 'Zatvori detalje',
+      related: 'Povezane tehnologije',
+    },
     frontend: { title: 'Frontend razvoj', description: 'Komponente za višekratnu upotrebu i jasno upravljanje stanjem aplikacije.' },
     analytics: { title: 'Analitika i vizuelizacija', description: 'Analitički prikazi, izveštaji i interaktivni grafikoni.' },
     testing: { title: 'Testiranje', description: 'Automatizovane provere ponašanja interfejsa i .NET koda.' },
