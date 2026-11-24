@@ -36,7 +36,7 @@ See the controls on a phone and follow a queue refresh from click to response. [
 
 1. Choose **Explore the request** to step through a request or **Try HTTP scenarios** to try a failure or a slower response.
 2. Choose **Your browser**, **Application server**, or **Database** to reveal its role in the diagram.
-3. Follow the solid request line and the dashed response line. In the animated layout, the layers separate as you scroll into the section and come back together when you reverse direction.
+3. Follow the solid request line and the dashed response line. In the animated layout, scrolling separates the layers as you approach and stacks them again as you leave. Scroll back through the section to replay the same sequence in reverse.
 
 Follow all six phases or recover from a simulated HTTP 500. [Behind every request guide](docs/guide/request-flow.md)
 
@@ -109,7 +109,7 @@ The Windows 10 or 11 installer includes the complete frontend. Installation work
 ![The Windows Portfolio Launcher before startup with the Pokreni portfolio button highlighted.](docs/screenshots/launcher--start.png)
 
 1. Use the download link at the top of this page to get `Portfolio-Setup.exe` from the latest GitHub Release. Open it and select **Install**.
-2. Open **Portfolio Launcher** from the desktop or the Start menu. Select **Pokreni portfolio**. Your default browser opens after the local readiness check.
+2. If Setup offers **Pokreni Portfolio Launcher**, select it before **Finish** to open the launcher immediately. You can also open **Portfolio Launcher** from the desktop or Start menu. In the launcher, select **Pokreni portfolio** to open the demo in your default browser.
 3. Explore the sections, interactive analytics and request walkthrough. **Edit layout** saves your order in the current browser.
 4. Use **Stop** to stop the server or **Exit** to close the launcher. To remove the installation, choose **Srdjan Pajic Portfolio** in Windows **Installed Apps**.
 

@@ -6,7 +6,7 @@
 
 1. Select **Preuzmi portfolio za Windows** in the README to download one installer from the latest published release. [Portfolio-Setup.exe](https://github.com/srdjan7991-sudo/portfolio/releases/latest/download/Portfolio-Setup.exe)
 2. Open **Portfolio-Setup.exe**. Proceed to **Ready to Install** and select **Install**. Setup copies the bundled frontend to your user profile and adds **Portfolio Launcher** shortcuts to the desktop and Start menu.
-3. Select **Finish**. Open either shortcut to reach the launcher.
+3. If the final page offers **Pokreni Portfolio Launcher**, check it before selecting **Finish** to open the launcher immediately. Leave it unchecked to open the launcher later from either shortcut.
 
 ![The real installer at Ready to Install, with the Install button marked.](../screenshots/launcher--install.png)
 
@@ -71,6 +71,19 @@ Select **Explore the request**, then **Open walkthrough** below the Hero.
 Use **View logs** if startup fails. Select an event to read or copy its details. Logs are under `%LOCALAPPDATA%\PortfolioLauncher`. If launcher files are missing, run **Portfolio-Setup.exe** again.
 
 To uninstall, close the launcher. Open **Settings → Apps → Installed Apps**, select **Srdjan Pajic Portfolio**, and choose **Uninstall**. The uninstaller removes the installed files and both shortcuts. The browser manages the layout, theme and language saved at the local address.
+
+## Download trust and signing
+
+Microsoft Edge displayed an uncommon-download warning for the public `v0.1.0` EXE. Microsoft Defender SmartScreen uses file and publisher reputation for this check. The downloaded EXE matched the SHA-256 digest of the tested GitHub Release asset, and Windows reported `NotSigned` for its Authenticode status. The publisher name displayed in Setup comes from installer metadata. [Microsoft Edge SmartScreen documentation](https://learn.microsoft.com/en-us/deployedge/microsoft-edge-security-smartscreen)
+
+Download from GitHub Releases and compare the local SHA-256 with the digest for that exact asset. Keep one tested `Portfolio-Setup.exe` per versioned release and publish the digest of the final installer bytes. To verify the first release, use the [v0.1.0 release asset metadata](https://api.github.com/repos/srdjan7991-sudo/portfolio/releases/assets/787568677).
+
+```powershell
+Get-FileHash -Algorithm SHA256 -LiteralPath .\Portfolio-Setup.exe
+Get-AuthenticodeSignature -LiteralPath .\Portfolio-Setup.exe
+```
+
+For future releases, use a publicly trusted, timestamped Authenticode signature under a consistent verified publisher identity. An Individual Validation (IV) code-signing certificate is an option for a personal portfolio. Check eligibility for the applicant's country before buying. SSL.com lists a one-year IV certificate at US$129, with entry-level cloud key storage at US$15 per month or a physical token priced separately. Azure Artifact Signing Public Trust for individuals requires U.S. or Canadian residency. SmartScreen reputation still builds over time, so signing can leave an initial warning on a new build. [IV pricing](https://www.ssl.com/products/software-integrity/code-signing/iv/) · [Cloud signing pricing](https://www.ssl.com/products/software-integrity/signing-service/) · [Azure eligibility](https://learn.microsoft.com/en-us/azure/artifact-signing/quickstart#prerequisites) · [Windows signing and reputation](https://learn.microsoft.com/en-us/windows/apps/package-and-deploy/smartscreen-reputation)
 
 ## Build the installer from source
 

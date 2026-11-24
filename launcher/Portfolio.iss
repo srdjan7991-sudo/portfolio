@@ -8,6 +8,7 @@
 #define AppName "Srdjan Pajic Portfolio"
 #define LauncherName "Portfolio Launcher"
 #define PowerShell "{sys}\WindowsPowerShell\v1.0\powershell.exe"
+#define LauncherArguments '-NoLogo -NoProfile -STA -ExecutionPolicy Bypass -WindowStyle Hidden -File ""{app}\launcher\Launcher.ps1"" -Installed'
 
 [Setup]
 AppId={{0EB81974-1C48-4C8B-91C0-F39DAADED150}
@@ -41,5 +42,8 @@ Source: "{#PayloadDir}\dist\*"; DestDir: "{app}\dist"; Flags: ignoreversion recu
 Source: "{#PayloadDir}\launcher\*"; DestDir: "{app}\launcher"; Flags: ignoreversion
 
 [Icons]
-Name: "{userdesktop}\{#LauncherName}"; Filename: "{#PowerShell}"; Parameters: "-NoLogo -NoProfile -STA -ExecutionPolicy Bypass -WindowStyle Hidden -File ""{app}\launcher\Launcher.ps1"" -Installed"; WorkingDir: "{app}"; Comment: "Explore Srdjan Pajic's portfolio locally"
-Name: "{userprograms}\{#LauncherName}"; Filename: "{#PowerShell}"; Parameters: "-NoLogo -NoProfile -STA -ExecutionPolicy Bypass -WindowStyle Hidden -File ""{app}\launcher\Launcher.ps1"" -Installed"; WorkingDir: "{app}"; Comment: "Explore Srdjan Pajic's portfolio locally"
+Name: "{userdesktop}\{#LauncherName}"; Filename: "{#PowerShell}"; Parameters: "{#LauncherArguments}"; WorkingDir: "{app}"; Comment: "Explore Srdjan Pajic's portfolio locally"
+Name: "{userprograms}\{#LauncherName}"; Filename: "{#PowerShell}"; Parameters: "{#LauncherArguments}"; WorkingDir: "{app}"; Comment: "Explore Srdjan Pajic's portfolio locally"
+
+[Run]
+Filename: "{#PowerShell}"; Parameters: "{#LauncherArguments}"; WorkingDir: "{app}"; Description: "Pokreni {#LauncherName}"; Flags: postinstall nowait skipifsilent unchecked

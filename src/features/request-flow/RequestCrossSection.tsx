@@ -73,8 +73,10 @@ function Arrow({ marker }: { marker: string }) {
 }
 
 function AnimatedLayers({ target, selected }: { target: RefObject<HTMLDivElement | null>; selected: Layer | null }) {
-  const { scrollYProgress } = useScroll({ target, offset: ['start 65%', 'end 85%'] })
-  return <Layers progress={scrollYProgress} selected={selected} />
+  const { scrollYProgress } = useScroll({ target, offset: ['start 65%', 'end 85%', 'end 40%'] })
+  // Keep the approach range and retrace it on departure while the diagram is still in view.
+  const progress = useTransform(scrollYProgress, [0, 0.5, 1], [0, 1, 0])
+  return <Layers progress={progress} selected={selected} />
 }
 
 function Layers({ progress, selected }: { progress: MotionValue<number>; selected: Layer | null }) {
