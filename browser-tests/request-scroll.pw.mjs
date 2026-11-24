@@ -3,7 +3,7 @@ import { expect, test } from '@playwright/test'
 const scene = page => page.locator('[data-request-cross-section]')
 const graphic = section => section.locator('figure svg:visible')
 const plane = section => graphic(section).locator('g[data-selected]').first()
-const cable = section => graphic(section).locator('path[data-response="false"], path[data-response="true"]').first()
+const responseCable = section => graphic(section).locator('path[data-response="true"]').first()
 
 async function scrollToStage(section, stage) {
   await section.evaluate((node, { edge, viewport, distance = 0 }) => {
@@ -48,9 +48,9 @@ for (const [language, colorScheme] of [['en', 'light'], ['sr', 'dark']]) {
     await page.evaluate(() => document.fonts.ready)
 
     await expectStage(sequence, before, assembled)
-    await expect(cable(sequence)).toHaveCSS('opacity', '0')
+    await expect(responseCable(sequence)).toHaveCSS('opacity', '0')
     await expectStage(sequence, display, aligned)
-    await expect(cable(sequence)).toHaveCSS('opacity', '1')
+    await expect(responseCable(sequence)).toHaveCSS('opacity', '1')
     await expectStage(sequence, departing, separated)
     await expect(graphic(sequence)).toBeInViewport()
     await expectStage(sequence, after, assembled)
@@ -103,12 +103,17 @@ test('keeps the static alternatives when preferences or viewport change in place
   await page.setViewportSize({ width: 1920, height: 2160 })
   await expect(sequence).toHaveAttribute('data-animated', 'true')
   await expectStage(sequence, display, aligned)
-  await expect(cable(sequence)).toHaveCSS('opacity', '1')
+  await expect(responseCable(sequence)).toHaveCSS('opacity', '1')
 
   await page.setViewportSize({ width: 1920, height: 2161 })
   await expect(sequence).not.toHaveAttribute('data-animated')
   await expectStage(sequence, before, aligned)
-  await expect(cable(sequence)).toHaveCSS('opacity', '1')
+  await expect(responseCable(sequence)).toHaveCSS('opacity', '1')
+
+  await page.setViewportSize({ width: 1024, height: 2160 })
+  await expect(sequence).not.toHaveAttribute('data-animated')
+  await expectStage(sequence, before, aligned)
+  await expect(responseCable(sequence)).toHaveCSS('opacity', '1')
 
   await page.setViewportSize({ width: 390, height: 844 })
   const compact = [18, 13]
