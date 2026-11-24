@@ -46,4 +46,4 @@ Name: "{userdesktop}\{#LauncherName}"; Filename: "{#PowerShell}"; Parameters: "{
 Name: "{userprograms}\{#LauncherName}"; Filename: "{#PowerShell}"; Parameters: "{#LauncherArguments}"; WorkingDir: "{app}"; Comment: "Explore Srdjan Pajic's portfolio locally"
 
 [Run]
-Filename: "{#PowerShell}"; Parameters: "{#LauncherArguments}"; WorkingDir: "{app}"; Description: "Pokreni {#LauncherName}"; Flags: postinstall nowait skipifsilent unchecked
+Filename: "{#PowerShell}"; Parameters: "{#LauncherArguments}"; WorkingDir: "{app}"; Description: "Open {#LauncherName}"; Flags: postinstall nowait skipifsilent unchecked

@@ -81,7 +81,7 @@ The live walkthrough translates known default titles in the browser result cards
 
 Before the player opens, the request cross section presents the browser, application server, and database. On wide, tall screens with motion enabled, the scene briefly sticks below the header. Scrolling separates the layers, then aligns them with distinct request and response paths. The moving planes and path endpoints share the same SVG coordinates. Narrow screens use a stepped diagram, and short viewports and reduced motion use a static layout. Layer buttons reveal explanations independently of the walkthrough and simulations. [Cross section](../src/features/request-flow/RequestCrossSection.tsx)
 
-**Behind every request** is labeled **Iza svakog zahteva** in Serbian. Choose **Explore the request**, then **Open walkthrough**. Start with **Load content** in the illustrated browser or **Play** in the player controls. Use **Pause**, the previous and next step, and **Replay** to control playback. Closing the panel returns focus to its opener.
+In **Behind every request**, choose **Explore the request**, then **Open walkthrough**. Start with **Load content** in the illustrated browser or **Play** in the player controls. Use **Pause**, the previous and next step, and **Replay** to control playback. Closing the panel returns focus to its opener.
 
 | Mode | How it is selected | Result |
 | --- | --- | --- |

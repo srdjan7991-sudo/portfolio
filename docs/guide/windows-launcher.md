@@ -4,17 +4,17 @@
 
 ## Download and install
 
-1. Select **Preuzmi portfolio za Windows** in the README to download one installer from the latest published release. [Portfolio-Setup.exe](https://github.com/srdjan7991-sudo/portfolio/releases/latest/download/Portfolio-Setup.exe)
+1. Select **Download portfolio for Windows** in the README to download the installer from the latest published release. [Portfolio-Setup.exe](https://github.com/srdjan7991-sudo/portfolio/releases/latest/download/Portfolio-Setup.exe)
 2. Open **Portfolio-Setup.exe**. Proceed to **Ready to Install** and select **Install**. Setup copies the bundled frontend to your user profile and adds **Portfolio Launcher** shortcuts to the desktop and Start menu.
-3. If the final page offers **Pokreni Portfolio Launcher**, check it before selecting **Finish** to open the launcher immediately. Leave it unchecked to open the launcher later from either shortcut.
+3. Check **Open Portfolio Launcher** on the final page and select **Finish** to open the launcher immediately. Leave the checkbox empty to open the launcher later from either shortcut.
 
 ![The real installer at Ready to Install, with the Install button marked.](../screenshots/launcher--install.png)
 
 ## Open the portfolio
 
-![The Windows launcher before startup, with Pokreni portfolio and the logs control marked.](../screenshots/launcher--start.png)
+![The Windows launcher before startup, with Start portfolio and View logs marked.](../screenshots/launcher--start.png)
 
-1. **Pokreni portfolio** starts the local browser demo. The launcher checks that the bundled page responds before opening the default browser.
+1. Select **Start portfolio** to open the local demo. The launcher checks that the bundled page responds before opening the default browser.
 2. **View logs** shows the launcher’s latest events and errors.
 
 ![The launcher checking the bundled portfolio, with its starting status marked.](../screenshots/launcher--starting.png)
@@ -64,7 +64,7 @@ Select **Explore the request**, then **Open walkthrough** below the Hero.
 ## Stop or diagnose the launcher
 
 1. Select **Stop** to stop the local server and keep the launcher open. **Exit** or closing its window also stops the server.
-2. **Portfolio stopped** means the local server has shut down. Start again with **Pokreni portfolio**. Browser-local settings stay available at the same address.
+2. **Portfolio stopped** means the local server has shut down. Select **Start portfolio** to run the demo again. Browser-local settings stay available at the same address.
 
 ![The Windows launcher after Stop, with the stopped status and restart entry point marked.](../screenshots/launcher--stopped.png)
 
@@ -91,7 +91,7 @@ Use Node.js 24, Windows PowerShell 5.1, and Inno Setup 6.7.4 for packaging. Run 
 
 ```powershell
 npm ci
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File launcher/Build-WindowsInstaller.ps1 -CompilerPath C:/tools/Inno/ISCC.exe -Version 0.1.0
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File launcher/Build-WindowsInstaller.ps1 -CompilerPath C:/tools/Inno/ISCC.exe
 ```
 
 The builder writes `artifacts/Portfolio-Setup.exe`. The installer contains the launcher and finished Vite bundle. Windows PowerShell 5.1 runs the server on IPv4 loopback inside the launcher process. [Installer checks and release workflow](../testing-and-deployment.md#windows-demo-checks)
