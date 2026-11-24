@@ -79,7 +79,8 @@ $independent = [Net.Sockets.TcpListener]::new([Net.IPAddress]::Loopback, 0)
 $completed = $false
 
 try {
-    $env:PATH = (Join-Path $env:SystemRoot 'System32') + ';' + $env:SystemRoot
+    # Hosted runners can have developer tools in System32. Start the EXEs by absolute path.
+    $env:PATH = $testDirectory
     foreach ($tool in 'node.exe', 'npm.cmd', 'dotnet.exe', 'docker.exe', 'sqlcmd.exe', 'git.exe') {
         if (Get-Command $tool -ErrorAction SilentlyContinue) { throw "$tool is reachable on the smoke-test PATH." }
     }
