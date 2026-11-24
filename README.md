@@ -4,6 +4,8 @@ Explore the work and technical demonstrations of a frontend-focused software eng
 
 [Open the portfolio](https://srdjan7991-sudo.github.io/portfolio/)
 
+**[↓ Preuzmi portfolio za Windows](https://github.com/srdjan7991-sudo/portfolio/releases/latest/download/Portfolio-Setup.exe)**
+
 - [Opening screen and navigation](#opening-screen-and-navigation)
 - [Behind every request](#behind-every-request)
 - [Selected Work](#selected-work)
@@ -12,6 +14,7 @@ Explore the work and technical demonstrations of a frontend-focused software eng
 - [How I Engineer](#how-i-engineer)
 - [Professional Experience](#professional-experience)
 - [Education and Contact](#education-and-contact)
+- [Windows One-Click Launcher](#windows-one-click-launcher)
 - [Run locally](#run-locally)
 
 The numbered callouts tie each screenshot to the steps beneath it. Open a screenshot to read the interface at full size.
@@ -98,6 +101,19 @@ See an expanded project on mobile and how to return to it from Skills. [Professi
 2. **LinkedIn** and **GitHub** open in new tabs.
 3. **Download CV** saves the English CV as a DOCX file.
 4. **Back to top** in the footer returns to the opening screen.
+
+## Windows One-Click Launcher
+
+The Windows 10 or 11 installer includes the complete frontend. Installation works offline and runs under your Windows account. A current browser and built-in Windows components are enough to run the demo.
+
+![The Windows Portfolio Launcher before startup with the Pokreni portfolio button highlighted.](docs/screenshots/launcher--start.png)
+
+1. Use the download link at the top of this page to get `Portfolio-Setup.exe` from the latest GitHub Release. Open it and select **Install**.
+2. Open **Portfolio Launcher** from the desktop or the Start menu. Select **Pokreni portfolio**. Your default browser opens after the local readiness check.
+3. Explore the sections, interactive analytics and request walkthrough. **Edit layout** saves your order in the current browser.
+4. Use **Stop** to stop the server or **Exit** to close the launcher. To remove the installation, choose **Srdjan Pajic Portfolio** in Windows **Installed Apps**.
+
+[Illustrated Windows walkthrough](docs/guide/windows-launcher.md)
 
 ## Run locally
 

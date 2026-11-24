@@ -1,0 +1,125 @@
+name: Windows portfolio installer
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: 'Existing stable tag to publish as latest (vMAJOR.MINOR.PATCH). Leave blank for build only.'
+        type: string
+        required: false
+  push:
+    branches: [main]
+    paths: &installer_paths
+      - '.github/workflows/windows-demo.yml'
+      - 'launcher/**'
+      - 'src/**'
+      - 'public/**'
+      - 'index.html'
+      - 'package*.json'
+      - 'tsconfig*.json'
+      - 'vite.config.ts'
+  pull_request:
+    paths: *installer_paths
+
+permissions: {}
+
+jobs:
+  package:
+    runs-on: windows-2025
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    outputs:
+      installer: ${{ steps.upload.outputs.artifact-id }}
+      source_sha: ${{ steps.source.outputs.sha }}
+    steps:
+      - name: Select source
+        id: ref
+        shell: pwsh
+        env:
+          RELEASE_TAG: ${{ inputs.release_tag }}
+        run: |
+          if ($env:RELEASE_TAG) {
+            if ($env:GITHUB_REF -ne 'refs/heads/main') { throw 'Dispatch a release from main.' }
+            if ($env:RELEASE_TAG -cnotmatch '\Av(0|[1-9][0-9]{0,4})\.(0|[1-9][0-9]{0,4})\.(0|[1-9][0-9]{0,4})\z') {
+              throw 'Use an existing stable tag in vMAJOR.MINOR.PATCH format.'
+            }
+            "ref=refs/tags/$env:RELEASE_TAG" >> $env:GITHUB_OUTPUT
+            "version=$($env:RELEASE_TAG.Substring(1))" >> $env:GITHUB_OUTPUT
+          }
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ steps.ref.outputs.ref }}
+          persist-credentials: false
+      - name: Record source commit
+        id: source
+        shell: pwsh
+        run: |
+          $sha = git rev-parse HEAD
+          if ($LASTEXITCODE -ne 0 -or $sha -notmatch '\A[0-9a-f]{40}\z') { throw 'Could not resolve the installer source commit.' }
+          "sha=$sha" >> $env:GITHUB_OUTPUT
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - name: Get pinned Inno Setup compiler
+        id: inno
+        shell: pwsh
+        run: |
+          $download = Join-Path $env:RUNNER_TEMP 'innosetup-6.7.4.exe'
+          $toolDirectory = Join-Path $env:RUNNER_TEMP 'portfolio-inno-6.7.4'
+          Invoke-WebRequest 'https://github.com/jrsoftware/issrc/releases/download/is-6_7_4/innosetup-6.7.4.exe' -OutFile $download
+          # Digest from the official immutable release's asset listing.
+          $expected = 'a549929319f9120716677c685535ca4671e4b937b5fdc87e2585f32d8eb30e8c'
+          if ((Get-FileHash -LiteralPath $download -Algorithm SHA256).Hash -ne $expected) {
+            throw 'Inno Setup download did not match its pinned SHA-256.'
+          }
+          $arguments = @('/PORTABLE=1', '/CURRENTUSER', '/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', '/SP-', "/DIR=`"$toolDirectory`"")
+          $setup = Start-Process -FilePath $download -ArgumentList $arguments -WindowStyle Hidden -PassThru -Wait
+          $compiler = Join-Path $toolDirectory 'ISCC.exe'
+          if ($setup.ExitCode -ne 0 -or !(Test-Path -LiteralPath $compiler -PathType Leaf)) {
+            throw "Inno Setup compiler preparation failed (exit $($setup.ExitCode))."
+          }
+          "compiler=$compiler" >> $env:GITHUB_OUTPUT
+      - name: Build Portfolio-Setup.exe
+        shell: pwsh
+        env:
+          INNO_COMPILER: ${{ steps.inno.outputs.compiler }}
+          RELEASE_VERSION: ${{ steps.ref.outputs.version }}
+        run: |
+          $version = $env:RELEASE_VERSION
+          if (!$version) { $version = (Get-Content -Raw package.json | ConvertFrom-Json).version }
+          powershell.exe -NoProfile -ExecutionPolicy Bypass -File launcher/Build-WindowsInstaller.ps1 -CompilerPath $env:INNO_COMPILER -Version $version
+      - name: Install, verify, and uninstall the EXE
+        shell: pwsh
+        run: powershell.exe -NoProfile -ExecutionPolicy Bypass -File launcher/tests/WindowsInstaller.Tests.ps1 -InstallerPath artifacts/Portfolio-Setup.exe
+      - id: upload
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          path: artifacts/Portfolio-Setup.exe
+          archive: false
+          if-no-files-found: error
+
+  release:
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.release_tag != ''
+    needs: package
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          artifact-ids: ${{ needs.package.outputs.installer }}
+          path: release
+      - name: Publish the tested installer to Releases
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ inputs.release_tag }}
+          BUILT_SHA: ${{ needs.package.outputs.source_sha }}
+        run: |
+          $taggedSha = gh api "repos/$env:GITHUB_REPOSITORY/commits/tags/$env:RELEASE_TAG" --jq '.sha'
+          if ($LASTEXITCODE -ne 0 -or $taggedSha -cne $env:BUILT_SHA) { throw 'The tag no longer points to the verified build.' }
+          gh release create $env:RELEASE_TAG release/Portfolio-Setup.exe --repo $env:GITHUB_REPOSITORY --verify-tag --latest --generate-notes
