@@ -36,6 +36,45 @@ async function expectNavigation(page, order) {
     .toEqual(order.map(key => '#' + key))
 }
 
+const toolbarLabels = {
+  en: {
+    toolbar: 'Local layout controls', edit: 'Edit layout', moveDown: 'Move Selected Work down',
+    reset: 'Reset layout', cancel: 'Cancel', save: 'Save changes', saved: 'Layout saved in this browser.',
+  },
+  sr: {
+    toolbar: 'Kontrole lokalnog rasporeda', edit: 'Uredi raspored', moveDown: 'Pomeri sekciju „Izdvojeni projekti” dole',
+    reset: 'Vrati raspored', cancel: 'Otkaži', save: 'Sačuvaj izmene', saved: 'Raspored je sačuvan u ovom pregledaču.',
+  },
+}
+
+for (const [language, labels] of Object.entries(toolbarLabels)) {
+  for (const width of [390, 608, 609, 620, 640, 768, 1440]) {
+    test(`keeps the ${language} layout toolbar buttons in view at ${width}px`, async ({ page }) => {
+      await page.setViewportSize({ width, height: 950 })
+      await page.goto('./')
+      if (language === 'sr') await page.getByRole('switch', { name: 'EN / SR, Serbian language' }).click()
+      await expect(page.locator('html')).toHaveAttribute('lang', language)
+
+      const toolbar = page.getByRole('complementary', { name: labels.toolbar })
+      await button(toolbar, labels.edit).click()
+      await button(page, labels.moveDown).click()
+      await expectOrder(page, skillsFirst)
+
+      const save = button(toolbar, labels.save)
+      await expect(save).toBeEnabled()
+      for (const label of [labels.edit, labels.reset, labels.cancel, labels.save]) {
+        await expect(button(toolbar, label)).toBeInViewport({ ratio: 1 })
+      }
+
+      await button(toolbar, labels.cancel).focus()
+      await page.keyboard.press('Tab')
+      await expect(save).toBeFocused()
+      await save.click()
+      await expect(toolbar.getByText(labels.saved, { exact: true })).toBeVisible()
+    })
+  }
+}
+
 test('saves a layout locally, discards a draft and resets to the original order', async ({ page, context }) => {
   await page.setViewportSize({ width: 1440, height: 950 })
   await page.goto('./')
