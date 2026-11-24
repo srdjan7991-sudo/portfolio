@@ -1,14 +1,107 @@
-# Srdjan Pajic | Software Engineer
+# Srdjan Pajic | Portfolio walkthrough
 
-A portfolio focused on frontend engineering. It includes selected enterprise work, technical skills, professional experience, education, and a downloadable CV.
+Explore the work and technical demonstrations of a frontend-focused software engineer.
 
-[Open the public portfolio on GitHub Pages](https://srdjan7991-sudo.github.io/portfolio/)
+[Open the portfolio](https://srdjan7991-sudo.github.io/portfolio/)
 
-This documentation describes the current checkout. GitHub Pages serves the last deployed static build, so changes in the checkout may appear there after a later release.
+- [Opening screen and navigation](#opening-screen-and-navigation)
+- [Behind every request](#behind-every-request)
+- [Selected Work](#selected-work)
+- [Analytics Report Demo](#analytics-report-demo)
+- [Technical Skills](#technical-skills)
+- [How I Engineer](#how-i-engineer)
+- [Professional Experience](#professional-experience)
+- [Education and Contact](#education-and-contact)
+- [Run locally](#run-locally)
+
+The numbered callouts tie each screenshot to the steps beneath it. Open a screenshot to read the interface at full size.
+
+## Opening screen and navigation
+
+![Portfolio opening screen with numbered callouts for navigation, display preferences, the two main links, and the architecture simulation.](docs/screenshots/hero--overview.webp)
+
+1. Use the header links to jump to a section. On a phone, open **Menu** first.
+2. Switch between light and dark or between **EN** and **SR**. The portfolio remembers both preferences.
+3. **View selected work** takes you to the projects. **Get in touch** goes directly to Contact.
+4. In **Living application architecture**, choose **Refresh queue** or **Pin first task**. Follow the simulated request to the API and check the result in the review queue. Select **API**, **Service**, or **Data** to inspect its role and connections.
+
+See the controls on a phone and follow a queue refresh from click to response. [Opening screen and navigation guide](docs/guide/using-the-portfolio.md)
+
+## Behind every request
+
+![Request cross section with Application server selected, showing connections among the browser, server, and database.](docs/screenshots/request-flow--cross-section.webp)
+
+1. Choose **Explore the request** to step through a request or **Try HTTP scenarios** to try a failure or a slower response.
+2. Choose **Your browser**, **Application server**, or **Database** to reveal its role in the diagram.
+3. Follow the solid request line and the dashed response line. In the animated layout, the layers separate as you scroll into the section and come back together when you reverse direction.
+
+Follow all six phases or recover from a simulated HTTP 500. [Behind every request guide](docs/guide/request-flow.md)
+
+## Selected Work
+
+![Mede Analytics and Kterio in Selected Work with numbered callouts for the preview, report, and case study.](docs/screenshots/work--project-preview.webp)
+
+1. Scroll toward the Mede Analytics preview. With motion enabled and browser support for scroll-linked animations, its lines draw into view and clear as you scroll past. The full preview is visible with reduced motion, in editing mode, or in browsers without scroll timeline support.
+2. Open **Try a sample report** to work with filters and the bar chart.
+3. Open **Read the case study** to see the project context, contribution, implementation, and validation.
+4. Continue to **Kterio** for the building operations work and the split between the interface and services.
+
+## Analytics Report Demo
+
+![The Operations report for April through June with markers for filters, the summary, the chart, and the monthly table.](docs/screenshots/analytics--report-filtered.webp)
+
+1. Set **Reporting period** to **April to June 2026** and **Report category** to **Operations**.
+2. The summary shows **82** completed reports and an average of **27.3** per month.
+3. Hover over or focus a bar to see its value and the previous-month comparison when available. Select the bar by clicking, tapping, or pressing **Enter** to mark its value in the table.
+4. Read the matching counts of **24**, **28**, and **30** in **Monthly data**. Use **Reset filters** to return to the starting view.
+
+The demo uses synthetic portfolio data. See bar selection, month comparison, and the empty result on mobile. [Analytics Report Demo guide](docs/guide/analytics-report.md)
+
+## Technical Skills
+
+![Frontend Engineering skills with React selected and the React role, project example, and related technologies visible.](docs/screenshots/skills--react-details.webp)
+
+1. Open **Frontend Engineering** in Skills and select **React**.
+2. Read the description and the example from Mede Analytics in the open detail.
+3. Choose a technology under **Works with**, such as **TypeScript**, to open its detail. Use **All categories** to explore the other groups.
+
+## How I Engineer
+
+![Testing and Quality example with markers for the area, the rule and Run checks controls, and two passing checks.](docs/screenshots/engineering--quality-checks.webp)
+
+1. Open **Testing & Quality** in **How I Engineer**.
+2. Under **Component tests**, choose **Tests** to see the example. Select **Run checks** with the limit enabled.
+3. Both checks pass. Select **Remove the quantity limit** and run them again. The check at the limit now reports the difference between the expected and actual quantities.
+
+Try filtering a state example, changing the sample range of a chart, simulating API responses, and inspecting module boundaries. [Engineering examples guide](docs/guide/engineering-and-experience.md#how-i-engineer)
+
+## Professional Experience
+
+![Professional Experience timeline with Mede Analytics active and its Details control visible.](docs/screenshots/experience--timeline.webp)
+
+1. With motion enabled, follow the filled portion of the rail as you scroll through the projects. With reduced motion, the rail is static and the active dot still follows the scroll position.
+2. The project near the center of the viewport gets a filled dot. Scroll up to see the previous project become active again.
+3. Open **Details** on Mede Analytics or Kterio for case notes. Select an underlined technology to jump to its detail in Technical Skills.
+
+See an expanded project on mobile and how to return to it from Skills. [Professional Experience guide](docs/guide/engineering-and-experience.md#professional-experience)
+
+## Education and Contact
+
+![Education and Certifications with the professional certification and selected Anthropic courses marked.](docs/screenshots/education--overview.webp)
+
+1. Read the software engineering certification and its date.
+2. Review the selected Anthropic courses and their date.
+
+![Contact and footer with callouts for Email, LinkedIn and GitHub, Download CV, and Back to top.](docs/screenshots/contact--overview.webp)
+
+1. **Email** opens your configured mail app.
+2. **LinkedIn** and **GitHub** open in new tabs.
+3. **Download CV** saves the English CV as a DOCX file.
+4. **Back to top** in the footer returns to the opening screen.
 
 ## Run locally
 
-Install Git and Node.js 24.x with npm. From a terminal, clone the repository and start Vite.
+Install Git and Node.js 24.x with npm. Clone the repository and start Vite.
 
 ```sh
 git clone https://github.com/srdjan7991-sudo/portfolio.git
@@ -17,65 +110,9 @@ npm ci
 npm run dev
 ```
 
-Open the URL printed by Vite. The default HTTP setup uses the bundled section order, the guided request walkthrough, and the simulated HTTP scenarios. It works without a database.
+Open the URL printed by Vite. The default HTTP setup uses the bundled section order, the guided walkthrough, and the simulated HTTP scenarios without a database. GitHub Pages serves the last deployed static build.
 
-For live API calls, Swagger, and administrator controls, follow the [local backend setup](docs/backend.md#local-setup).
-
-## What to explore
-
-| Feature | What it shows |
-| --- | --- |
-| Living application architecture | Refresh a sample review queue or pin its first task. Follow the signal through the simulated API, service, and data layers. Select a backend layer to trace its connections to the frontend. |
-| Behind every request | Scroll through a cross section of the browser, server, and database. Select a layer to read about its role. Open the six-stage walkthrough or try simulated HTTP scenarios for out-of-order responses, cancellation, and retry. With the API enabled, the walkthrough can show the response from the portfolio backend. |
-| Selected Work | The Mede Analytics preview chart draws as it enters view and erases as it leaves. Explore the case study or open its independent analytics demo. Filter monthly synthetic counts, select a bar to mark its cell in the table, review coverage by category, and compare two months on the same scale. Kterio describes work on its interface and service layer. |
-| Technical Skills | Explore 21 technologies across five categories. Open a technology to see its role and related tools. Highcharts links to Mede Analytics and C# links to Kterio. |
-| How I Engineer | Explore 26 concepts across frontend engineering, data visualization, API integration, application architecture, and testing. In Testing & Quality, compare what the same input produces with and without the quantity limit. |
-| Professional Experience | Follow the project timeline as you scroll. Open project details and follow links between the project stack and Technical Skills. Reduced motion keeps the rail static and updates the current project marker. |
-| Education and Contact | Read dated education entries, then find the contact links and CV download in a row below the contact description. The row wraps on narrow screens. Return to the top from the footer. |
-| English and Serbian | A header switch changes the language in place and remembers the selection on the next visit. |
-| Light and dark themes | A switch in the header with a saved preference. The interface respects reduced motion. |
-| Section ordering | In the HTTPS setup, the administrator can sort six content sections by dragging, using the up and down buttons, or using the keyboard. The API saves the order in SQL Server. |
-
-## Stack
-
-| Area | Tools |
-| --- | --- |
-| Frontend | React, TypeScript, Vite, CSS Modules, CSS custom properties, locally hosted Geist and Geist Mono |
-| Interaction | CSS view timelines for scroll effects, Motion for React for the request cross section, section reordering, Skills, and How I Engineer, SVG and CSS for the Hero demo and request walkthrough, Radix UI Collapsible for the mobile menu |
-| API and data | ASP.NET Core Minimal APIs on .NET 10, Entity Framework Core, SQL Server, Swashbuckle and Swagger UI |
-| Authentication | ASP.NET Core Identity and JWT bearer authentication |
-| Testing | Vitest, React Testing Library, jest-dom, user-event, jsdom, V8 coverage, xUnit, ASP.NET Core TestServer |
-| Code quality | Oxlint and the TypeScript compiler |
-
-## Project structure
-
-| Path | Responsibility |
-| --- | --- |
-| [`index.html`](index.html), [`src/main.tsx`](src/main.tsx), [`src/App.tsx`](src/App.tsx) | Theme initialization, React entry point, and page composition |
-| [`src/features/`](src/features/) | Portfolio sections, request walkthrough, theme, authentication, and section ordering |
-| [`src/components/shared/`](src/components/shared/) | Header, Footer, section markup, technology tags, and screen reader announcements |
-| [`src/sections.ts`](src/sections.ts), [`src/hooks/sectionNavigation.ts`](src/hooks/sectionNavigation.ts) | Section keys, active navigation, initial hash links, and section reveals |
-| [`src/theme.css`](src/theme.css), [`src/global.css`](src/global.css) | Theme tokens, fonts, shared styles, spacing, and focus indicators |
-| [`src/assets/`](src/assets/), [`src/fonts/`](src/fonts/), [`public/`](public/) | Illustration assets, technology logos, local fonts, and the downloadable CV |
-| [`vite.config.ts`](vite.config.ts), [`src/setupTests.ts`](src/setupTests.ts) | Vite, the development API proxy, Vitest, and common test setup |
-| [`backend/Portfolio.sln`](backend/Portfolio.sln), [`backend/Portfolio.Api/`](backend/Portfolio.Api/), [`backend/Portfolio.Api.Tests/`](backend/Portfolio.Api.Tests/) | API, database migrations, and backend tests |
-| [`.github/workflows/`](.github/workflows/) | Pull request checks and GitHub Pages deployment |
-
-## npm scripts
-
-| Command | Purpose |
-| --- | --- |
-| `npm run dev` | Start the Vite development server. |
-| `npm run build` | Run TypeScript checks and write a production build to `dist/`. |
-| `npm run preview` | Serve an existing production build under `/portfolio/`. |
-| `npm run lint` | Run Oxlint. Warnings fail the check. |
-| `npm run typecheck` | Check TypeScript without emitting files. |
-| `npm test` | Run the frontend test suite once. |
-| `npm run test:watch` | Rerun tests as files change. |
-| `npm run test:coverage` | Run the frontend suite with V8 coverage. The HTML report is at `coverage/index.html`. |
-
-## Documentation
-
-- [Architecture](docs/architecture.md) covers page composition, the Hero simulation, Technical Skills, How I Engineer, the experience timeline, the sample analytics report, themes, navigation, section ordering, the guided walkthrough, and the HTTP simulator.
-- [Local backend and API](docs/backend.md) covers SQL Server, migrations, HTTPS, administrator setup, and endpoint behavior.
-- [Testing and deployment](docs/testing-and-deployment.md) covers frontend and backend checks, browser verification, and what GitHub Pages publishes.
+- [Project reference](docs/guide/project-reference.md) for the stack, repository structure, and npm commands.
+- [Architecture](docs/architecture.md) for the React application, interaction models, and section ordering.
+- [Local backend and API](docs/backend.md#local-setup) for HTTPS, SQL Server, Swagger, and the administrator controls that save the order of the six content sections.
+- [Testing and deployment](docs/testing-and-deployment.md) for frontend and backend checks and the GitHub Pages release workflow.
