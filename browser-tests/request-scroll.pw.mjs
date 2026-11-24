@@ -100,6 +100,16 @@ test('keeps the static alternatives when preferences or viewport change in place
   await expectStage(sequence, before, aligned)
   await expectStage(sequence, after, aligned)
 
+  await page.setViewportSize({ width: 1920, height: 2160 })
+  await expect(sequence).toHaveAttribute('data-animated', 'true')
+  await expectStage(sequence, display, aligned)
+  await expect(cable(sequence)).toHaveCSS('opacity', '1')
+
+  await page.setViewportSize({ width: 1920, height: 2161 })
+  await expect(sequence).not.toHaveAttribute('data-animated')
+  await expectStage(sequence, before, aligned)
+  await expect(cable(sequence)).toHaveCSS('opacity', '1')
+
   await page.setViewportSize({ width: 390, height: 844 })
   const compact = [18, 13]
   await expect(sequence).not.toHaveAttribute('data-animated')

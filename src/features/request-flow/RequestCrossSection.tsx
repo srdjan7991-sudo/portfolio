@@ -6,7 +6,8 @@ import { useLanguage } from '../../i18n/language'
 import { systems } from './requestFlowSteps'
 import styles from './RequestCrossSection.module.css'
 
-const animatedScene = '(min-width: 60rem) and (min-height: 51rem) and (prefers-reduced-motion: no-preference)'
+// In very tall viewports the scroll range can begin above the top of the document.
+const animatedScene = '(min-width: 60rem) and (51rem <= height <= 135rem) and (prefers-reduced-motion: no-preference)'
 const planeWidth = 182
 type Point = readonly [x: number, y: number]
 type Layer = 0 | 1 | 2
