@@ -73,7 +73,7 @@ To verify the Finish checkbox on an interactive Windows test account, run the sa
 
 The Windows Chromium tests check that the full layout editing toolbar fits in English and Serbian at 390, 608, 609, 620, 640, 768, and 1440 px. They also tab from Cancel to Save and save a reordered layout at each width.
 
-The **Windows portfolio installer** workflow builds and tests `Portfolio-Setup.exe`. An ordinary run uploads the EXE as a build artifact. To publish it, an authorized maintainer runs the workflow from `main` with an existing stable `vMAJOR.MINOR.PATCH` tag in `release_tag`. That run builds the tagged source and attaches the tested EXE to the latest GitHub Release. The README links to the asset by its stable filename. [Workflow definition](../.github/workflows/windows-demo.yml)
+The **Windows portfolio installer** workflow builds and tests `Portfolio-Setup.exe`. An ordinary run uploads the EXE as a build artifact. To publish it, an authorized maintainer runs the workflow from `main` with an existing stable `vMAJOR.MINOR.PATCH` tag in `release_tag`. The run builds the tagged source and checks that the tag still resolves to that commit before attaching the tested EXE to the latest GitHub Release. The README links to the asset by its stable filename. [Workflow definition](../.github/workflows/windows-demo.yml)
 
 ## Backend checks
 
