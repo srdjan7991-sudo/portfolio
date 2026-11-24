@@ -25,7 +25,7 @@ For live API calls, Swagger, and administrator controls, follow the [local backe
 
 | Feature | What it shows |
 | --- | --- |
-| Architectural Window | The staircase opens in step with the Hero heading and responds to a precise pointer. With reduced motion the full composition is visible immediately. |
+| Living application architecture | Refresh a sample review queue or pin its first task. Follow the signal through the simulated API, service, and data layers. Select a backend layer to trace its connections to the frontend. |
 | Behind every request | Scroll through a cross section of the browser, server, and database. Select a layer to read about its role. Open the six-stage walkthrough or try simulated HTTP scenarios for out-of-order responses, cancellation, and retry. With the API enabled, the walkthrough can show the response from the portfolio backend. |
 | Selected Work | The Mede Analytics preview chart draws as it enters view and erases as it leaves. Explore the case study or open its independent analytics demo. Filter monthly synthetic counts, select a bar to mark its cell in the table, review coverage by category, and compare two months on the same scale. Kterio describes work on its interface and service layer. |
 | Technical Skills | Explore 21 technologies across five categories. Open a technology to see its role and related tools. Highcharts links to Mede Analytics and C# links to Kterio. |
@@ -41,7 +41,7 @@ For live API calls, Swagger, and administrator controls, follow the [local backe
 | Area | Tools |
 | --- | --- |
 | Frontend | React, TypeScript, Vite, CSS Modules, CSS custom properties, locally hosted Geist and Geist Mono |
-| Interaction | CSS view timelines for scroll effects, Motion for React for the Hero photo, request cross section, section reordering, Skills, and How I Engineer, SVG and CSS for the request illustrations, Radix UI Collapsible for the mobile menu |
+| Interaction | CSS view timelines for scroll effects, Motion for React for the request cross section, section reordering, Skills, and How I Engineer, SVG and CSS for the Hero demo and request walkthrough, Radix UI Collapsible for the mobile menu |
 | API and data | ASP.NET Core Minimal APIs on .NET 10, Entity Framework Core, SQL Server, Swashbuckle and Swagger UI |
 | Authentication | ASP.NET Core Identity and JWT bearer authentication |
 | Testing | Vitest, React Testing Library, jest-dom, user-event, jsdom, V8 coverage, xUnit, ASP.NET Core TestServer |
@@ -56,7 +56,7 @@ For live API calls, Swagger, and administrator controls, follow the [local backe
 | [`src/components/shared/`](src/components/shared/) | Header, Footer, section markup, technology tags, and screen reader announcements |
 | [`src/sections.ts`](src/sections.ts), [`src/hooks/sectionNavigation.ts`](src/hooks/sectionNavigation.ts) | Section keys, active navigation, initial hash links, and section reveals |
 | [`src/theme.css`](src/theme.css), [`src/global.css`](src/global.css) | Theme tokens, fonts, shared styles, spacing, and focus indicators |
-| [`src/assets/`](src/assets/), [`src/fonts/`](src/fonts/), [`public/`](public/) | Hero images, technology logos, local fonts, and the downloadable CV |
+| [`src/assets/`](src/assets/), [`src/fonts/`](src/fonts/), [`public/`](public/) | Illustration assets, technology logos, local fonts, and the downloadable CV |
 | [`vite.config.ts`](vite.config.ts), [`src/setupTests.ts`](src/setupTests.ts) | Vite, the development API proxy, Vitest, and common test setup |
 | [`backend/Portfolio.sln`](backend/Portfolio.sln), [`backend/Portfolio.Api/`](backend/Portfolio.Api/), [`backend/Portfolio.Api.Tests/`](backend/Portfolio.Api.Tests/) | API, database migrations, and backend tests |
 | [`.github/workflows/`](.github/workflows/) | Pull request checks and GitHub Pages deployment |
@@ -76,6 +76,6 @@ For live API calls, Swagger, and administrator controls, follow the [local backe
 
 ## Documentation
 
-- [Architecture](docs/architecture.md) covers page composition, Technical Skills, How I Engineer, the experience timeline, the sample analytics report, themes, navigation, section ordering, the guided walkthrough, and the HTTP simulator.
+- [Architecture](docs/architecture.md) covers page composition, the Hero simulation, Technical Skills, How I Engineer, the experience timeline, the sample analytics report, themes, navigation, section ordering, the guided walkthrough, and the HTTP simulator.
 - [Local backend and API](docs/backend.md) covers SQL Server, migrations, HTTPS, administrator setup, and endpoint behavior.
 - [Testing and deployment](docs/testing-and-deployment.md) covers frontend and backend checks, browser verification, and what GitHub Pages publishes.
