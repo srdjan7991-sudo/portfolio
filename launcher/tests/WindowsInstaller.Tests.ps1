@@ -2,10 +2,14 @@
 [CmdletBinding()]
 param(
     [Parameter(Mandatory)][string]$InstallerPath,
-    [string]$ScratchParent = [IO.Path]::GetTempPath()
+    [string]$ScratchParent = [IO.Path]::GetTempPath(),
+    [ValidateSet('Silent', 'Checked', 'Unchecked')][string]$FinishLaunch = 'Silent'
 )
 
 $ErrorActionPreference = 'Stop'
+if ($FinishLaunch -ne 'Silent' -and ![Environment]::UserInteractive) {
+    throw 'Use an interactive Windows desktop to test the Finish checkbox.'
+}
 $installer = (Resolve-Path -LiteralPath $InstallerPath).Path
 $scratch = (Resolve-Path -LiteralPath $ScratchParent).Path
 $testDirectory = [IO.Path]::GetFullPath((Join-Path $scratch ('Portfolio installer test ' + [Guid]::NewGuid().ToString('N'))))
@@ -34,8 +38,30 @@ function Test-PortfolioRegistration {
     return $true
 }
 
-if ((Test-PortfolioRegistration) -or ($shortcuts | Where-Object { Test-Path -LiteralPath $_ })) {
-    throw 'The installer test needs a Windows account without an existing Portfolio installation or shortcuts.'
+function Test-InstalledLauncherOpen {
+    try { $mutex = [Threading.Mutex]::OpenExisting('Local\SrdjanPajicPortfolioInstalled-v1') }
+    catch [Threading.WaitHandleCannotBeOpenedException] { return $false }
+    $mutex.Dispose()
+    return $true
+}
+
+function Wait-InstalledLauncherState([bool]$Open) {
+    $wait = [Diagnostics.Stopwatch]::StartNew()
+    while ($wait.Elapsed.TotalSeconds -lt 12) {
+        if ((Test-InstalledLauncherOpen) -eq $Open) { return }
+        Start-Sleep -Milliseconds 200
+    }
+    throw "Expected the installed launcher to be open: $Open."
+}
+
+function Get-TestLauncherProcesses {
+    $launcherPath = [regex]::Escape('"' + $launcher + '" -Installed')
+    Get-CimInstance Win32_Process -Filter "Name = 'powershell.exe'" |
+        Where-Object { $_.CommandLine -match $launcherPath }
+}
+
+if ((Test-PortfolioRegistration) -or (Test-InstalledLauncherOpen) -or ($shortcuts | Where-Object { Test-Path -LiteralPath $_ })) {
+    throw 'The installer test needs a Windows account without an existing Portfolio installation, open launcher, or shortcuts.'
 }
 
 function Invoke-TestInstallerStep([string]$Path, [string]$Arguments, [string]$Log) {
@@ -72,6 +98,7 @@ Add-Type -AssemblyName System.Net.Http
 $sentinel = Join-Path $testDirectory 'unrelated.txt'
 [IO.File]::WriteAllText($sentinel, 'Preserve this file.')
 $originalPath = $env:PATH
+$setup = $null
 $server = $null
 $client = $null
 $paths = $null
@@ -85,7 +112,30 @@ try {
         if (Get-Command $tool -ErrorAction SilentlyContinue) { throw "$tool is reachable on the smoke-test PATH." }
     }
 
-    Invoke-TestInstallerStep $installer "/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /SP- /DIR=`"$installDirectory`" /LOG=`"$installLog`"" $installLog
+    $setupArguments = "/NORESTART /SP- /DIR=`"$installDirectory`" /LOG=`"$installLog`""
+    if ($FinishLaunch -eq 'Silent') {
+        Invoke-TestInstallerStep $installer "/VERYSILENT /SUPPRESSMSGBOXES $setupArguments" $installLog
+    } else {
+        # Wait only for Setup. The checked option intentionally leaves its launcher running.
+        Write-Host 'In the Setup window, click Install and confirm the checkbox starts empty on the final page.'
+        if ($FinishLaunch -eq 'Checked') {
+            Write-Host 'CHECK "Pokreni Portfolio Launcher", then click Finish. Leave the launcher open.'
+        } else {
+            Write-Host 'LEAVE "Pokreni Portfolio Launcher" UNCHECKED, then click Finish.'
+        }
+        $setup = Start-Process -FilePath $installer -ArgumentList $setupArguments -PassThru
+        $setup.WaitForExit()
+        if ($setup.ExitCode -ne 0) { throw "Setup exited with code $($setup.ExitCode). See $installLog." }
+    }
+    # Inno logs [Run] parameters even if the child exits before acquiring its mutex.
+    $runParameters = @(Get-Content -LiteralPath $installLog |
+        Where-Object { $_ -match '\sParameters: .*\\Launcher\.ps1(?:"|\s|$)' })
+    $expectedRuns = if ($FinishLaunch -eq 'Checked') { 1 } else { 0 }
+    if ($runParameters.Count -ne $expectedRuns -or
+        ($expectedRuns -eq 1 -and !$runParameters[0].EndsWith("Parameters: $launcherArguments", [StringComparison]::OrdinalIgnoreCase))) {
+        throw "$FinishLaunch test expected $expectedRuns Setup launcher entries with the installed path and found $($runParameters.Count). See $installLog."
+    }
+
     $uninstaller = Get-TestUninstaller
     if (!$uninstaller -or !(Test-Path -LiteralPath $launcher -PathType Leaf)) {
         throw 'The installer did not create the launcher and a single uninstaller.'
@@ -111,6 +161,31 @@ try {
         }
     } finally { [void][Runtime.InteropServices.Marshal]::ReleaseComObject($shell) }
     Write-Output 'The EXE installed the portfolio for the current user and created both Windows shortcuts.'
+
+    if ($FinishLaunch -eq 'Checked') {
+        Wait-InstalledLauncherState $true
+    } elseif (Test-InstalledLauncherOpen) {
+        throw "The launcher opened unexpectedly after a $FinishLaunch installation."
+    }
+    if ($FinishLaunch -eq 'Unchecked') {
+        if (Get-TestLauncherProcesses) { throw 'Finish started a launcher process with the checkbox unchecked.' }
+        Write-Host 'Setup left the launcher closed. The test will open the Desktop shortcut now.'
+        Start-Process -FilePath $shortcuts[0]
+        Wait-InstalledLauncherState $true
+    }
+    if ($FinishLaunch -ne 'Silent') {
+        if (@(Get-TestLauncherProcesses).Count -ne 1) { throw 'Expected exactly one process running the installed launcher.' }
+        $visible = Read-Host 'If the checkbox was initially empty and the launcher window appeared, click Exit in it and type yes (or da)'
+        if ($visible.Trim() -notin @('yes', 'da')) { throw 'The initial checkbox state or launcher window was not confirmed.' }
+        Wait-InstalledLauncherState $false
+        if ($FinishLaunch -eq 'Checked') {
+            Write-Output 'Checked Finish opened exactly one visible launcher.'
+        } else {
+            Write-Output 'Unchecked Finish left the launcher closed, and the Desktop shortcut opened exactly one visible launcher.'
+        }
+    } else {
+        Write-Output 'Silent installation left the launcher closed.'
+    }
 
     . (Join-Path $installDirectory 'launcher\Launcher.Runtime.ps1')
     $paths = Get-PortfolioLauncherPaths $installDirectory
@@ -166,6 +241,7 @@ try {
         -ServerSource (Join-Path $installDirectory 'launcher\Launcher.StaticServer.cs') -WebRoot $webDirectory
     if ($LASTEXITCODE -ne 0) { throw "The installed server failed its Start/Stop lifecycle check (exit $LASTEXITCODE)." }
 
+    if (Test-InstalledLauncherOpen) { throw 'The launcher must be closed before the uninstall check.' }
     Invoke-TestInstallerStep $uninstaller "/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /LOG=`"$uninstallLog`"" $uninstallLog
     if ((Test-PortfolioRegistration) -or (Test-Path -LiteralPath $installDirectory) -or
         ($shortcuts | Where-Object { Test-Path -LiteralPath $_ }) -or
@@ -175,6 +251,8 @@ try {
     Write-Output 'The uninstaller removed the installed files, shortcuts and Installed Apps entry.'
     $completed = $true
 } finally {
+    $setupStillOpen = $setup -and !$setup.HasExited
+    if ($setup) { $setup.Dispose() }
     if ($server) { $server.Dispose() }
     if ($client) { $client.Dispose() }
     $independent.Stop()
@@ -189,7 +267,7 @@ try {
         [IO.Directory]::Delete($testDirectory)
     } else {
         $cleanup = Get-TestUninstaller
-        if ($cleanup -and !(Test-Path -LiteralPath $uninstallLog)) {
+        if ($cleanup -and !$setupStillOpen -and !(Test-Path -LiteralPath $uninstallLog) -and !(Test-InstalledLauncherOpen)) {
             try { Invoke-TestInstallerStep $cleanup "/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /LOG=`"$uninstallLog`"" $uninstallLog }
             catch { Write-Warning $_.Exception.Message }
         }

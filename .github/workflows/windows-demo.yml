@@ -120,6 +120,6 @@ jobs:
           RELEASE_TAG: ${{ inputs.release_tag }}
           BUILT_SHA: ${{ needs.package.outputs.source_sha }}
         run: |
-          $taggedSha = gh api "repos/$env:GITHUB_REPOSITORY/commits/tags/$env:RELEASE_TAG" --jq '.sha'
+          $taggedSha = gh api "repos/$env:GITHUB_REPOSITORY/commits/refs/tags/$env:RELEASE_TAG" --jq '.sha'
           if ($LASTEXITCODE -ne 0 -or $taggedSha -cne $env:BUILT_SHA) { throw 'The tag no longer points to the verified build.' }
           gh release create $env:RELEASE_TAG release/Portfolio-Setup.exe --repo $env:GITHUB_REPOSITORY --verify-tag --latest --generate-notes

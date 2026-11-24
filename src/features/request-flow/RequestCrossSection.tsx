@@ -6,7 +6,8 @@ import { useLanguage } from '../../i18n/language'
 import { systems } from './requestFlowSteps'
 import styles from './RequestCrossSection.module.css'
 
-const animatedScene = '(min-width: 60rem) and (min-height: 51rem) and (prefers-reduced-motion: no-preference)'
+// In tall portrait viewports the aligned phase can fall above the document.
+const animatedScene = '(min-width: 60rem) and (51rem <= height <= 135rem) and (min-aspect-ratio: 3/4) and (prefers-reduced-motion: no-preference)'
 const planeWidth = 182
 type Point = readonly [x: number, y: number]
 type Layer = 0 | 1 | 2
@@ -73,8 +74,10 @@ function Arrow({ marker }: { marker: string }) {
 }
 
 function AnimatedLayers({ target, selected }: { target: RefObject<HTMLDivElement | null>; selected: Layer | null }) {
-  const { scrollYProgress } = useScroll({ target, offset: ['start 65%', 'end 85%'] })
-  return <Layers progress={scrollYProgress} selected={selected} />
+  const { scrollYProgress } = useScroll({ target, offset: ['start 65%', 'end 85%', 'end 40%'] })
+  // Keep the approach range and retrace it on departure while the diagram is still in view.
+  const progress = useTransform(scrollYProgress, [0, 0.5, 1], [0, 1, 0])
+  return <Layers progress={progress} selected={selected} />
 }
 
 function Layers({ progress, selected }: { progress: MotionValue<number>; selected: Layer | null }) {
