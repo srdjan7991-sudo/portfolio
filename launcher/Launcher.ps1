@@ -169,7 +169,7 @@ $panel.Controls.Add($script:urlField, 0, 2)
 $frame.Controls.Add($border, 0, 1)
 
 $actions = New-Flow
-$script:startButton = New-Button 'Pokreni portfolio' 'Primary'
+$script:startButton = New-Button 'Start portfolio' 'Primary'
 $script:openButton = New-Button 'Open Portfolio' 'Primary'
 $script:restartButton = New-Button 'Restart'
 $script:stopButton = New-Button 'Stop'

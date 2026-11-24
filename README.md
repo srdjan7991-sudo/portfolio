@@ -4,7 +4,7 @@ Explore the work and technical demonstrations of a frontend-focused software eng
 
 [Open the portfolio](https://srdjan7991-sudo.github.io/portfolio/)
 
-**[↓ Preuzmi portfolio za Windows](https://github.com/srdjan7991-sudo/portfolio/releases/latest/download/Portfolio-Setup.exe)**
+**[↓ Download portfolio for Windows](https://github.com/srdjan7991-sudo/portfolio/releases/latest/download/Portfolio-Setup.exe)**
 
 - [Opening screen and navigation](#opening-screen-and-navigation)
 - [Behind every request](#behind-every-request)
@@ -106,10 +106,10 @@ See an expanded project on mobile and how to return to it from Skills. [Professi
 
 The Windows 10 or 11 installer includes the complete frontend. Installation works offline and runs under your Windows account. A current browser and built-in Windows components are enough to run the demo.
 
-![The Windows Portfolio Launcher before startup with the Pokreni portfolio button highlighted.](docs/screenshots/launcher--start.png)
+![The Windows Portfolio Launcher before startup with Start portfolio marked.](docs/screenshots/launcher--start.png)
 
 1. Use the download link at the top of this page to get `Portfolio-Setup.exe` from the latest GitHub Release. Open it and select **Install**.
-2. If Setup offers **Pokreni Portfolio Launcher**, select it before **Finish** to open the launcher immediately. You can also open **Portfolio Launcher** from the desktop or Start menu. In the launcher, select **Pokreni portfolio** to open the demo in your default browser.
+2. To open the launcher immediately, check **Open Portfolio Launcher** on the final Setup page and select **Finish**. To open it later, use the **Portfolio Launcher** shortcut on the desktop or Start menu. Select **Start portfolio** to open the demo in your default browser.
 3. Explore the sections, interactive analytics and request walkthrough. **Edit layout** saves your order in the current browser.
 4. Use **Stop** to stop the server or **Exit** to close the launcher. To remove the installation, choose **Srdjan Pajic Portfolio** in Windows **Installed Apps**.
 

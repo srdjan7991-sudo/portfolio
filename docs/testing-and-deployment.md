@@ -63,7 +63,7 @@ Playwright starts a Vite production preview. Its HTTPS walkthrough uses a fixtur
 Use Node.js 24, Windows PowerShell 5.1, and Inno Setup 6.7.4 to build the installer from a source checkout. The smoke test installs the generated EXE for the current user, checks both shortcuts and the loopback server with developer tools off `PATH`, and invokes the registered uninstaller. It also checks rapid Start/Stop, port reuse, and shutdown with local clients connected. Run it on a Windows test account without an existing installation. The Chromium suite also exercises the Windows build without an API.
 
 ```powershell
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File launcher/Build-WindowsInstaller.ps1 -CompilerPath C:/tools/Inno/ISCC.exe -Version 0.1.0
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File launcher/Build-WindowsInstaller.ps1 -CompilerPath C:/tools/Inno/ISCC.exe
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File launcher/tests/WindowsInstaller.Tests.ps1 -InstallerPath artifacts/Portfolio-Setup.exe
 ```
 

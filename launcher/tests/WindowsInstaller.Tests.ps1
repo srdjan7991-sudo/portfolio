@@ -119,9 +119,9 @@ try {
         # Wait only for Setup. The checked option intentionally leaves its launcher running.
         Write-Host 'In the Setup window, click Install and confirm the checkbox starts empty on the final page.'
         if ($FinishLaunch -eq 'Checked') {
-            Write-Host 'CHECK "Pokreni Portfolio Launcher", then click Finish. Leave the launcher open.'
+            Write-Host 'CHECK "Open Portfolio Launcher", then click Finish. Leave the launcher open.'
         } else {
-            Write-Host 'LEAVE "Pokreni Portfolio Launcher" UNCHECKED, then click Finish.'
+            Write-Host 'LEAVE "Open Portfolio Launcher" UNCHECKED, then click Finish.'
         }
         $setup = Start-Process -FilePath $installer -ArgumentList $setupArguments -PassThru
         $setup.WaitForExit()
