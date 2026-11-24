@@ -12,6 +12,7 @@
     "build": "npm run typecheck && vite build",
     "preview": "vite preview",
     "test": "vitest run",
+    "test:browser": "playwright test",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "lint": "oxlint --react-plugin --jsx-a11y-plugin --deny-warnings src vite.config.ts"
@@ -23,6 +24,7 @@
     "react-dom": "19.3.1"
   },
   "devDependencies": {
+    "@playwright/test": "1.65.1",
     "@testing-library/dom": "10.4.2",
     "@testing-library/jest-dom": "7.0.1",
     "@testing-library/react": "16.3.3",

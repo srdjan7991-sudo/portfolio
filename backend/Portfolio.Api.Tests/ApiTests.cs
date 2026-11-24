@@ -61,7 +61,7 @@ public sealed class ApiTests : IDisposable
             Assert.False(read.TryGetProperty("security", out _));
             var responses = read.GetProperty("responses");
             Assert.True(responses.TryGetProperty("200", out _));
-            Assert.True(responses.TryGetProperty("503", out _));
+            AssertUnavailableProblem(read);
         }
 
         var sectionsSchema = readSections.GetProperty("responses").GetProperty("200").GetProperty("content")
@@ -80,8 +80,9 @@ public sealed class ApiTests : IDisposable
         Assert.True(writeOrder.GetProperty("security")[0].TryGetProperty("Bearer", out _));
         Assert.True(writeOrder.GetProperty("requestBody").GetProperty("required").GetBoolean());
         var writeResponses = writeOrder.GetProperty("responses");
-        foreach (var status in new[] { "200", "400", "401", "403", "409", "503" })
+        foreach (var status in new[] { "200", "400", "401", "403", "409" })
             Assert.True(writeResponses.TryGetProperty(status, out _), $"Missing PUT response {status}.");
+        AssertUnavailableProblem(writeOrder);
     }
 
     [Fact]
@@ -91,8 +92,9 @@ public sealed class ApiTests : IDisposable
         var paths = body.RootElement.GetProperty("paths");
         foreach (var route in new[] { "signup", "login", "refresh", "logout" })
         {
-            var parameters = paths.GetProperty($"/api/auth/{route}").GetProperty("post")
-                .GetProperty("parameters").EnumerateArray().ToArray();
+            var operation = paths.GetProperty($"/api/auth/{route}").GetProperty("post");
+            AssertUnavailableProblem(operation);
+            var parameters = operation.GetProperty("parameters").EnumerateArray().ToArray();
             var guard = Assert.Single(parameters, parameter => parameter.GetProperty("name").GetString() == "X-Portfolio-Auth");
             AssertRequiredStringHeader(guard);
 
@@ -100,6 +102,41 @@ public sealed class ApiTests : IDisposable
             if (route == "signup") AssertRequiredStringHeader(Assert.Single(setup));
             else Assert.Empty(setup);
         }
+        AssertUnavailableProblem(paths.GetProperty("/api/auth/setup-status").GetProperty("get"));
+        AssertUnavailableProblem(paths.GetProperty("/api/auth/me").GetProperty("get"));
+    }
+
+    [Theory]
+    [InlineData("Development", null, "127.0.0.1", "198.51.100.42")]
+    [InlineData("Development", null, "192.0.2.20", "192.0.2.20")]
+    [InlineData("Production", null, "127.0.0.1", "127.0.0.1")]
+    [InlineData("Production", "192.0.2.10", "192.0.2.10", "198.51.100.42")]
+    [InlineData("Production", "192.0.2.10", "192.0.2.20", "192.0.2.20")]
+    public async Task Forwarded_client_address_requires_an_explicitly_trusted_peer(
+        string environment, string? configuredProxy, string peer, string expectedAddress)
+    {
+        using var host = application.WithWebHostBuilder(builder =>
+        {
+            builder.UseEnvironment(environment);
+            if (configuredProxy is not null)
+                builder.ConfigureAppConfiguration((_, config) => config.AddInMemoryCollection(
+                    new Dictionary<string, string?> { ["ReverseProxy:KnownProxies:0"] = configuredProxy }));
+        });
+        var exchange = await host.Server.SendAsync(context =>
+        {
+            context.Request.Method = "GET";
+            context.Request.Path = "/health";
+            context.Connection.RemoteIpAddress = IPAddress.Parse(peer);
+            context.Request.Headers["X-Forwarded-For"] = "198.51.100.42";
+        });
+        Assert.Equal(200, exchange.Response.StatusCode);
+        Assert.Equal(IPAddress.Parse(expectedAddress), exchange.Connection.RemoteIpAddress);
+    }
+
+    private static void AssertUnavailableProblem(JsonElement operation)
+    {
+        var content = operation.GetProperty("responses").GetProperty("503").GetProperty("content");
+        Assert.True(content.TryGetProperty("application/problem+json", out _));
     }
 
     private async Task<JsonDocument> ReadDevelopmentOpenApi()

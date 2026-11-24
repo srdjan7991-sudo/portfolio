@@ -2,18 +2,19 @@ import { useLayoutEffect, useRef, useState } from 'react'
 import type { RefObject } from 'react'
 import { CircuitChannel } from './RequestFlowCircuit'
 import type { Channel, CircuitFrame } from './RequestFlowCircuit'
+import { steps } from './requestFlowSteps'
 import styles from './RequestFlowDiagram.module.css'
 
 const screenLink: Pick<Channel, 'name' | 'outbound' | 'returning'> = {
   name: 'screen-link',
-  outbound: [{ phase: 0, start: 0, end: 1, amount: 0.44 }, { phase: 1, start: 0, end: 0.84 }],
-  returning: [{ phase: 5, start: 0.22, end: 0.68 }],
+  outbound: [{ phase: 'interaction', start: 0, end: 1, amount: 0.44 }, { phase: 'communication', start: 0, end: 0.84 }],
+  returning: [{ phase: 'result', start: 0.22, end: 0.68 }],
 }
 
 const databaseLink: typeof screenLink = {
   name: 'database-link',
-  outbound: [{ phase: 3, start: 0.1, end: 0.65 }],
-  returning: [{ phase: 4, start: 0.1, end: 0.55 }],
+  outbound: [{ phase: 'database', start: 0.1, end: 0.65 }],
+  returning: [{ phase: 'response', start: 0.1, end: 0.55 }],
 }
 
 type Point = { x: number; y: number }
@@ -76,7 +77,7 @@ export function RequestFlowConnections({ scene, frame, playing }: {
 }) {
   const overlay = useRef<SVGSVGElement>(null)
   const [routes, setRoutes] = useState<Routes>()
-  const trackScreenMotion = frame.index === 0 && frame.moving && playing
+  const trackScreenMotion = steps[frame.index].id === 'interaction' && frame.moving && playing
 
   useLayoutEffect(() => {
     const root = scene.current
@@ -119,7 +120,7 @@ export function RequestFlowConnections({ scene, frame, playing }: {
         current?.stacked === stacked ? current : next)
 
       // ResizeObserver covers layout; the existing send transform needs sampling while it moves.
-      if (trackScreenMotion && screen.getAnimations().some(animation => animation.playState === 'running')) {
+      if (trackScreenMotion && screen.getAnimations?.().some(animation => animation.playState === 'running')) {
         schedule()
       }
     }
@@ -127,11 +128,16 @@ export function RequestFlowConnections({ scene, frame, playing }: {
       if (!animationFrame) animationFrame = requestAnimationFrame(measure)
     }
 
-    const observer = new ResizeObserver(schedule)
-    for (const element of [root, screen, preview, ...root.querySelectorAll('[data-system]')]) observer.observe(element)
+    const observer = typeof ResizeObserver === 'function' ? new ResizeObserver(schedule) : undefined
+    if (observer) {
+      for (const element of [root, screen, preview, ...root.querySelectorAll('[data-system]')]) observer.observe(element)
+    } else {
+      window.addEventListener('resize', schedule)
+    }
     measure()
     return () => {
-      observer.disconnect()
+      if (observer) observer.disconnect()
+      else window.removeEventListener('resize', schedule)
       cancelAnimationFrame(animationFrame)
     }
   }, [scene, trackScreenMotion])

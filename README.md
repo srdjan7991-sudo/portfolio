@@ -115,4 +115,4 @@ Open the URL printed by Vite. The default HTTP setup uses the bundled section or
 - [Project reference](docs/guide/project-reference.md) for the stack, repository structure, and npm commands.
 - [Architecture](docs/architecture.md) for the React application, interaction models, and section ordering.
 - [Local backend and API](docs/backend.md#local-setup) for HTTPS, SQL Server, Swagger, and the administrator controls that save the order of the six content sections.
-- [Testing and deployment](docs/testing-and-deployment.md) for frontend and backend checks and the GitHub Pages release workflow.
+- [Testing and deployment](docs/testing-and-deployment.md) for frontend, Chromium, and SQL Server checks and the GitHub Pages release workflow.

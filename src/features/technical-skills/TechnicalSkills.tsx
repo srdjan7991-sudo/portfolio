@@ -21,6 +21,10 @@ let nextVisit = 0
 const layoutTransition = { duration: 0.36, ease: [0.22, 1, 0.36, 1] } as const
 const motionPreference = '(prefers-reduced-motion: reduce)'
 const compactLayout = '(max-width: 40rem)'
+// History entries need IDs that survive a reload.
+const groupButtonIds = 'skills-group-'
+const groupButtonId = (group: SkillGroupId) => groupButtonIds + group
+const skillButtonId = (name: SkillName) => `${skillAnchor(name)}-control`
 
 function subscribeToMotionMode(update: () => void) {
   const media = [window.matchMedia?.(motionPreference), window.matchMedia?.(compactLayout)]
@@ -51,7 +55,33 @@ function focusInSkills(target: HTMLElement, readingDetails: boolean, context: HT
 function initialSelection(): Selection | null {
   const skill = linkedSkill(location.hash)
   const group = skill && groupForSkill(skill)
-  return group ? { group: group.id, skill, linked: true } : null
+  return group ? { group: group.id, skill, linked: true } : savedSkillView()?.selection ?? null
+}
+
+function savedSkillView(): SkillView | undefined {
+  if (location.hash !== '#skills' || typeof history.state?.skillVisit !== 'string' || !history.state.skillVisit) return
+  const view: unknown = history.state.skillView
+  if (!view || typeof view !== 'object' || !('focusId' in view) || typeof view.focusId !== 'string' ||
+    !view.focusId || !('selection' in view)) return
+
+  const { focusId, selection } = view
+  if (selection === null) return { focusId, selection }
+  if (!selection || typeof selection !== 'object' || !('group' in selection)) return
+  const group = skillGroups.find(item => item.id === selection.group)
+  if (!group) return
+  if (!('skill' in selection) || selection.skill === undefined) return { focusId, selection: { group: group.id } }
+  const name = selection.skill
+  const tool = group.tools.find(([skill]) => skill === name)
+  if (tool) return { focusId, selection: { group: group.id, skill: tool[0] } }
+}
+
+function historyFocusId({ focusId, selection }: SkillView) {
+  // Older entries used a React-generated prefix that can change on reload.
+  const category = skillGroups.find(({ id }) => focusId.endsWith(`-group-${id}`))
+  if (category) return groupButtonId(category.id)
+  const selectedGroup = skillGroups.find(({ id }) => id === selection?.group)
+  const tool = selectedGroup?.tools.find(([name]) => focusId.endsWith(`-tool-${name.replaceAll(' ', '-')}`))
+  return tool ? skillButtonId(tool[0]) : focusId
 }
 
 function createVisitId() {
@@ -85,9 +115,6 @@ export function TechnicalSkills() {
   const groups = activeGroup
     ? [...skillGroups.filter(group => group.id === activeGroup), ...skillGroups.filter(group => group.id !== activeGroup)]
     : skillGroups
-  const groupButtonIds = `${id}-group-`
-  const groupButtonId = (group: SkillGroupId) => groupButtonIds + group
-  const skillButtonId = (name: SkillName) => `${id}-tool-${name.replaceAll(' ', '-')}`
   const detailHeadingId = current ? skillAnchor(current) : undefined
   const detailId = `${id}-detail`
 
@@ -96,10 +123,10 @@ export function TechnicalSkills() {
     const focusId = pendingFocus.current
     const target = document.getElementById(focusId)
     pendingFocus.current = null
-    if (!target) return
+    if (!target || !explorer.current?.contains(target)) return
     focusInSkills(target, focusId === detailHeadingId,
       focusId.startsWith(groupButtonIds) ? back.current : null, selection?.linked)
-  }, [detailHeadingId, groupButtonIds, selection])
+  }, [detailHeadingId, selection])
 
   useLayoutEffect(() => {
     if (!returnToLink) return
@@ -249,12 +276,16 @@ export function TechnicalSkills() {
   const resumeSkillVisit = useEffectEvent((visit: string) => {
     if (history.state?.skillVisit !== visit) return
     const skill = linkedSkill(location.hash)
-    const view: SkillView | undefined = history.state?.skillView
+    const view = savedSkillView()
     if (skill) openLinkedSkill(skill)
     else if (view) {
-      const alreadyVisible = view.selection === selection && document.getElementById(view.focusId)
-      if (alreadyVisible) focusInSkills(alreadyVisible, false, null)
-      else updateSelection(view.selection, view.focusId, false)
+      const focusId = historyFocusId(view)
+      const target = document.getElementById(focusId)
+      const sameSelection = !selection?.linked && view.selection?.group === selection?.group &&
+        view.selection?.skill === selection?.skill
+      if (sameSelection && target && explorer.current?.contains(target)) {
+        focusInSkills(target, focusId === detailHeadingId, focusId.startsWith(groupButtonIds) ? back.current : null)
+      } else updateSelection(view.selection, focusId, false)
     }
   })
 
@@ -315,7 +346,7 @@ export function TechnicalSkills() {
   }, [])
 
   return (
-    <PortfolioSection id="skills" intro={skills.intro} customReveal>
+    <PortfolioSection id="skills" intro={skills.intro}>
       <LayoutGroup id={id}>
         <div className="skills-explorer" ref={explorer} data-view={activeGroup ? 'category' : 'overview'}>
           {activeGroup && (

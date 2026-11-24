@@ -1,4 +1,6 @@
 import type { CSSProperties } from 'react'
+import { stepIndex } from './requestFlowSteps'
+import type { RequestPhase } from './requestFlowSteps'
 import styles from './RequestFlowDiagram.module.css'
 
 export type CircuitFrame = {
@@ -9,7 +11,7 @@ export type CircuitFrame = {
 }
 
 type FillCue = {
-  phase: number
+  phase: RequestPhase
   start: number
   end: number
   amount?: number
@@ -32,14 +34,15 @@ function CircuitFill({ name, path, cues, reverse, frame }: {
   if (!frame.started) return null
 
   let from = 0
+  let previousIndex = -1
   let active: FillCue | undefined
   for (const cue of cues) {
-    if (cue.phase > frame.index) break
-    if (cue.phase === frame.index) {
-      active = cue
-      break
+    const index = stepIndex(cue.phase)
+    if (index === frame.index) active = cue
+    else if (index < frame.index && index > previousIndex) {
+      from = cue.amount ?? 1
+      previousIndex = index
     }
-    from = cue.amount ?? 1
   }
   const to = active ? active.amount ?? 1 : from
   if (to === 0) return null

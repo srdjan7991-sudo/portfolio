@@ -6,7 +6,7 @@ const githubUrl = 'https://github.com/srdjan7991-sudo'
 export function Contact() {
   const { text } = useLanguage()
   return (
-    <section id="contact" className="contact-section" aria-labelledby="contact-title" tabIndex={-1} data-custom-reveal>
+    <section id="contact" className="contact-section" aria-labelledby="contact-title" tabIndex={-1}>
       <div className="container contact-inner">
         <div className="contact-copy">
           <p className="contact-signature">Srdjan Pajic</p>

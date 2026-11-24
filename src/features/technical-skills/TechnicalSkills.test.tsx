@@ -241,9 +241,53 @@ test('opens an addressed skill even when its group is closed and clears the addr
 })
 
 test.each([
-  { action: 'Close details', restoreTesting: true, destination: '.NET' },
-  { action: 'All categories', restoreTesting: false, destination: 'APIs & Data' },
-])('restores history focus and selection after $action', async ({ action, restoreTesting, destination }) => {
+  { hash: '#skills', heading: '.NET', linked: false },
+  { hash: '#skill-highcharts', heading: 'Highcharts', linked: true },
+])('restores the appropriate skill on a fresh mount at $hash', ({ hash, heading, linked }) => {
+  const previousUrl = location.href
+  const previousState = history.state
+  try {
+    history.replaceState({
+      skillVisit: 'experience-visit',
+      skillView: { selection: { group: 'data', skill: '.NET' }, focusId: 'skill-dotnet' },
+    }, '', hash)
+    render(<TechnicalSkills />)
+
+    const detail = screen.getByRole('heading', { level: 4, name: heading })
+    expect(detail).toBeVisible()
+    expect(detail.hasAttribute('data-linked')).toBe(linked)
+  } finally {
+    history.replaceState(previousState, '', previousUrl)
+  }
+})
+
+test.each([
+  { scenario: 'a skill outside the saved category', hash: '#skills', visit: 'experience-visit', group: 'frontend' },
+  { scenario: 'a missing visit', hash: '#skills', visit: undefined, group: 'data' },
+  { scenario: 'an unrelated fragment', hash: '#experience', visit: 'experience-visit', group: 'data' },
+])('ignores saved Skills state with $scenario', ({ hash, visit, group }) => {
+  const previousUrl = location.href
+  const previousState = history.state
+  try {
+    history.replaceState({
+      skillVisit: visit,
+      skillView: { selection: { group, skill: '.NET' }, focusId: 'skill-dotnet' },
+    }, '', hash)
+    render(<TechnicalSkills />)
+
+    expect(screen.queryByRole('heading', { level: 4 })).toBeNull()
+    expect(screen.getByRole('button', { name: 'APIs & Data' })).toHaveAttribute('aria-pressed', 'false')
+  } finally {
+    history.replaceState(previousState, '', previousUrl)
+  }
+})
+
+test.each([
+  { action: 'Close details', restoreTesting: true, destination: '.NET', savedId: null },
+  { action: 'All categories', restoreTesting: false, destination: 'APIs & Data', savedId: null },
+  { action: 'Close details', restoreTesting: true, destination: '.NET', savedId: '_r_1_-tool-.NET' },
+  { action: 'All categories', restoreTesting: false, destination: 'APIs & Data', savedId: '_r_1_-group-data' },
+])('restores history focus and selection after $action (stored legacy ID $savedId)', async ({ action, restoreTesting, destination, savedId }) => {
   const user = userEvent.setup()
   const previousUrl = location.href
   const previousState = history.state
@@ -260,6 +304,7 @@ test.each([
 
     await user.click(screen.getByRole('button', { name: action }))
     expect(location.hash).toBe('#skills')
+    if (savedId) history.replaceState({ ...history.state, skillView: { ...history.state.skillView, focusId: savedId } }, '')
     history.back()
 
     await waitFor(() => expect(link).toHaveFocus())

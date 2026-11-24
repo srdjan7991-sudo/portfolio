@@ -26,17 +26,3 @@
   letter-spacing: -0.045em;
   line-height: 1.15;
 }
-
-@media (prefers-reduced-motion: no-preference) {
-  #main:not(:has([data-editing])) [data-revealed] .section-title,
-  #main:not(:has([data-editing])) [data-revealed] .section-title ~ * {
-    animation: section-reveal 480ms var(--ease-out) both;
-  }
-
-  #main:not(:has([data-editing])) [data-revealed] .section-title ~ * { animation-delay: 50ms; }
-
-  @keyframes section-reveal {
-    from { opacity: 0.76; transform: translateY(6px); }
-    to { opacity: 1; transform: none; }
-  }
-}

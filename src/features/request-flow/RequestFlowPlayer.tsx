@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react'
 import type { CSSProperties } from 'react'
 import { RequestFlowDiagram } from './RequestFlowDiagram'
-import { steps } from './requestFlowSteps'
+import { stepIndex, steps } from './requestFlowSteps'
 import { useRequestFlow } from './useRequestFlow'
 import { useLanguage } from '../../i18n/language'
 import { en } from '../../i18n/en'
@@ -10,9 +10,10 @@ import styles from './RequestFlow.module.css'
 
 // Reserve enough space for both languages without resetting the animation on a switch.
 const flows = [en.flow, sr.flow]
-const titles = flows.flatMap(flow => flow.phases.map(phase => phase.title))
-const descriptions = flows.flatMap(flow => flow.phases.map(phase => phase.description))
-const explanations = flows.flatMap(flow => flow.phases.map(phase => phase.explanation))
+const phases = flows.flatMap(flow => Object.values(flow.phases))
+const titles = phases.map(phase => phase.title)
+const descriptions = phases.map(phase => phase.description)
+const explanations = phases.map(phase => phase.explanation)
 const liveTitles = [...titles, ...flows.flatMap(flow => [flow.failedTitle, flow.pendingTitle, flow.failedLookup])]
 const liveMessages = flows.flatMap(flow => [flow.failedDescription, flow.failedLookupDescription, flow.pendingDescription])
 const liveDescriptions = [...descriptions, ...liveMessages]
@@ -21,6 +22,8 @@ const playLabels = flows.flatMap(flow => [flow.play, flow.pause])
 const playerTitles = flows.map(flow => flow.player)
 const liveModeDescriptions = flows.map(flow => flow.liveDescription)
 const guidedModeDescriptions = flows.map(flow => flow.guidedDescription)
+const firstDataStep = stepIndex('database')
+const totalSteps = String(steps.length).padStart(2, '0')
 
 function PhaseText({ text, variants }: { text: string; variants: readonly string[] }) {
   return (
@@ -35,13 +38,14 @@ export function RequestFlowPlayer({ active, live }: { active: boolean; live: boo
   const { text: { flow } } = useLanguage()
   const run = useRequestFlow(active, live)
   const heading = useRef<HTMLHeadingElement>(null)
-  const phase = flow.phases[run.index]
+  const step = steps[run.index]
+  const phase = flow.phases[step.id]
   const started = run.result.kind !== 'idle'
-  const hasResult = run.index === steps.length - 1
+  const hasResult = step.id === 'result'
   const failed = run.result.kind === 'error'
-  const waiting = run.index >= 3 && run.result.kind === 'pending'
-  const showFailure = failed && run.index >= 3
-  const failedLookup = showFailure && run.index === 3
+  const waiting = run.index >= firstDataStep && run.result.kind === 'pending'
+  const showFailure = failed && run.index >= firstDataStep
+  const failedLookup = showFailure && step.id === 'database'
   const title = failedLookup ? flow.failedLookup : showFailure ? flow.failedTitle : waiting ? flow.pendingTitle : phase.title
   const outcome = failedLookup ? flow.failedLookupDescription : showFailure ? flow.failedDescription
     : waiting ? flow.pendingDescription : undefined
@@ -79,7 +83,7 @@ export function RequestFlowPlayer({ active, live }: { active: boolean; live: boo
           </button>
         </div>
         <div className={styles.progress}>
-          <span>{String(run.index + 1).padStart(2, '0')} / 06</span>
+          <span>{String(run.index + 1).padStart(2, '0')} / {totalSteps}</span>
           <div aria-hidden="true" className={styles.segments}>
             {steps.map((stage, i) => <span key={stage.id} data-progress={i === run.index ? 'current' : i < run.index ? 'past' : undefined} />)}
           </div>
@@ -90,9 +94,9 @@ export function RequestFlowPlayer({ active, live }: { active: boolean; live: boo
         <h4><PhaseText text={title} variants={live ? liveTitles : titles} /></h4>
         <p><PhaseText text={outcome ?? phase.description} variants={live ? liveDescriptions : descriptions} /></p>
       </div>
-      <div style={{ '--phase-duration': steps[run.index].duration + 'ms' } as CSSProperties}>
+      <div style={{ '--phase-duration': `${step.duration}ms` } as CSSProperties}>
         <RequestFlowDiagram index={run.index} result={run.result} revision={run.revision} finished={run.finished}
-          playing={run.playing} moving={run.playing || run.elapsed > 0} start={run.start} live={live} />
+          playing={run.playing} moving={run.playing || run.elapsed > 0} start={run.start} pause={run.pause} live={live} />
       </div>
       <section className={styles.caption} aria-labelledby="request-flow-explanation">
         <h4 id="request-flow-explanation">{flow.explanation}</h4>

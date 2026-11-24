@@ -95,6 +95,7 @@ internal static class AuthConfiguration
             return;
         }
         var db = context.HttpContext.RequestServices.GetRequiredService<PortfolioDbContext>();
+        db.RequireConnection();
         if (!await db.AuthSessions.AnyAsync(session => session.Id == sessionId && session.UserId == userId &&
             session.RevokedAt == null && session.ExpiresAt > now, context.HttpContext.RequestAborted))
         {

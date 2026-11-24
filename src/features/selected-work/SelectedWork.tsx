@@ -64,7 +64,7 @@ export function SelectedWork() {
   const { language, text: { work } } = useLanguage()
   const copy = projectCopy[language]
   return (
-    <PortfolioSection id="work" intro={work.intro} customReveal>
+    <PortfolioSection id="work" intro={work.intro}>
       <div>
         <article id="work-mede" className="selected-work-featured" tabIndex={-1} aria-labelledby="work-mede-title">
           <div className="selected-work-project-intro">

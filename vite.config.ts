@@ -13,7 +13,18 @@ export default defineConfig(({ command, isPreview }) => {
     plugins: [react()],
     server: https ? {
       https,
-      proxy: { '/api': { target: 'http://127.0.0.1:5082' } },
+      proxy: {
+        '/api': {
+          target: 'http://127.0.0.1:5082',
+          configure(proxy) {
+            proxy.on('proxyReq', (outgoing, incoming) => {
+              outgoing.removeHeader('x-forwarded-for')
+              const clientAddress = incoming.socket.remoteAddress
+              if (clientAddress) outgoing.setHeader('x-forwarded-for', clientAddress)
+            })
+          },
+        },
+      },
     } : undefined,
     test: {
       environment: 'jsdom',

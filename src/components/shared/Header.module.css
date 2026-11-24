@@ -72,6 +72,11 @@
 .desktopNav a:hover, .desktopNav a:focus-visible, .mobileNav a:hover, .mobileNav a:focus-visible { color: var(--ink); }
 .desktopNav a[aria-current='location'], .mobileNav a[aria-current='location'] { color: var(--accent); }
 .desktopNav a[aria-current='location']:hover, .mobileNav a[aria-current='location']:hover { color: var(--accent-hover); }
+.desktopNav a[aria-current='location'] > span {
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 0.36em;
+}
 
 .mobile { display: none; }
 

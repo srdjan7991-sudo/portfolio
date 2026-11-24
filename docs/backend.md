@@ -53,6 +53,18 @@ Open [the HTTPS frontend](https://localhost:5173/). Vite proxies `/api` to the l
 
 Open **Sign in**. On a fresh database, **Create administrator** asks for an email, a password of 15 to 128 characters, and the configured setup code. The database records completion of the first setup. Later visits offer sign-in for the existing account. Turn on **Editing mode** in the admin toolbar to reorder the public sections.
 
+### Recover administrator access
+
+An authorized operator with access to the API host, its configuration, and write access to the correct SQL database can reset the password for the existing administrator. Stop all instances serving traffic for that database before recovery. Use the API build that matches the database schema and run the command in an interactive terminal with the target environment and connection string configured as for normal startup. In local PowerShell, set `$env:ASPNETCORE_ENVIRONMENT = 'Development'` to load development User Secrets.
+
+```sh
+dotnet run --project backend/Portfolio.Api --no-launch-profile -- --recover-admin
+```
+
+For an already published build, run `dotnet Portfolio.Api.dll --recover-admin` from the published application directory with the host configuration loaded. The command prompts for the existing account email and a new passphrase twice. Password input is hidden. The password change, lockout reset, and revocation of all the account's existing sessions commit together. This command opens no HTTP listener. It requires completed setup and an existing account with the administrator role.
+
+After success, restart the API and sign in with the new passphrase through the HTTPS frontend. Existing browser sessions require sign-in again. Confirm that **Sign in** still offers access to an existing account and that `GET /api/auth/setup-status` returns `{"setupRequired":false}`. If the administrator account itself was deleted, use the authorized database restore procedure to recover it from a backup before resetting the password.
+
 ## Endpoints
 
 | Method and path | Access | Response or effect |
@@ -68,15 +80,23 @@ Open **Sign in**. On a fresh database, **Create administrator** asks for an emai
 | `POST /api/auth/logout` | Configured HTTPS origin | Revokes the session associated with the supplied refresh cookie, clears the cookie, and returns 204 on success. |
 | `GET /api/auth/me` | Administrator bearer token | Returns the current administrator account. |
 
-[`SectionOrderEndpoints.cs`](../backend/Portfolio.Api/Sections/SectionOrderEndpoints.cs) accepts `work`, `skills`, `expertise`, `experience`, `education`, and `contact`. An invalid order returns 400. The server updates the sort order of existing rows and inserts enabled rows with empty bodies for missing keys, all within one SQL transaction. The UI renders its public copy from the React features.
+[`SectionOrderEndpoints.cs`](../backend/Portfolio.Api/Sections/SectionOrderEndpoints.cs) accepts `work`, `skills`, `expertise`, `experience`, `education`, and `contact`. An invalid order returns 400. The server updates only the sort order of existing rows and inserts any missing keys as enabled rows with their default English titles and empty bodies, all within one SQL transaction. On a fresh database, the first successful order write changes `GET /api/sections` from an empty array to six title-only rows in saved order. The public endpoint retains the `key`, `title`, and `body` shape and excludes disabled rows. The portfolio UI renders section copy from its React features.
+
+Requests that need SQL return a 503 problem response when the connection is unconfigured or the database is unavailable. The status endpoint can return `{"setupRequired":false}` without SQL when initial setup is disabled. Refresh and logout handle absent or malformed cookies without SQL.
 
 ## Sessions and Swagger
 
 [`AuthEndpoints.cs`](../backend/Portfolio.Api/Auth/AuthEndpoints.cs) requires the exact configured browser origin and `X-Portfolio-Auth: 1` on session POST requests. Signup also requires `X-Portfolio-Setup`. The frontend keeps access tokens in memory. Access tokens last up to five minutes. The seven-day session uses a rotating refresh cookie with `Secure`, `HttpOnly`, `SameSite=Strict`, and the `/api/auth` path. The server stores hashes of refresh credentials. Reuse of a rotated credential revokes its session.
 
-Setup status, credential attempts, refresh, and logout have separate request limits. For an HTTPS deployment with a reverse proxy, have the same-host proxy connect over loopback and replace incoming `X-Forwarded-For` with the actual client address. ASP.NET Core accepts one forwarded address from its default trusted loopback proxies. Keep the backend listener private. [ASP.NET Core proxy guidance](https://learn.microsoft.com/en-us/aspnet/core/host-and-deploy/proxy-load-balancer?view=aspnetcore-10.0)
+If the database commits a rotation and the browser loses the response, the old cookie may still be stored in the browser. A failed renewal requires signing in again. Submitting valid login credentials starts a new session and revokes the old session associated with the browser cookie, including the discarded rotation. Retrying a consumed refresh credential instead triggers the existing replay protection.
 
 Use the HTTPS frontend to verify sign-in, refresh, and sign-out. Swagger over the loopback HTTP address is for browsing the contract and sending public requests or requests with an existing bearer token. The browser cookie flow requires the configured HTTPS origin. Keep tokens, setup codes, and certificate passwords out of logs and shared examples.
+
+### Reverse proxy and request limits
+
+Setup status, credential attempts, refresh, and logout have separate budgets keyed by the effective client IP address. In Development, loopback addresses are the default trusted proxies. The Vite development proxy replaces `X-Forwarded-For` with the address of the browser socket. In Production, forwarded addresses are ignored until you explicitly configure the immediate proxy addresses. For example, a same-host proxy that connects over IPv4 loopback uses `ReverseProxy__KnownProxies__0=127.0.0.1`. Set additional indexed values only for proxies that actually connect to the API. The middleware accepts one forwarded address from a configured proxy.
+
+Keep the backend listener private and have the immediate proxy overwrite the incoming `X-Forwarded-For` header with the verified client address. During deployment verification, confirm the API listens only on the intended private interface, the proxy uses a configured source address, and the limiter uses the correct resolved IP for distinct clients. The application tests exercise the trust rules in-process. Repeat the verification on the real ingress for each deployment topology. [ASP.NET Core proxy guidance](https://learn.microsoft.com/en-us/aspnet/core/host-and-deploy/proxy-load-balancer?view=aspnetcore-10.0)
 
 ## Troubleshooting
 
@@ -86,7 +106,7 @@ Use the HTTPS frontend to verify sign-in, refresh, and sign-out. Swagger over th
 | The browser reports a TLS protocol error | Confirm the process on port 5173 is Vite launched with the PFX variables and open `https://localhost:5173/`. |
 | The browser displays a certificate trust warning | Verify that the localhost certificate used by Vite is trusted in the current browser and Windows user session. |
 | Auth POST returns 403 | Compare the browser origin with `Auth:Origin`. The browser must use the configured hostname, port, and HTTPS scheme. |
-| Auth endpoints report 503 | Check that the API loaded a valid signing key and HTTPS origin in its current environment. |
+| Auth endpoints report 503 | Check that the API loaded a valid signing key and HTTPS origin. For database-dependent requests, check the connection and API logs. |
 | Swagger returns 404 | Start the API with the Development environment and confirm that the current API build is listening on port 5082. |
 
 See [Testing and deployment](testing-and-deployment.md) for isolated SQL tests and hosting.

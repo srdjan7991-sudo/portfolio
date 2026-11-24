@@ -1,4 +1,4 @@
-import { useRef } from 'react'
+import { useRef, useState } from 'react'
 import type { CSSProperties } from 'react'
 import limestone from '../../assets/hero-limestone-480.webp'
 import { defaultSectionOrder, isSectionKey } from '../../sections'
@@ -10,6 +10,7 @@ import type { RequestResult } from './requestFlowApi'
 import { CircuitChannel } from './RequestFlowCircuit'
 import type { Channel, CircuitFrame } from './RequestFlowCircuit'
 import { RequestFlowConnections } from './RequestFlowConnections'
+import { stepIndex, steps } from './requestFlowSteps'
 import styles from './RequestFlowDiagram.module.css'
 
 function SceneLabel(labels: Record<Language, string>) {
@@ -37,36 +38,36 @@ function ScreenSurface({ loading }: { loading: boolean }) {
   )
 }
 
-const processSignal = (start: number, end: number) => [{ phase: 2, start, end }]
+const processSignal = (start: number, end: number) => [{ phase: 'processing' as const, start, end }]
 
 const serverChannels: readonly Channel[] = [
   {
     name: 'server-inlet', path: 'M0 92H31',
-    outbound: [{ phase: 1, start: 0.84, end: 1 }], returning: [{ phase: 5, start: 0.16, end: 0.22 }],
+    outbound: [{ phase: 'communication', start: 0.84, end: 1 }], returning: [{ phase: 'result', start: 0.16, end: 0.22 }],
   },
   {
     name: 'inlet-branch', path: 'M31 92H67L81 79H85',
-    outbound: processSignal(0, 0.22), returning: [{ phase: 5, start: 0, end: 0.16 }],
+    outbound: processSignal(0, 0.22), returning: [{ phase: 'result', start: 0, end: 0.16 }],
   },
   { name: 'inlet-fork', path: 'M81 79L64 66H31', outbound: processSignal(0.17, 0.36) },
   {
     name: 'upper-ring', path: 'M85 79A45 45 0 0 1 175 79',
-    outbound: processSignal(0.22, 0.54), returning: [{ phase: 4, start: 0.76, end: 0.97 }],
+    outbound: processSignal(0.22, 0.54), returning: [{ phase: 'response', start: 0.76, end: 0.97 }],
   },
   {
     name: 'lower-ring', path: 'M85 79A45 45 0 0 0 175 79',
-    outbound: processSignal(0.22, 0.54), returning: [{ phase: 4, start: 0.76, end: 0.97 }],
+    outbound: processSignal(0.22, 0.54), returning: [{ phase: 'response', start: 0.76, end: 0.97 }],
   },
   { name: 'top-tie', path: 'M130 34V21', outbound: processSignal(0.37, 0.52) },
   { name: 'bottom-tie', path: 'M130 124V137', outbound: processSignal(0.37, 0.52) },
   { name: 'upper-outlet', path: 'M175 79H179L196 66H229V79', outbound: processSignal(0.54, 0.7) },
   {
     name: 'lower-outlet', path: 'M175 79H179L193 92H229V79',
-    outbound: processSignal(0.56, 0.7), returning: [{ phase: 4, start: 0.63, end: 0.76 }],
+    outbound: processSignal(0.56, 0.7), returning: [{ phase: 'response', start: 0.63, end: 0.76 }],
   },
   {
     name: 'server-outlet', path: 'M229 79H260',
-    outbound: [{ phase: 3, start: 0, end: 0.1 }], returning: [{ phase: 4, start: 0.55, end: 0.63 }],
+    outbound: [{ phase: 'database', start: 0, end: 0.1 }], returning: [{ phase: 'response', start: 0.55, end: 0.63 }],
   },
   { name: 'inlet-marks', path: 'M54 52H67M54 57H63', outbound: processSignal(0.3, 0.46) },
   { name: 'ring-marks', path: 'M98 123H112M148 35H162', outbound: processSignal(0.44, 0.57) },
@@ -109,7 +110,7 @@ const databaseArrival = 0.75
 const databaseInlet: Channel = {
   name: 'database-inlet',
   path: 'M0 106H7C18 106 25 93 44 93',
-  outbound: [{ phase: 3, start: 0.65, end: databaseArrival }], returning: [{ phase: 4, start: 0, end: 0.1 }],
+  outbound: [{ phase: 'database', start: 0.65, end: databaseArrival }], returning: [{ phase: 'response', start: 0, end: 0.1 }],
 }
 
 const databaseRightInlet: Channel = {
@@ -172,7 +173,8 @@ function BrowserContent({ result }: { result: RequestResult }) {
     <div className={styles.cards} aria-live="polite">
       {result.rows.slice(0, 3).map(item => {
         const key = item.key.toLowerCase()
-        const title = isSectionKey(key) && item.title === en.sections[key].title
+        const title = isSectionKey(key) && (item.title === en.sections[key].title ||
+          (key === 'expertise' && item.title === 'Engineering Expertise'))
           ? sections[key].title : item.title
         return <article key={item.key}><strong>{title}</strong><p>{item.body}</p></article>
       })}
@@ -181,7 +183,7 @@ function BrowserContent({ result }: { result: RequestResult }) {
   )
 }
 
-function ResponsePreview({ result }: { result: RequestResult }) {
+function ResponseContents({ result }: { result: RequestResult }) {
   const { text: { flow: { response } } } = useLanguage()
   if (result.kind === 'success') {
     const first = result.rows[0]
@@ -203,6 +205,22 @@ function ResponsePreview({ result }: { result: RequestResult }) {
   return <p className={styles.responseStatus}>{result.kind === 'guided' ? response.jsonList + ' · key, title, body' : response.notArrived}</p>
 }
 
+function ResponsePreview({ result, live, pause }: { result: RequestResult; live: boolean; pause: () => void }) {
+  const { text: { flow: { response } } } = useLanguage()
+  const [inspecting, setInspecting] = useState(false)
+
+  return (
+    // oxlint-disable-next-line jsx-a11y/no-noninteractive-tabindex, jsx-a11y/no-noninteractive-element-interactions -- Allow scrolling and hold the response when focused.
+    <section className={styles.response} aria-label={response.label} tabIndex={live ? 0 : undefined}
+      data-inspecting={inspecting} onFocus={live ? () => {
+        setInspecting(true)
+        pause()
+      } : undefined}>
+      <ResponseContents result={result} />
+    </section>
+  )
+}
+
 type Props = {
   index: number
   result: RequestResult
@@ -211,24 +229,30 @@ type Props = {
   revision: number
   finished: boolean
   start: () => void
+  pause: () => void
   live: boolean
 }
 
-export function RequestFlowDiagram({ index, result, playing, moving, revision, finished, start, live }: Props) {
+const processingStep = stepIndex('processing')
+const databaseStep = stepIndex('database')
+
+export function RequestFlowDiagram({ index, result, playing, moving, revision, finished, start, pause, live }: Props) {
   const { text: { flow } } = useLanguage()
   const { screen, response } = flow
   const scene = useRef<HTMLDivElement>(null)
+  const phase = steps[index].id
+  const showingResult = phase === 'result'
   const started = result.kind !== 'idle'
-  const loading = started && index < 5
-  const active = finished ? undefined : index < 2 || index === 5 ? 'browser' : index === 3 ? 'database' : 'server'
-  const canStart = !started || index === 5
+  const loading = started && !showingResult
+  const active = finished ? undefined : index < processingStep || showingResult ? 'browser' : phase === 'database' ? 'database' : 'server'
+  const canStart = !started || showingResult
   const action = loading ? 'loading' : started ? 'reload' : 'load'
   const frame = { index, revision, started, moving: moving && !finished }
 
   return (
     <div ref={scene} className={styles.scene} data-live={live}
-      data-playing={playing} data-phase={index} data-motion-started={frame.moving}
-      data-processed={started && index >= 2} data-data-found={started && index >= 3}>
+      data-playing={playing} data-phase={phase} data-motion-started={frame.moving}
+      data-processed={started && index >= processingStep} data-data-found={started && index >= databaseStep}>
       <div className={styles.node} data-active={active === 'browser'} data-system="screen">
         <h4 className={styles.nodeTitle}><SceneLabel en={en.flow.systems[0].name} sr={sr.flow.systems[0].name} /></h4>
         <div className={styles.screen} data-screen data-loading={loading}>
@@ -236,8 +260,8 @@ export function RequestFlowDiagram({ index, result, playing, moving, revision, f
           <div className={styles.screenBody}>
             <strong><SceneLabel en={en.flow.screen.heading} sr={sr.flow.screen.heading} /></strong>
             {/* oxlint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- Enable keyboard scrolling for results. */}
-            <section className={styles.screenContents} aria-label={screen.label} tabIndex={index === 5 && result.kind === 'success' ? 0 : undefined}>
-              {index === 5 ? <BrowserContent result={result} /> : (
+            <section className={styles.screenContents} aria-label={screen.label} tabIndex={showingResult && result.kind === 'success' ? 0 : undefined}>
+              {showingResult ? <BrowserContent result={result} /> : (
                 <p>{loading ? (result.kind === 'guided' ? screen.following : screen.loading) : screen.idle}</p>
               )}
             </section>
@@ -262,12 +286,7 @@ export function RequestFlowDiagram({ index, result, playing, moving, revision, f
           ))}
         </ol>
         <div className={styles.responseSlot}>
-          {index === 4 && (
-            // oxlint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- Enable keyboard scrolling of the API response.
-            <section className={styles.response} aria-label={response.label} tabIndex={live ? 0 : undefined}>
-              <ResponsePreview result={result} />
-            </section>
-          )}
+          {phase === 'response' && <ResponsePreview result={result} live={live} pause={pause} />}
         </div>
       </div>
       <div className={styles.connectionSlot} aria-hidden="true" />
@@ -279,8 +298,8 @@ export function RequestFlowDiagram({ index, result, playing, moving, revision, f
           <code>Sections</code>
           <p>Key · Title · Body</p>
           <div className={styles.dataReadout}>
-            {index === 3 && <p className={styles.filter}><code>IsEnabled = 1</code></p>}
-            {index === 3 && result.kind === 'success' && <p>{response.found(result.rows.length)}</p>}
+            {phase === 'database' && <p className={styles.filter}><code>IsEnabled = 1</code></p>}
+            {phase === 'database' && result.kind === 'success' && <p>{response.found(result.rows.length)}</p>}
           </div>
         </div>
       </div>

@@ -49,7 +49,14 @@ npm test -- src/features/professional-experience src/features/technical-skills s
 
 Run `npm run test:coverage` to generate the V8 report. Open `coverage/index.html` for file-level results from your checkout.
 
-The simulated DOM tests cover state, controls, and response handling. SVG geometry, rendered CSS timing, and pointer dragging require browser checks.
+The simulated DOM tests cover state, controls, and response handling. Run the Chromium suite to check native Tab navigation and readable live responses during playback, Skills history and focus after reload, and chart tooltip behavior with mouse, keyboard, and touch.
+
+```sh
+npx playwright install chromium --only-shell
+npm run test:browser
+```
+
+Playwright starts a Vite production preview. Its HTTPS walkthrough uses a fixture for API responses and checks the real frontend. The browser suite requires no database. Use the manual checks below for other browser engines, wider visual coverage, and the real HTTPS proxy.
 
 ## Backend checks
 
@@ -60,7 +67,7 @@ dotnet build backend/Portfolio.sln --configuration Release
 dotnet test backend/Portfolio.sln --configuration Release --no-build --no-restore
 ```
 
-The xUnit suite uses ASP.NET Core TestServer. It covers HTTP responses, validation, authorization, rate limiting, and the development Swagger contract. Five SQL tests opt in through `PORTFOLIO_TEST_SQL` and cover first administrator setup, refresh and logout behavior, account lockout, published section responses, and section order persistence. Supply a connection string for an isolated test SQL Server environment with permission to create and remove test databases. The fixture creates, migrates, and attempts to remove its own uniquely named `PortfolioAuthTests_*` database. Run the same test command after setting the variable in the test terminal.
+The xUnit suite uses ASP.NET Core TestServer. It covers HTTP responses, validation, authorization, trusted proxy configuration, rate limiting, and the development Swagger contract. The SQL integration tests opt in through `PORTFOLIO_TEST_SQL`. They cover first administrator setup, session rotation and logout, recovery from a lost refresh response, account lockout, administrator password recovery, published section responses, and first and subsequent section order writes. Supply a connection string for an isolated SQL Server with permission to create and remove test databases. The fixture creates, migrates, and attempts to remove its own uniquely named `PortfolioAuthTests_*` database. Run the same test command after setting the variable in the test terminal.
 
 ## Browser verification
 
@@ -91,9 +98,9 @@ At 320 px, check that grouped report bars are easy to activate individually. In 
 
 ## GitHub Actions and Pages
 
-The [pull request workflow](../.github/workflows/ci.yml) runs the frontend tests, lint, TypeScript checks, and production build on Linux with Node.js 24. Its backend job uses .NET 10, builds the solution in Release mode, and runs the tests that need no database. A separate `backend-sql` job runs the five integration tests against a temporary SQL Server 2022 container on the runner.
+The [pull request workflow](../.github/workflows/ci.yml) runs Vitest, lint, TypeScript, the production build, and the Chromium suite on Linux with Node.js 24. Its backend job uses .NET 10, builds the solution in Release mode, and runs the tests that need no database. A separate `backend-sql` job runs the SQL integration tests against a temporary SQL Server 2022 container on the runner.
 
-The [Pages workflow](../.github/workflows/pages.yml) runs on pushes to `main` and supports manual dispatch. Select **GitHub Actions** as the Pages source in the repository settings. The workflow runs `npm ci`, lint, and the production build, then uploads `dist/` and deploys it. The production asset base is `/portfolio/`.
+The [Pages workflow](../.github/workflows/pages.yml) runs on pushes to `main` and supports manual dispatch. Select **GitHub Actions** as the Pages source in the repository settings. The workflow runs `npm ci`, Vitest, lint, the production build, and the Chromium suite before uploading `dist/` and deploying it. The production asset base is `/portfolio/`.
 
 GitHub Pages serves the static frontend. After an authorized release, verify the workflow result and open the [public portfolio](https://srdjan7991-sudo.github.io/portfolio/) to check the deployed HTML, styles, fonts, and JavaScript. A build from the current code with the standard Pages configuration uses bundled section content and supports the guided walkthrough and simulated HTTP scenarios. The live site reflects the last successful deployment of `main`.
 
