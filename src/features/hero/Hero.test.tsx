@@ -145,6 +145,67 @@ test('accepts keyboard focus previews and applies keyboard actions immediately w
   expect(screen.getByText('Queue refreshed. Revision 2.', { selector: 'output' })).toBeInTheDocument()
 })
 
+test('replays a selected backend trace after hover and keeps it running after pointer leave', async () => {
+  startClock()
+  render(<Hero />)
+  const data = screen.getByRole('button', { name: 'Data' })
+
+  fireEvent.pointerEnter(data, { pointerType: 'mouse' })
+  await tick(115)
+  for (const duration of [235, 235, 335]) await tick(duration)
+  expect(screen.getByText('Both actions use the same records.')).toBeInTheDocument()
+
+  fireEvent.click(data)
+  expect(data).toHaveAttribute('aria-pressed', 'true')
+  fireEvent.pointerLeave(data, { pointerType: 'mouse' })
+  expect(screen.getByText('Tracing back to the frontend')).toBeInTheDocument()
+  await tick(235)
+  expect(screen.getByRole('button', { name: 'Service' })).toHaveAttribute('data-current', 'true')
+  expect(screen.getByText('Revision 1')).toBeInTheDocument()
+})
+
+test('runs the latest backend selection after the frontend response arrives', async () => {
+  startClock()
+  render(<Hero />)
+  const data = screen.getByRole('button', { name: 'Data' })
+  const service = screen.getByRole('button', { name: 'Service' })
+
+  fireEvent.click(refresh())
+  fireEvent.click(data)
+  fireEvent.click(service)
+  expect(service).toHaveAttribute('aria-pressed', 'true')
+  expect(data).toHaveAttribute('aria-pressed', 'false')
+  expect(queue()).toHaveAttribute('aria-busy', 'true')
+  expect(screen.queryByText('Tracing back to the frontend')).not.toBeInTheDocument()
+
+  for (const duration of stageDurations) await tick(duration)
+  expect(queue()).toHaveAttribute('aria-busy', 'false')
+  expect(screen.getByText('Revision 2')).toBeInTheDocument()
+  expect(screen.getByText('Tracing back to the frontend')).toBeInTheDocument()
+  expect(service).toHaveAttribute('data-current', 'true')
+})
+
+test('restores the focused route after a pointer exploration ends', async () => {
+  vi.stubGlobal('matchMedia', () => ({ matches: true }))
+  const user = userEvent.setup()
+  render(<Hero />)
+
+  const focusedButton = refresh()
+  const matches = focusedButton.matches.bind(focusedButton)
+  vi.spyOn(focusedButton, 'matches').mockImplementation(selector => selector === ':focus-visible' || matches(selector))
+  await user.tab()
+  await user.tab()
+  await user.tab()
+  expect(focusedButton).toHaveFocus()
+  expect(screen.getByText('Reads the latest review queue.')).toBeInTheDocument()
+  const data = screen.getByRole('button', { name: 'Data' })
+  await user.hover(data)
+  expect(screen.getByText('Both actions use the same records.')).toBeInTheDocument()
+  await user.unhover(data)
+  expect(focusedButton).toHaveFocus()
+  expect(screen.getByText('Reads the latest review queue.')).toBeInTheDocument()
+})
+
 test('finishes the active request when reduced motion is enabled', () => {
   startClock()
   const preference = Object.assign(new EventTarget(), { matches: false })

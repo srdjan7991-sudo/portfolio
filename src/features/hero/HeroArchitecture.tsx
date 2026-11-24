@@ -3,7 +3,7 @@ import type { FocusEvent, PointerEvent } from 'react'
 import { useLanguage } from '../../i18n/language'
 import { LivingCircuit } from './LivingCircuit'
 import { actions, endpoint, layers, useLivingFlow, wires } from './useLivingFlow'
-import type { Port, Layer } from './useLivingFlow'
+import type { Port } from './useLivingFlow'
 
 const icons = {
   refresh: 'M13 4v4H9 M13 8A5 5 0 1 0 12 12',
@@ -22,20 +22,19 @@ export function HeroArchitecture() {
   const { text: { hero: { living } } } = useLanguage()
   const layerHintId = useId()
   const board = useRef<HTMLDivElement>(null)
+  const pointerLight = useRef<HTMLDivElement>(null)
   const pointerFrame = useRef(0)
   const cursor = useRef({ x: 0, y: 0 })
   const [hovered, setHovered] = useState<Port | null>(null)
   const [focused, setFocused] = useState<Port | null>(null)
-  const [inspected, setInspected] = useState<Layer | null>(null)
-  const discovering = hovered ?? focused ?? inspected
-  const { snapshot, active, activePort, stage, reduced, run, stopPreview, lit } = useLivingFlow(discovering)
+  const { snapshot, active, activePort, stage, selection, reduced, running, run, inspect, stopPreview, lit } = useLivingFlow(hovered ?? focused)
   const connected = wires.filter(wire => lit.includes(wire.id)).flatMap(({ from, to }) => [from, to])
   const action = activePort === 'refresh' || activePort === 'pin' ? activePort : null
   const last = snapshot.completed
   const completion = last === 'refresh' ? living.refreshed(snapshot.revision)
     : last === 'pin' ? living.pinResult(snapshot.pinned) : ''
   const status = stage ? living.phase[stage.label]
-    : discovering && discovering !== last ? living.explore[discovering]
+    : activePort && activePort !== last ? living.explore[activePort]
       : completion || living.ready
   const route = action ? endpoint[action] : activePort ? living.exploring : last ? '200 OK' : living.systemReady
 
@@ -44,7 +43,7 @@ export function HeroArchitecture() {
     if (reduced) {
       cancelAnimationFrame(pointerFrame.current)
       pointerFrame.current = 0
-      board.current?.removeAttribute('data-pointer')
+      pointerLight.current?.removeAttribute('data-active')
     }
   }, [reduced])
 
@@ -56,19 +55,21 @@ export function HeroArchitecture() {
     pointerFrame.current = requestAnimationFrame(() => {
       pointerFrame.current = 0
       const node = board.current
-      if (!node) return
+      const light = pointerLight.current
+      if (!node || !light) return
       const bounds = node.getBoundingClientRect()
-      node.style.setProperty('--living-x', `${cursor.current.x - bounds.left}px`)
-      node.style.setProperty('--living-y', `${cursor.current.y - bounds.top}px`)
-      node.dataset.pointer = 'true'
+      const x = cursor.current.x - bounds.left
+      const y = cursor.current.y - bounds.top
+      light.style.transform = `translate3d(calc(${x}px - 50%), calc(${y}px - 50%), 0)`
+      if (!light.hasAttribute('data-active')) light.dataset.active = 'true'
     })
   }
 
   function leave() {
     cancelAnimationFrame(pointerFrame.current)
     pointerFrame.current = 0
-    board.current?.removeAttribute('data-pointer')
-    stopPreview()
+    pointerLight.current?.removeAttribute('data-active')
+    if (hovered && hovered !== focused) stopPreview(hovered)
     setHovered(null)
   }
 
@@ -79,19 +80,18 @@ export function HeroArchitecture() {
       'data-current': (stage?.from ?? activePort) === port,
       onPointerEnter: (event: PointerEvent<HTMLButtonElement>) => {
         if (event.pointerType === 'mouse') {
-          setFocused(null)
           setHovered(port)
         }
       },
       onPointerLeave: (event: PointerEvent<HTMLButtonElement>) => {
         if (event.pointerType === 'mouse') {
-          stopPreview(port)
+          if (focused !== port) stopPreview(port)
           setHovered(current => current === port ? null : current)
         }
       },
       onFocus: (event: FocusEvent<HTMLButtonElement>) => {
         if (event.currentTarget.matches(':focus-visible')) {
-          stopPreview()
+          if (hovered !== port) stopPreview()
           setHovered(null)
           setFocused(port)
         }
@@ -111,13 +111,14 @@ export function HeroArchitecture() {
       </div>
       <div className="living-shell">
         <div ref={board} className="living-board" onPointerMove={move} onPointerLeave={leave} onPointerCancel={leave}
-          data-mode={active?.run ? 'request' : active ? 'preview' : 'idle'} data-exploring={Boolean(activePort)}>
+          data-mode={running ? 'request' : active ? 'preview' : 'idle'} data-exploring={Boolean(activePort)}>
+          <div ref={pointerLight} className="living-pointer-light" aria-hidden="true" />
           <div className="living-frontend">
             <div className="living-pane-head"><h3>Frontend</h3><span>{living.revision(snapshot.revision)}</span></div>
             <div className="living-workspace">
               <div className="living-queue">
                 <h4>{living.queue}</h4>
-                <ul aria-label={living.queue} aria-busy={Boolean(active?.run)}>
+                <ul aria-label={living.queue} aria-busy={running}>
                   <li>
                     <span>{living.tasks.keyboard}</span>
                     <span className="living-row-state" data-pinned={snapshot.pinned}>
@@ -135,7 +136,7 @@ export function HeroArchitecture() {
               <div className="living-controls">
                 {actions.map(id => (
                   <button key={id} type="button" aria-pressed={id === 'pin' ? snapshot.pinned : undefined}
-                    {...portEvents(id)} onClick={() => { setInspected(null); run(id) }}>
+                    {...portEvents(id)} onClick={() => run(id)}>
                     <Icon id={id} />
                     <span>{living.actions[id]}</span>
                     <span className="living-control-arrow" aria-hidden="true">↗</span>
@@ -153,9 +154,9 @@ export function HeroArchitecture() {
             <div className="living-pane-head"><h3>Backend</h3></div>
             <div className="living-layers">
               {layers.map(id => (
-                <button key={id} type="button" aria-pressed={inspected === id} aria-label={living.layers[id].name}
+                <button key={id} type="button" aria-pressed={selection === id} aria-label={living.layers[id].name}
                   aria-describedby={`${layerHintId}-${id}`} {...portEvents(id)}
-                  onClick={() => setInspected(current => current === id ? null : id)}>
+                  onClick={() => inspect(id)}>
                   <Icon id={id} />
                   <span className="living-layer-text">
                     <span>{living.layers[id].name}</span>

@@ -98,6 +98,10 @@
   font: 500 0.72rem/1.4 var(--mono);
 }
 
+/* Reserve the localized label width before Geist Mono loads. */
+.living-heading p { min-inline-size: 7rem; }
+.living-heading p:lang(sr) { min-inline-size: 7.875rem; }
+
 .living-shell {
   padding: clamp(0.55rem, 1.65vw, 1.4rem);
   border: 1px solid var(--line);
@@ -108,8 +112,6 @@
 
 .living-board {
   --living-compact: 0;
-  --living-x: 50%;
-  --living-y: 50%;
   position: relative;
   isolation: isolate;
   display: grid;
@@ -131,8 +133,7 @@
   pointer-events: none;
 }
 
-.living-board::after {
-  content: '';
+.living-pointer-light {
   position: absolute;
   z-index: 2;
   inset: 0 auto auto 0;
@@ -140,7 +141,6 @@
   aspect-ratio: 1;
   background: radial-gradient(closest-side, var(--accent-edge), transparent);
   opacity: 0;
-  transform: translate3d(calc(var(--living-x) - 50%), calc(var(--living-y) - 50%), 0);
   pointer-events: none;
 }
 
@@ -356,8 +356,8 @@
   .hero-work:focus-visible .hero-arrow { transform: translateY(3px); }
   .hero-contact:focus-visible .hero-arrow { transform: translate(3px, -3px); }
 
-  .living-board::after { transition: opacity 190ms var(--ease-out); }
-  .living-board[data-pointer='true']::after { opacity: 0.14; }
+  .living-pointer-light { transition: opacity 190ms var(--ease-out); }
+  .living-pointer-light[data-active='true'] { opacity: 0.14; }
   .living-board button {
     transition: background-color var(--quick) var(--ease-out), border-color var(--quick) var(--ease-out);
   }

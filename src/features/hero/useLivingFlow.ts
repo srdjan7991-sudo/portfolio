@@ -27,8 +27,18 @@ type Stage = {
   duration: number
 }
 
-type Trip = { id: number; port: Port; run: boolean; stage: number }
+type Trip = { id: number; stage: number } & (
+  { kind: 'request'; port: Action } |
+  { kind: 'inspection'; port: Layer } |
+  { kind: 'preview'; port: Port }
+)
 type Snapshot = { revision: number; pinned: boolean; completed: Action | null }
+type Flow = {
+  snapshot: Snapshot
+  trip: Trip | null
+  selection: Layer | null
+  queuedInspection: Trip | null
+}
 
 function isAction(port: Port): port is Action {
   return port === 'refresh' || port === 'pin'
@@ -63,8 +73,8 @@ function apply(snapshot: Snapshot, action: Action): Snapshot {
 const motionPreference = '(prefers-reduced-motion: reduce)'
 
 export function useLivingFlow(port: Port | null) {
-  const [{ snapshot, trip }, setFlow] = useState<{ snapshot: Snapshot; trip: Trip | null }>({
-    snapshot: { revision: 1, pinned: false, completed: null }, trip: null,
+  const [{ snapshot, trip, selection }, setFlow] = useState<Flow>({
+    snapshot: { revision: 1, pinned: false, completed: null }, trip: null, selection: null, queuedInspection: null,
   })
   const [reduced, setReduced] = useState(() => window.matchMedia?.(motionPreference)?.matches ?? false)
   const nextId = useRef(0)
@@ -80,13 +90,16 @@ export function useLivingFlow(port: Port | null) {
     if (!port || reduced) return
     const timer = window.setTimeout(() => {
       const id = ++nextId.current
-      setFlow(current => current.trip?.run ? current : { ...current, trip: { id, port, run: false, stage: 0 } })
+      setFlow(current => current.trip && current.trip.kind !== 'preview'
+        ? current
+        : { ...current, trip: { id, port, kind: 'preview', stage: 0 } })
     }, 115)
     return () => window.clearTimeout(timer)
   }, [port, reduced])
 
-  const active = trip && (trip.run || trip.port === port) ? trip : null
-  const activePort = active?.port ?? port
+  const active = trip && (trip.kind !== 'preview' || trip.port === port) ? trip : null
+  const activePort = active?.port ?? port ?? selection
+  const running = active?.kind === 'request'
   const sequence = activePort ? route(activePort) : []
   const stage = active ? sequence[active.stage] : undefined
   const duration = stage?.duration
@@ -101,8 +114,10 @@ export function useLivingFlow(port: Port | null) {
         if (current.trip !== active) return current
         if (!reduced && !lastStage) return { ...current, trip: { ...active, stage: active.stage + 1 } }
         return {
-          trip: null,
-          snapshot: active.run && isAction(active.port) ? apply(current.snapshot, active.port) : current.snapshot,
+          ...current,
+          trip: active.kind === 'request' && !reduced ? current.queuedInspection : null,
+          queuedInspection: null,
+          snapshot: active.kind === 'request' ? apply(current.snapshot, active.port) : current.snapshot,
         }
       })
     }
@@ -117,18 +132,31 @@ export function useLivingFlow(port: Port | null) {
 
   function run(action: Action) {
     if (window.matchMedia?.(motionPreference)?.matches ?? reduced) {
-      setFlow(current => ({ trip: null, snapshot: apply(current.snapshot, action) }))
+      setFlow(current => ({ ...current, selection: null, queuedInspection: null, trip: null, snapshot: apply(current.snapshot, action) }))
       return
     }
     const id = ++nextId.current
-    setFlow(current => ({ ...current, trip: { id, port: action, run: true, stage: 0 } }))
+    setFlow(current => ({
+      ...current, selection: null, queuedInspection: null, trip: { id, port: action, kind: 'request', stage: 0 },
+    }))
+  }
+
+  function inspect(layer: Layer) {
+    const id = ++nextId.current
+    const skipMotion = window.matchMedia?.(motionPreference)?.matches ?? reduced
+    setFlow(current => {
+      const selection = current.selection === layer ? null : layer
+      const requested: Trip | null = selection && !skipMotion ? { id, port: selection, kind: 'inspection', stage: 0 } : null
+      if (current.trip?.kind === 'request') return { ...current, selection, queuedInspection: requested }
+      return { ...current, selection, trip: requested, queuedInspection: null }
+    })
   }
 
   function stopPreview(port?: Port) {
-    setFlow(current => current.trip && !current.trip.run && (!port || current.trip.port === port)
+    setFlow(current => current.trip?.kind === 'preview' && (!port || current.trip.port === port)
       ? { ...current, trip: null }
       : current)
   }
 
-  return { snapshot, active, activePort, stage, reduced, run, stopPreview, lit: sequence.flatMap(item => item.wires) }
+  return { snapshot, active, activePort, stage, selection, reduced, running, run, inspect, stopPreview, lit: sequence.flatMap(item => item.wires) }
 }

@@ -17,7 +17,7 @@ Vitest uses jsdom and the setup in [`src/setupTests.ts`](../src/setupTests.ts). 
 npm test -- src/features/request-flow
 ```
 
-Run the Hero tests for the localized heading and CTA links, route previews, reduced motion, and applying the latest response.
+Run the Hero tests for the localized heading and CTA links, route previews, queued backend selections, reduced motion, and applying the latest response.
 
 ```sh
 npm test -- src/features/hero/Hero.test.tsx
