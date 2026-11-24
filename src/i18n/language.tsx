@@ -5,7 +5,7 @@ import type { Messages } from './en'
 import { sr } from './sr'
 
 export type Language = 'en' | 'sr'
-export const defaultLanguage: Language = 'en'
+const defaultLanguage: Language = 'en'
 export const languageStorageKey = 'portfolio-language'
 const messages: Record<Language, Messages> = { en, sr }
 

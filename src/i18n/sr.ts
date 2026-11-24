@@ -275,14 +275,14 @@ export const sr = {
       { name: 'Aplikacioni server', role: 'Obrađuje zahteve i primenjuje pravila aplikacije.' },
       { name: 'Baza podataka', role: 'Čuva i pronalazi podatke.' },
     ],
-    phases: [
-      { label: 'Interakcija', title: 'Tražiš sadržaj.', description: 'Pregledač registruje klik i priprema zahtev za informacije koje su ti potrebne.', explanation: 'Klikom kažeš pregledaču koji sadržaj treba da učita.' },
-      { label: 'Komunikacija', title: 'Zahtev je na putu.', description: 'Pregledač šalje zahtev aplikacionom serveru.', explanation: 'Pregledač od servera traži podatke potrebne za prikaz.' },
-      { label: 'Obrada', title: 'Server odlučuje šta da pročita.', description: 'Server primenjuje pravila aplikacije da odredi koje informacije treba da pronađe.', explanation: 'Server prepoznaje zahtev i odlučuje šta da potraži.' },
-      { label: 'Baza podataka', title: 'Baza traži zapise.', description: 'Aplikacija traži od baze zapise koji su joj potrebni za odgovor.', explanation: 'Baza pronalazi zapise potrebne aplikaciji.' },
-      { label: 'Odgovor', title: 'Server priprema odgovor.', description: 'Server priprema podatke u formatu koji pregledač može da pročita.', explanation: 'Server priprema podatke i šalje odgovor nazad.' },
-      { label: 'Rezultat', title: 'Pregledač prikazuje rezultat.', description: 'Pregledač čita odgovor i ažurira sadržaj na ekranu.', explanation: 'Pregledač prikazuje traženi sadržaj ili javlja grešku pri učitavanju.' },
-    ],
+    phases: {
+      interaction: { label: 'Interakcija', title: 'Tražiš sadržaj.', description: 'Pregledač registruje klik i priprema zahtev za informacije koje su ti potrebne.', explanation: 'Klikom kažeš pregledaču koji sadržaj treba da učita.' },
+      communication: { label: 'Komunikacija', title: 'Zahtev je na putu.', description: 'Pregledač šalje zahtev aplikacionom serveru.', explanation: 'Pregledač od servera traži podatke potrebne za prikaz.' },
+      processing: { label: 'Obrada', title: 'Server odlučuje šta da pročita.', description: 'Server primenjuje pravila aplikacije da odredi koje informacije treba da pronađe.', explanation: 'Server prepoznaje zahtev i odlučuje šta da potraži.' },
+      database: { label: 'Baza podataka', title: 'Baza traži zapise.', description: 'Aplikacija traži od baze zapise koji su joj potrebni za odgovor.', explanation: 'Baza pronalazi zapise potrebne aplikaciji.' },
+      response: { label: 'Odgovor', title: 'Server priprema odgovor.', description: 'Server priprema podatke u formatu koji pregledač može da pročita.', explanation: 'Server priprema podatke i šalje odgovor nazad.' },
+      result: { label: 'Rezultat', title: 'Pregledač prikazuje rezultat.', description: 'Pregledač čita odgovor i ažurira sadržaj na ekranu.', explanation: 'Pregledač prikazuje traženi sadržaj ili javlja grešku pri učitavanju.' },
+    },
     screen: {
       heading: 'Sadržaj portfolija', label: 'Sadržaj pregledača', load: 'Prikaži sadržaj', reload: 'Prikaži sadržaj ponovo',
       loading: 'Učitavanje sadržaja…', following: 'Pratimo put do sadržaja…', idle: 'Sadržaj je spreman za učitavanje.',

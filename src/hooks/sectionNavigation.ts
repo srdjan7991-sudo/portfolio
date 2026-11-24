@@ -1,5 +1,4 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
-import { defaultSectionOrder } from '../sections'
 import type { SectionKey } from '../sections'
 import { useLanguage } from '../i18n/language'
 
@@ -92,29 +91,4 @@ export function useSectionNavigation(orderReady = true) {
       realign.current?.()
     }
   }, [orderReady])
-
-  useEffect(() => {
-    if (!('IntersectionObserver' in window)) return
-    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)')
-
-    const observer = new IntersectionObserver((entries) => {
-      for (const entry of entries) {
-        if (!entry.isIntersecting) continue
-        observer.unobserve(entry.target)
-        if (!reducedMotion.matches) {
-          entry.target.setAttribute('data-revealed', '')
-        }
-      }
-    }, { threshold: 0.08 })
-
-    for (const id of defaultSectionOrder) {
-      const section = document.getElementById(id)
-      // Preserve the initial view, including direct links and restored scroll positions.
-      if (section && !section.hasAttribute('data-custom-reveal') && section.getBoundingClientRect().top >= window.innerHeight) {
-        observer.observe(section)
-      }
-    }
-
-    return () => observer.disconnect()
-  }, [])
 }

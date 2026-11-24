@@ -11,7 +11,7 @@ const courseLists = {
 export function EducationCertifications() {
   const { language, text: { education } } = useLanguage()
   return (
-    <PortfolioSection id="education" customReveal>
+    <PortfolioSection id="education">
       <ul className="education-credentials">
         <li>
           <time dateTime="2018">2018</time>

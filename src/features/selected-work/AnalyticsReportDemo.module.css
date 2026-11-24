@@ -254,7 +254,6 @@
   pointer-events: none;
 }
 .tooltip[data-open='true'][data-positioned='true'] { visibility: visible; opacity: 1; }
-.tooltip[data-open='true'][data-positioned='true'][data-hoverable='true'][data-overlapping='false'] { pointer-events: auto; }
 .tooltipCard {
   padding: 0.55rem 0.7rem;
   border: 1px solid var(--line-glass);

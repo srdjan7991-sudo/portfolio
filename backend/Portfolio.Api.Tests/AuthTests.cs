@@ -14,6 +14,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using Portfolio.Api.Auth;
 using Portfolio.Api.Data;
 using Portfolio.Api.Sections;
 using Xunit;
@@ -58,13 +59,41 @@ public sealed class AuthTests
     }
 
     [Fact]
-    public async Task Auth_database_failure_keeps_the_existing_generic_problem_response()
+    public async Task Database_dependent_auth_routes_return_an_uncached_service_unavailable_problem()
     {
         using var app = new AuthApplication();
         using var client = app.Client();
-        using var response = await client.GetAsync("/api/auth/setup-status");
+        var now = DateTime.UtcNow;
+        var token = app.CreateToken(app.SigningKey, now.AddMinutes(-1), now.AddMinutes(1));
+        const string email = "admin@example.com";
+        var cookie = "__Secure-portfolio-refresh=" + new string('a', 64);
+        using var status = await client.GetAsync("/api/auth/setup-status");
+        using var signup = await Send(client, "signup", Credentials(email), setup: app.SetupKey);
+        using var login = await Send(client, "login", Credentials(email));
+        using var refresh = await Send(client, "refresh", cookie: cookie);
+        using var logout = await Send(client, "logout", cookie: cookie);
+        using var me = await Me(client, token);
 
-        Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
+        foreach (var response in new[] { status, signup, login, refresh, logout, me })
+        {
+            Assert.Equal(HttpStatusCode.ServiceUnavailable, response.StatusCode);
+            Assert.Equal("application/problem+json", response.Content.Headers.ContentType?.MediaType);
+            Assert.True(response.Headers.CacheControl?.NoStore);
+            using var body = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+            Assert.Equal(503, body.RootElement.GetProperty("status").GetInt32());
+        }
+        using var order = await SaveOrder(client, DefaultSectionOrder, token);
+        Assert.Equal(HttpStatusCode.ServiceUnavailable, order.StatusCode);
+        Assert.Equal("application/problem+json", order.Content.Headers.ContentType?.MediaType);
+    }
+
+    [Fact]
+    public async Task Disabled_auth_returns_an_uncached_service_unavailable_problem()
+    {
+        using var app = new AuthApplication(authEnabled: false);
+        using var client = app.Client();
+        using var response = await client.GetAsync("/api/auth/setup-status");
+        Assert.Equal(HttpStatusCode.ServiceUnavailable, response.StatusCode);
         Assert.Equal("application/problem+json", response.Content.Headers.ContentType?.MediaType);
         Assert.True(response.Headers.CacheControl?.NoStore);
     }
@@ -272,6 +301,76 @@ public sealed class AuthTests
     }
 
     [SqlFact]
+    public async Task Sql_server_explicit_sign_in_recovers_from_a_lost_refresh_response()
+    {
+        await using var fixture = await SqlFixture.Create();
+        var app = fixture.App;
+        using var client = app.Client();
+        const string email = "admin@example.com";
+        using var signup = await Send(client, "signup", Credentials(email), setup: app.SetupKey);
+        Assert.Equal(HttpStatusCode.OK, signup.StatusCode);
+        var originalCookie = RefreshCookie(signup);
+        var originalAccess = (await signup.Content.ReadFromJsonAsync<Access>())!.AccessToken;
+
+        // The refresh commits, but the browser keeps its previous cookie.
+        using var discardedResponse = await Send(client, "refresh", cookie: originalCookie);
+        Assert.Equal(HttpStatusCode.OK, discardedResponse.StatusCode);
+        Assert.NotEqual(originalCookie, RefreshCookie(discardedResponse));
+        var discardedAccess = (await discardedResponse.Content.ReadFromJsonAsync<Access>())!.AccessToken;
+
+        using var login = await Send(client, "login", Credentials(email), cookie: originalCookie);
+        Assert.Equal(HttpStatusCode.OK, login.StatusCode);
+        Assert.NotEqual(originalCookie, RefreshCookie(login));
+        var recoveredAccess = (await login.Content.ReadFromJsonAsync<Access>())!.AccessToken;
+        using var me = await Me(client, recoveredAccess);
+        using var original = await Me(client, originalAccess);
+        using var discarded = await Me(client, discardedAccess);
+        Assert.Equal(HttpStatusCode.OK, me.StatusCode);
+        Assert.Equal(HttpStatusCode.Unauthorized, original.StatusCode);
+        Assert.Equal(HttpStatusCode.Unauthorized, discarded.StatusCode);
+    }
+
+    [SqlFact]
+    public async Task Sql_server_operator_recovery_keeps_signup_closed_and_revokes_existing_sessions()
+    {
+        await using var fixture = await SqlFixture.Create();
+        var app = fixture.App;
+        using var client = app.Client();
+        const string email = "admin@example.com";
+        const string newPassword = "a different test passphrase";
+        Assert.False(await AdminRecovery.ResetAsync(app.Services, email, newPassword));
+
+        using var signup = await Send(client, "signup", Credentials(email), setup: app.SetupKey);
+        Assert.Equal(HttpStatusCode.OK, signup.StatusCode);
+        using var login = await Send(client, "login", Credentials(email));
+        Assert.Equal(HttpStatusCode.OK, login.StatusCode);
+        var priorAccess = (await login.Content.ReadFromJsonAsync<Access>())!.AccessToken;
+
+        await using (var scope = app.Services.CreateAsyncScope())
+        {
+            var users = scope.ServiceProvider.GetRequiredService<UserManager<IdentityUser>>();
+            var user = await users.FindByEmailAsync(email);
+            Assert.NotNull(user);
+            Assert.True((await users.SetLockoutEndDateAsync(user, DateTimeOffset.UtcNow.AddMinutes(15))).Succeeded);
+        }
+        Assert.False(await AdminRecovery.ResetAsync(app.Services, "missing@example.com", newPassword));
+        Assert.True(await AdminRecovery.ResetAsync(app.Services, email, newPassword));
+
+        using var expiredAccess = await Me(client, priorAccess);
+        using var expiredRefresh = await Send(client, "refresh", cookie: RefreshCookie(signup));
+        using var oldPassword = await Send(client, "login", Credentials(email));
+        using var recoveredLogin = await Send(client, "login", new { email, password = newPassword });
+        using var status = await client.GetAsync("/api/auth/setup-status");
+        using var closed = await Send(client, "signup", Credentials(email), setup: app.SetupKey);
+        Assert.Equal(HttpStatusCode.Unauthorized, expiredAccess.StatusCode);
+        Assert.Equal(HttpStatusCode.Unauthorized, expiredRefresh.StatusCode);
+        Assert.Equal(HttpStatusCode.Unauthorized, oldPassword.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, recoveredLogin.StatusCode);
+        Assert.False((await status.Content.ReadFromJsonAsync<SetupStatus>())!.SetupRequired);
+        Assert.Equal(HttpStatusCode.Conflict, closed.StatusCode);
+    }
+
+    [SqlFact]
     public async Task Sql_server_validates_and_atomically_persists_section_order()
     {
         await using var fixture = await SqlFixture.Create();
@@ -372,6 +471,32 @@ public sealed class AuthTests
             section => AssertPublicSection(section, "work", "Selected Work", ""),
             section => AssertPublicSection(section, "alpha", "Earlier title", "Earlier body"),
             section => AssertPublicSection(section, "zulu", "Later title", "Later body"));
+    }
+
+    [SqlFact]
+    public async Task Sql_server_first_order_save_publishes_title_only_rows_for_missing_sections()
+    {
+        await using var fixture = await SqlFixture.Create();
+        var app = fixture.App;
+        using var client = app.Client();
+        var before = await client.GetFromJsonAsync<JsonElement>("/api/sections");
+        Assert.Empty(before.EnumerateArray());
+        using var signup = await Send(client, "signup", Credentials("admin@example.com"), setup: app.SetupKey);
+        Assert.Equal(HttpStatusCode.OK, signup.StatusCode);
+        var access = (await signup.Content.ReadFromJsonAsync<Access>())!.AccessToken;
+        string[] order = ["expertise", "experience", "work", "skills", "education", "contact"];
+        using var saved = await SaveOrder(client, order, access, DefaultSectionOrder);
+        Assert.Equal(HttpStatusCode.OK, saved.StatusCode);
+        Assert.Equal(order, (await saved.Content.ReadFromJsonAsync<OrderResponse>())!.Keys);
+
+        var published = await client.GetFromJsonAsync<JsonElement>("/api/sections");
+        Assert.Collection(published.EnumerateArray(),
+            section => AssertPublicSection(section, "expertise", "How I Engineer", ""),
+            section => AssertPublicSection(section, "experience", "Professional Experience", ""),
+            section => AssertPublicSection(section, "work", "Selected Work", ""),
+            section => AssertPublicSection(section, "skills", "Technical Skills", ""),
+            section => AssertPublicSection(section, "education", "Education & Certifications", ""),
+            section => AssertPublicSection(section, "contact", "Contact", ""));
     }
 
     private static void AssertPublicSection(JsonElement section, string key, string title, string body)

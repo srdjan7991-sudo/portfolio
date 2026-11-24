@@ -1,4 +1,5 @@
 import type { SectionKey } from '../sections'
+import type { RequestPhase } from '../features/request-flow/requestFlowSteps'
 import type { EngineeringConcepts, EngineeringTopics } from '../features/engineering-expertise/engineeringAreas'
 
 export const en = {
@@ -274,14 +275,14 @@ export const en = {
       { name: 'Application server', role: 'Processes requests and applies the rules of the app.' },
       { name: 'Database', role: 'Stores and retrieves data.' },
     ],
-    phases: [
-      { label: 'Interaction', title: 'You ask for content.', description: 'The browser registers your click and prepares a request for the information you need.', explanation: 'Your click tells the browser what content to load.' },
-      { label: 'Communication', title: 'The request is on its way.', description: 'The browser sends the request to the application server.', explanation: 'The browser asks the server for the data it needs to display.' },
-      { label: 'Processing', title: 'The server decides what to read.', description: 'The server applies the rules of the app to decide which information to retrieve.', explanation: 'The server recognizes the request and decides what to look up.' },
-      { label: 'Database', title: 'The database looks up the records.', description: 'The application asks the database for the records it needs to answer the request.', explanation: 'The database retrieves the records the application needs.' },
-      { label: 'Response', title: 'The server prepares a response.', description: 'The server packages the data in a format the browser can read.', explanation: 'The server prepares the data and sends the response back.' },
-      { label: 'Result', title: 'The browser displays the result.', description: 'The browser reads the response and updates the content on your screen.', explanation: 'The browser shows the requested content or reports a loading error.' },
-    ],
+    phases: {
+      interaction: { label: 'Interaction', title: 'You ask for content.', description: 'The browser registers your click and prepares a request for the information you need.', explanation: 'Your click tells the browser what content to load.' },
+      communication: { label: 'Communication', title: 'The request is on its way.', description: 'The browser sends the request to the application server.', explanation: 'The browser asks the server for the data it needs to display.' },
+      processing: { label: 'Processing', title: 'The server decides what to read.', description: 'The server applies the rules of the app to decide which information to retrieve.', explanation: 'The server recognizes the request and decides what to look up.' },
+      database: { label: 'Database', title: 'The database looks up the records.', description: 'The application asks the database for the records it needs to answer the request.', explanation: 'The database retrieves the records the application needs.' },
+      response: { label: 'Response', title: 'The server prepares a response.', description: 'The server packages the data in a format the browser can read.', explanation: 'The server prepares the data and sends the response back.' },
+      result: { label: 'Result', title: 'The browser displays the result.', description: 'The browser reads the response and updates the content on your screen.', explanation: 'The browser shows the requested content or reports a loading error.' },
+    } satisfies Record<RequestPhase, { label: string; title: string; description: string; explanation: string }>,
     screen: {
       heading: 'My portfolio content', label: 'Browser content', load: 'Load content', reload: 'Load content again',
       loading: 'Loading content…', following: 'Following the request…', idle: 'The content is ready to load.',

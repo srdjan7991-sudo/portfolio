@@ -10,6 +10,12 @@ export const steps = [
   { id: 'result', duration: 2400 },
 ] as const
 
+export type RequestPhase = typeof steps[number]['id']
+
+export function stepIndex(phase: RequestPhase) {
+  return steps.findIndex(step => step.id === phase)
+}
+
 export const systems = [
   { id: 'browser', stack: 'React · TypeScript' },
   { id: 'server', stack: 'ASP.NET Core · C#' },

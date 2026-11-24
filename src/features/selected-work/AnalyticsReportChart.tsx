@@ -81,16 +81,31 @@ export function AnalyticsReportChart(props: ChartProps) {
     function onOutsidePointer(event: PointerEvent) {
       if (event.target instanceof Node && !container?.contains(event.target)) dismiss()
     }
-    function onLeave() {
+    function clearHoverExit() {
       window.clearTimeout(hoverExit)
+      hoverExit = undefined
+    }
+    function onLeave() {
+      clearHoverExit()
       dismiss('hover')
     }
-    function onPointerOver(event: PointerEvent) {
+    function onPointerMove(event: PointerEvent) {
       if (event.pointerType === 'touch' || !(event.target instanceof Element)) return
-      window.clearTimeout(hoverExit)
-      if (!event.target.closest('[data-report-point]') && !tooltip.current?.contains(event.target)) {
-        // Allow the pointer to cross the gap into the tooltip.
-        hoverExit = window.setTimeout(() => dismiss('hover'), 160)
+      if (event.target.closest('[data-report-point]')) {
+        clearHoverExit()
+        return
+      }
+      // Keep the readout hoverable without giving it ownership of clicks over bars.
+      const panel = tooltip.current
+      const bounds = panel?.dataset.positioned === 'true' && panel.getBoundingClientRect()
+      if (bounds && event.clientX >= bounds.left && event.clientX <= bounds.right &&
+        event.clientY >= bounds.top && event.clientY <= bounds.bottom) {
+        clearHoverExit()
+      } else if (hoverExit === undefined) {
+        hoverExit = window.setTimeout(() => {
+          hoverExit = undefined
+          dismiss('hover')
+        }, 160)
       }
     }
     function onFocusOut(event: FocusEvent) {
@@ -99,14 +114,14 @@ export function AnalyticsReportChart(props: ChartProps) {
     document.addEventListener('keydown', onEscape)
     document.addEventListener('pointerdown', onOutsidePointer)
     container?.addEventListener('pointerleave', onLeave)
-    container?.addEventListener('pointerover', onPointerOver)
+    container?.addEventListener('pointermove', onPointerMove)
     container?.addEventListener('focusout', onFocusOut)
     return () => {
       document.removeEventListener('keydown', onEscape)
       document.removeEventListener('pointerdown', onOutsidePointer)
-      window.clearTimeout(hoverExit)
+      clearHoverExit()
       container?.removeEventListener('pointerleave', onLeave)
-      container?.removeEventListener('pointerover', onPointerOver)
+      container?.removeEventListener('pointermove', onPointerMove)
       container?.removeEventListener('focusout', onFocusOut)
     }
   }, [open, dismiss])
@@ -187,7 +202,7 @@ export function AnalyticsReportChart(props: ChartProps) {
         ))}
       </div>
       {selected && selectedRow && selectedPoint && (
-        <div ref={tooltip} className={styles.tooltip} data-open={open} data-hoverable={selected.source === 'hover'} aria-hidden="true">
+        <div ref={tooltip} className={styles.tooltip} data-open={open} aria-hidden="true">
           <div className={styles.tooltipCard}>
             <div className={styles.tooltipHeader}>
               <strong className={styles.tooltipTitle} data-series={selected.series}><span />{text.categories[selected.series]}</strong>

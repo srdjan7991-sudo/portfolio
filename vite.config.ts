@@ -13,7 +13,17 @@ export default defineConfig(({ command, isPreview }) => {
     plugins: [react()],
     server: https ? {
       https,
-      proxy: { '/api': { target: 'http://127.0.0.1:5082' } },
+      proxy: {
+        '/api': {
+          target: 'http://127.0.0.1:5082',
+          bypass(incoming) {
+            // Normalize before Vite copies headers into the upstream request.
+            delete incoming.headers['x-forwarded-for']
+            const clientAddress = incoming.socket.remoteAddress
+            if (clientAddress) incoming.headers['x-forwarded-for'] = clientAddress
+          },
+        },
+      },
     } : undefined,
     test: {
       environment: 'jsdom',

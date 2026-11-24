@@ -13,7 +13,7 @@ internal static class SectionOrderEndpoints
     private static readonly (string Key, string Title)[] Sections =
     [
         ("work", "Selected Work"), ("skills", "Technical Skills"),
-        ("expertise", "Engineering Expertise"), ("experience", "Professional Experience"),
+        ("expertise", "How I Engineer"), ("experience", "Professional Experience"),
         ("education", "Education & Certifications"), ("contact", "Contact")
     ];
 

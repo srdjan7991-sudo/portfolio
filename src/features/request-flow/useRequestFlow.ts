@@ -12,11 +12,20 @@ type Clock = {
 
 const initial: Clock = { index: 0, elapsed: 0, startedAt: null, revision: 0 }
 
+function readingDuration(index: number) {
+  return Math.max(steps[index].duration, phaseReadingTime)
+}
+
+function pauseClock(clock: Clock, now: number): Clock {
+  if (clock.startedAt === null) return clock
+  return { ...clock, startedAt: null, elapsed: Math.min(readingDuration(clock.index), clock.elapsed + now - clock.startedAt) }
+}
+
 export function useRequestFlow(active: boolean, live: boolean) {
   const [clock, setClock] = useState(initial)
   const [result, setResult] = useState<RequestResult>({ kind: 'idle' })
   const request = useRef<AbortController | null>(null)
-  const duration = Math.max(steps[clock.index].duration, phaseReadingTime)
+  const duration = readingDuration(clock.index)
   const finished = clock.index === steps.length - 1 && clock.elapsed === duration
   const playing = active && clock.startedAt !== null
 
@@ -73,7 +82,12 @@ export function useRequestFlow(active: boolean, live: boolean) {
     const now = performance.now()
     setClock(current => current.startedAt === null
       ? { ...current, startedAt: now }
-      : { ...current, startedAt: null, elapsed: Math.min(duration, current.elapsed + now - current.startedAt) })
+      : pauseClock(current, now))
+  }
+
+  function pause() {
+    const now = performance.now()
+    setClock(current => pauseClock(current, now))
   }
 
   function move(direction: -1 | 1) {
@@ -85,5 +99,5 @@ export function useRequestFlow(active: boolean, live: boolean) {
     }))
   }
 
-  return { ...clock, playing, finished, result, start, toggle, move }
+  return { ...clock, playing, finished, result, start, toggle, pause, move }
 }

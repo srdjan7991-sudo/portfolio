@@ -39,14 +39,12 @@ export function useReportTooltipPosition(
       }
 
       const x = Math.min(right - width, Math.max(left, (bar.left + bar.right - width) / 2))
-      const above = bar.top - height - edge
-      const below = bar.bottom + edge
-      const preferred = above < top && below + height <= bottom ? below : above
-      const y = Math.min(bottom - height, Math.max(top, preferred))
-      const area = plot?.getBoundingClientRect()
-      // When space is tight, keep neighboring marks in the active row reachable.
-      const overlapping = area !== undefined && y < area.bottom && y + height > area.top
-      panel.setAttribute('data-overlapping', String(overlapping))
+      const area = plot?.getBoundingClientRect() ?? bar
+      const clampY = (y: number) => Math.min(bottom - height, Math.max(top, y))
+      const barOverlap = (y: number) => Math.max(0, Math.min(bar.bottom, y + height) - Math.max(bar.top, y))
+      const above = clampY(area.top - height - edge)
+      const below = clampY(area.bottom + edge)
+      const y = barOverlap(below) < barOverlap(above) ? below : above
       panel.style.setProperty('--tooltip-x', `${x - bounds.left}px`)
       panel.style.setProperty('--tooltip-y', `${y - bounds.top}px`)
       panel.setAttribute('data-positioned', 'true')

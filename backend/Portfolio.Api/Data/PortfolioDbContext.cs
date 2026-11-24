@@ -13,6 +13,12 @@ public sealed class PortfolioDbContext(DbContextOptions<PortfolioDbContext> opti
     internal DbSet<AuthSession> AuthSessions => Set<AuthSession>();
     internal DbSet<RefreshCredential> RefreshCredentials => Set<RefreshCredential>();
 
+    internal void RequireConnection()
+    {
+        if (string.IsNullOrWhiteSpace(Database.GetConnectionString()))
+            throw new PortfolioDatabaseUnavailableException();
+    }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);

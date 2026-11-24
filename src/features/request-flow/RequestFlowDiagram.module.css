@@ -168,7 +168,7 @@
   line-height: 1.3;
 }
 .jobIndicator { display: block; flex: 0 0 auto; width: 0.31rem; height: 0.31rem; border-radius: 50%; border: 1px solid var(--control-edge); }
-.scene[data-phase='2'] .jobIndicator { border-color: var(--accent); background: var(--accent); }
+.scene[data-phase='processing'] .jobIndicator { border-color: var(--accent); background: var(--accent); }
 .responseSlot { block-size: var(--response-space, 3.875rem); margin-block-start: 0.35rem; }
 .response {
   max-block-size: 100%;
@@ -271,44 +271,44 @@
   }
 
   .scene[data-motion-started='true'] .loading { animation: waiting 1000ms linear infinite var(--still); }
-  .scene[data-motion-started='true'][data-phase='0'] .screen { animation: send 520ms var(--ease-out) both var(--still); }
-  .scene[data-motion-started='true'][data-phase='0'] .screenScan {
+  .scene[data-motion-started='true'][data-phase='interaction'] .screen { animation: send 520ms var(--ease-out) both var(--still); }
+  .scene[data-motion-started='true'][data-phase='interaction'] .screenScan {
     animation: scan var(--phase-duration) var(--ease-out) both var(--still);
   }
-  .scene[data-motion-started='true'][data-phase='2'] .coreRotor {
+  .scene[data-motion-started='true'][data-phase='processing'] .coreRotor {
     animation: rotor calc(var(--phase-duration) * 0.28) var(--ease-out)
       calc(var(--phase-duration) * 0.71) both var(--still);
   }
-  .scene[data-motion-started='true'][data-phase='2'] .coreChip {
+  .scene[data-motion-started='true'][data-phase='processing'] .coreChip {
     animation: energize 260ms ease-out calc(var(--phase-duration) * 0.54) both var(--still);
   }
-  .scene[data-motion-started='true'][data-phase='2'] .coreDiodes circle,
-  .scene[data-motion-started='true'][data-phase='2'] .jobIndicator {
+  .scene[data-motion-started='true'][data-phase='processing'] .coreDiodes circle,
+  .scene[data-motion-started='true'][data-phase='processing'] .jobIndicator {
     animation: diode 260ms var(--ease-out) calc(var(--phase-duration) * var(--beat, 0.15)) both var(--still);
   }
   .coreDiodes circle:nth-child(2), .serverJobs li:nth-child(2) { --beat: 0.37; }
   .coreDiodes circle:nth-child(3), .serverJobs li:nth-child(3) { --beat: 0.64; }
-  .scene[data-processed='true']:is([data-phase='3'], [data-phase='4'], [data-phase='5']) .jobIndicator {
+  .scene[data-processed='true']:not([data-phase='processing']) .jobIndicator {
     border-color: var(--accent);
     background: var(--accent);
   }
   .dataLayer[data-database-layer='upper'] { --slot-offset: var(--slot-stagger); }
   .dataLayer[data-database-layer='lower'] { --slot-offset: var(--last-slot-offset); }
-  .scene[data-motion-started='true'][data-phase='3'] .dataPlug {
+  .scene[data-motion-started='true'][data-phase='database'] .dataPlug {
     animation: plugIn var(--plug-duration) var(--ease-out)
       calc(var(--plug-start) + var(--slot-offset, 0ms)) both var(--still);
   }
-  .scene[data-motion-started='true'][data-phase='3'] .dataLayer {
+  .scene[data-motion-started='true'][data-phase='database'] .dataLayer {
     animation: seatSlot var(--slot-duration) var(--ease-out)
       calc(var(--plug-start) + var(--slot-offset, 0ms) + var(--slot-delay)) both var(--still);
   }
-  .scene[data-motion-started='true'][data-phase='3'] .dataReadout {
+  .scene[data-motion-started='true'][data-phase='database'] .dataReadout {
     animation: revealLookup 160ms var(--ease-out) var(--lookup-start) both var(--still);
   }
-  .scene[data-motion-started='true'][data-phase='4'] .response {
+  .scene[data-motion-started='true'][data-phase='response'] .response[data-inspecting='false'] {
     animation: settle 360ms var(--ease-out) calc(var(--phase-duration) * 0.78) both var(--still);
   }
-  .scene[data-motion-started='true'][data-phase='5'] :is(.cards article, .screenBody output) {
+  .scene[data-motion-started='true'][data-phase='result'] :is(.cards article, .screenBody output) {
     animation: settle 300ms var(--ease-out)
       calc(var(--phase-duration) * var(--row-delay, 0.68)) both var(--still);
   }

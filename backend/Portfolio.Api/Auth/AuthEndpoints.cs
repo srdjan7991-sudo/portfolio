@@ -3,7 +3,6 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Options;
 using Portfolio.Api.Data;
 
@@ -18,7 +17,8 @@ internal static class AuthEndpoints
             var context = invocation.HttpContext;
             context.Response.Headers.CacheControl = "no-store";
             var settings = context.RequestServices.GetRequiredService<AuthSettings>();
-            if (!settings.Enabled) return Results.StatusCode(503);
+            if (!settings.Enabled)
+                return Results.Problem(title: "Portfolio authentication is unavailable.", statusCode: 503);
 
             if (HttpMethods.IsPost(context.Request.Method) &&
                 (context.Request.Headers.Origin.Count != 1 ||
@@ -32,34 +32,38 @@ internal static class AuthEndpoints
 
         auth.MapGet("/setup-status", SetupStatus).RequireRateLimiting(AuthConfiguration.SetupStatusPolicy)
             .WithSummary("Check whether the first administrator can be created")
-            .Produces<SetupResponse>().Produces(429).Produces(503);
+            .Produces<SetupResponse>().Produces(429).ProducesProblem(503);
         auth.MapPost(AuthSettings.SignupRoute, Signup).RequireRateLimiting(AuthConfiguration.AttemptsPolicy)
             .WithSummary("Create the first administrator")
             .WithDescription("Requires a valid email, a password of 15–128 characters and the setup code. " +
                 "On success, returns an access token and sets the refresh cookie. Status 409 means setup is closed.")
             .Produces<TokenResponse>().Produces<CredentialError>(400).Produces(403)
-            .Produces<CredentialError>(409).Produces(429).ProducesProblem(500).Produces(503);
+            .Produces<CredentialError>(409).Produces(429).ProducesProblem(500).ProducesProblem(503);
         auth.MapPost("/login", Login).RequireRateLimiting(AuthConfiguration.AttemptsPolicy)
             .WithSummary("Sign in as the portfolio administrator")
             .WithDescription("Returns an access token and sets the refresh cookie. Incorrect credentials and locked accounts return the same status and message.")
             .Produces<TokenResponse>().Produces<CredentialError>(400).Produces<CredentialError>(401)
-            .Produces(403).Produces(429).Produces(503);
+            .Produces(403).Produces(429).ProducesProblem(503);
         auth.MapPost("/refresh", Refresh).RequireRateLimiting(AuthConfiguration.RefreshPolicy)
             .WithSummary("Renew the access token")
             .WithDescription($"The browser sends the HttpOnly, Secure, SameSite=Strict refresh cookie scoped to {AuthSettings.CookiePath}. " +
                 "A successful response rotates the cookie. Reusing an already rotated token revokes its session.")
-            .Produces<TokenResponse>().Produces(401).Produces(403).Produces(429).Produces(503);
+            .Produces<TokenResponse>().Produces(401).Produces(403).Produces(429).ProducesProblem(503);
         auth.MapPost("/logout", Logout).RequireRateLimiting(AuthConfiguration.LogoutPolicy)
             .WithSummary("Revoke the session and clear the refresh cookie")
             .WithDescription("The browser sends the refresh cookie. A successful response clears it and has no response body.")
-            .Produces(204).Produces(403).Produces(429).Produces(503);
+            .Produces(204).Produces(403).Produces(429).ProducesProblem(503);
         auth.MapGet("/me", Me).RequireAuthorization(AuthSettings.Admin)
             .WithSummary("Get the current administrator")
-            .Produces<AccountResponse>().Produces(401).Produces(403).Produces(503);
+            .Produces<AccountResponse>().Produces(401).Produces(403).ProducesProblem(503);
     }
 
-    private static async Task<IResult> SetupStatus(AuthSettings settings, PortfolioDbContext db, CancellationToken ct) =>
-        Results.Ok(new SetupResponse(settings.SetupConfigured && !await db.AdminSetups.AnyAsync(ct)));
+    private static async Task<IResult> SetupStatus(AuthSettings settings, PortfolioDbContext db, CancellationToken ct)
+    {
+        if (!settings.SetupConfigured) return Results.Ok(new SetupResponse(false));
+        db.RequireConnection();
+        return Results.Ok(new SetupResponse(!await db.AdminSetups.AnyAsync(ct)));
+    }
 
     private static async Task<IResult> Signup(
         Credentials input, HttpContext context, AuthSettings settings, PortfolioDbContext db,
@@ -68,7 +72,7 @@ internal static class AuthEndpoints
         if (!ValidCredentials(input, signup: true)) return InvalidInput();
         if (!settings.AllowsSetup(context.Request.Headers[AuthSettings.SetupHeader].ToString())) return Results.StatusCode(403);
 
-        await using var transaction = await LockAuth(db, ct);
+        await using var transaction = await AuthDatabase.LockWriteAsync(db, ct);
         if (await db.AdminSetups.AnyAsync(ct)) return Results.Conflict(new CredentialError("Setup is closed."));
 
         var email = input.Email!.Trim();
@@ -95,6 +99,7 @@ internal static class AuthEndpoints
         TimeProvider time, CancellationToken ct)
     {
         if (!ValidCredentials(input, signup: false)) return InvalidInput();
+        db.RequireConnection();
         var user = await users.FindByEmailAsync(input.Email!.Trim());
         if (user is null)
         {
@@ -107,8 +112,18 @@ internal static class AuthEndpoints
             return InvalidLogin();
         }
 
+        await using var transaction = await AuthDatabase.LockWriteAsync(db, ct);
+        // Recovery can change the credentials while the password check is in flight.
+        var current = await db.Users.AsNoTracking().Where(candidate => candidate.Id == user.Id)
+            .Select(candidate => new { candidate.SecurityStamp, candidate.LockoutEnabled, candidate.LockoutEnd })
+            .SingleOrDefaultAsync(ct);
         var now = time.GetUtcNow();
-        await using var transaction = await LockAuth(db, ct);
+        if (current is null || !string.Equals(current.SecurityStamp, user.SecurityStamp, StringComparison.Ordinal) ||
+            (current.LockoutEnabled && current.LockoutEnd >= now))
+        {
+            return InvalidLogin();
+        }
+
         var oldCredential = await FindRefresh(db, ReadRefreshHash(context), ct);
         if (oldCredential is not null) oldCredential.Session.RevokedAt ??= now;
         var (session, token) = NewSession(db, user.Id, now);
@@ -129,7 +144,7 @@ internal static class AuthEndpoints
             return Results.Unauthorized();
         }
 
-        await using var transaction = await LockAuth(db, ct);
+        await using var transaction = await AuthDatabase.LockWriteAsync(db, ct);
         var credential = await FindRefresh(db, hash, ct);
         var now = time.GetUtcNow();
         if (credential is null || credential.Session.RevokedAt is not null || credential.Session.ExpiresAt <= now)
@@ -159,7 +174,7 @@ internal static class AuthEndpoints
         var hash = ReadRefreshHash(context);
         if (hash is not null && await HasActiveRefresh(db, hash, time.GetUtcNow(), ct))
         {
-            await using var transaction = await LockAuth(db, ct);
+            await using var transaction = await AuthDatabase.LockWriteAsync(db, ct);
             var credential = await FindRefresh(db, hash, ct);
             if (credential is not null)
             {
@@ -178,26 +193,6 @@ internal static class AuthEndpoints
         return user is null || !await users.IsInRoleAsync(user, AuthSettings.Admin)
             ? Results.Forbid()
             : Results.Ok(new AccountResponse(user.Id, user.Email, AuthSettings.Admin));
-    }
-
-    private static async Task<IDbContextTransaction> LockAuth(PortfolioDbContext db, CancellationToken ct)
-    {
-        var transaction = await db.Database.BeginTransactionAsync(ct);
-        try
-        {
-            await db.Database.ExecuteSqlRawAsync("""
-                DECLARE @result int;
-                EXEC @result = sys.sp_getapplock @Resource = N'Portfolio.Auth.Write',
-                    @LockMode = 'Exclusive', @LockOwner = 'Transaction', @LockTimeout = 5000;
-                IF @result < 0 THROW 51001, 'Portfolio authentication lock unavailable.', 1;
-                """, ct);
-            return transaction;
-        }
-        catch
-        {
-            await transaction.DisposeAsync();
-            throw;
-        }
     }
 
     private static (AuthSession Session, string Token) NewSession(PortfolioDbContext db, string userId, DateTimeOffset now)
@@ -221,9 +216,12 @@ internal static class AuthEndpoints
             ? AuthTokens.Hash(value) : null;
     }
 
-    private static Task<bool> HasActiveRefresh(PortfolioDbContext db, string hash, DateTimeOffset now, CancellationToken ct) =>
-        db.RefreshCredentials.AnyAsync(credential => credential.Hash == hash &&
+    private static Task<bool> HasActiveRefresh(PortfolioDbContext db, string hash, DateTimeOffset now, CancellationToken ct)
+    {
+        db.RequireConnection();
+        return db.RefreshCredentials.AnyAsync(credential => credential.Hash == hash &&
             credential.Session.RevokedAt == null && credential.Session.ExpiresAt > now, ct);
+    }
 
     private static Task<RefreshCredential?> FindRefresh(PortfolioDbContext db, string? hash, CancellationToken ct) =>
         hash is null ? Task.FromResult<RefreshCredential?>(null) : db.RefreshCredentials

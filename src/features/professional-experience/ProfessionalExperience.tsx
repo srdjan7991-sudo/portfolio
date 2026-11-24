@@ -54,7 +54,7 @@ export function ProfessionalExperience() {
   useExperienceTimeline(section)
 
   return (
-    <PortfolioSection id="experience" customReveal ref={section}>
+    <PortfolioSection id="experience" ref={section}>
       <div className="experience-employment">
         <div className="experience-entry-heading">
           <h3>{experience.frontend} · Midenas DOO</h3>

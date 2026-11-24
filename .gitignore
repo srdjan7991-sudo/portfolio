@@ -1,6 +1,8 @@
 node_modules/
 dist/
+.browser-dist/
 coverage/
+test-results/
 .idea/
 *.local
 

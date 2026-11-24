@@ -1,5 +1,3 @@
-export const sectionsEndpoint = '/api/sections'
-
 type PublicSection = { key: string; title: string; body: string }
 
 export type RequestResult =
@@ -17,7 +15,7 @@ function isPublicSection(value: unknown): value is PublicSection {
 }
 
 export async function readPublicSections(signal: AbortSignal): Promise<RequestResult> {
-  const response = await fetch(sectionsEndpoint, { headers: { Accept: 'application/json' }, signal })
+  const response = await fetch('/api/sections', { headers: { Accept: 'application/json' }, signal })
   if (!response.ok) return { kind: 'error', status: response.status }
 
   try {
