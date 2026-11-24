@@ -10,7 +10,7 @@ On a fresh load, **Frontend** shows **Revision 1**. In the desktop layout, hover
 
 1. Select **Refresh queue**.
 2. Follow the highlighted signal from the button to **API**.
-3. The status shows **GET /api/queue** as the request is sent. The simulation describes what happens as it passes through the API, service, and data layer.
+3. The status shows the simulated **GET /api/queue**. The browser demo traces it through the API, service, and data layers using local state.
 
 ![The same review queue after the request completes, with markers for the updated item list, Revision 2, and 200 OK.](../screenshots/hero--refresh-result.webp)
 

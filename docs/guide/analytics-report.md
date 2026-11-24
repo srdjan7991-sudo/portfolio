@@ -32,7 +32,7 @@ Choose **Try a sample report** under Mede Analytics to open the separate interac
 
 1. Choose **Reset filters** to return to the default view. Hover over or focus the **Quality** bar for **May 2026**. The tooltip shows **115**, up **13** or **12.7%** from April.
 2. Click or tap the bar, or press **Enter** or **Space** while it has focus. The corresponding table cell is marked and the **Marked in the table** summary appears.
-3. Press **Escape** to dismiss the tooltip. Choose **Clear selection** above the table or activate the same bar again to remove the table mark. Changing the main filters also clears the selection.
+3. Press **Escape** to dismiss the tooltip and keep the mark. Close and reopen the report to see the same cell still marked.
 
 ![The May Quality bar opens a tooltip for 115, with an arrow pointing to the marked value in the Monthly data table.](../screenshots/analytics--chart-and-table.webp)
 
@@ -40,7 +40,7 @@ Choose **Try a sample report** under Mede Analytics to open the separate interac
 2. **Tooltip** gives the exact count and any available change from the previous calendar month.
 3. **Marked table value** shows which cell corresponds to the selected bar.
 
-Close and reopen **Try a sample report** to return to the same selection.
+Choose **Clear selection** above the table or activate the same bar again to remove the mark. Changing the main filters also clears it.
 
 ## Compare two months directly
 

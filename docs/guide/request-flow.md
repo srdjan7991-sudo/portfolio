@@ -14,9 +14,9 @@ Scroll past the Hero to **What happens when you click?**. Start with the archite
 
 ## Follow one request
 
-1. From the diagram, select **Explore the request**, then **Open walkthrough**. The player opens at **01 · Interaction**.
+1. From the diagram on the public portfolio, select **Explore the request**, then **Open walkthrough**. The player opens at **01 · Interaction** and uses example content.
 2. Select **Play** or **Load content** inside the illustrated browser to start. Select **Pause** whenever you want to read a stage.
-3. Use **Next step** and **Previous step** to inspect one stage at a time. Either control stops automatic playback on the selected stage.
+3. Use the right arrow (**Next step**) or the left arrow (**Previous step**) to inspect one stage at a time. Either control pauses playback on the selected stage.
 
 ![The guided walkthrough paused at step 04. Markers identify progress, the database lookup, and playback controls.](../screenshots/request-flow--guided-walkthrough.webp)
 
@@ -56,4 +56,6 @@ Try the other two scenarios to see how the browser handles multiple requests.
 - **Responses out of order.** Select **Send request**, then **Send newer request**. The 30-day response arrives first. When the slower 7-day response arrives, only **Without a response check** switches to the older result. **With a response check** shows the current 30-day selection.
 - **Cancel a slow request.** Select **Send request** and use **Cancel request** to stop waiting for it, or select **Send replacement** while it is running. Once the replacement finishes, only its result appears in the browser.
 
-Open **How it works in a real app** below the simulator to read the implementation note for the selected scenario. Use **Reset** to run the scenario again or **Close HTTP scenarios** to return to the diagram. The simulator and the public guided walkthrough use example content.
+Open **How it works in a real app** below the simulator to read the implementation note for the selected scenario. Use **Reset** to run the scenario again or **Close HTTP scenarios** to return to the diagram. The simulator uses example content in both deployments.
+
+With a local HTTPS frontend connected to the backend, **Load content** in the guided walkthrough requests the published section rows from `GET /api/sections`. [Local backend setup](../backend.md#local-setup)

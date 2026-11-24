@@ -23,7 +23,7 @@ The numbered callouts tie each screenshot to the steps beneath it. Open a screen
 1. Use the header links to jump to a section. On a phone, open **Menu** first.
 2. Switch between light and dark or between **EN** and **SR**. The portfolio remembers both preferences.
 3. **View selected work** takes you to the projects. **Get in touch** goes directly to Contact.
-4. In **Living application architecture**, choose **Refresh queue** or **Pin first task**. Follow the request to the API and check the result in the review queue. Select **API**, **Service**, or **Data** to inspect its role and connections.
+4. In **Living application architecture**, choose **Refresh queue** or **Pin first task**. Follow the simulated request to the API and check the result in the review queue. Select **API**, **Service**, or **Data** to inspect its role and connections.
 
 See the controls on a phone and follow a queue refresh from click to response. [Opening screen and navigation guide](docs/guide/using-the-portfolio.md)
 
@@ -41,7 +41,7 @@ Follow all six phases or recover from a simulated HTTP 500. [Behind every reques
 
 ![Mede Analytics and Kterio in Selected Work with numbered callouts for the preview, report, and case study.](docs/screenshots/work--project-preview.webp)
 
-1. Scroll toward the Mede Analytics preview. Its lines draw into view and clear as you scroll past. With reduced motion the completed preview holds still.
+1. Scroll toward the Mede Analytics preview. With motion enabled and browser support for scroll-linked animations, its lines draw into view and clear as you scroll past. The full preview is visible with reduced motion, in editing mode, or in browsers without scroll timeline support.
 2. Open **Try a sample report** to work with filters and the bar chart.
 3. Open **Read the case study** to see the project context, contribution, implementation, and validation.
 4. Continue to **Kterio** for the building operations work and the split between the interface and services.
@@ -79,7 +79,7 @@ Try filtering a state example, changing the sample range of a chart, simulating 
 
 ![Professional Experience timeline with Mede Analytics active and its Details control visible.](docs/screenshots/experience--timeline.webp)
 
-1. Follow the filled portion of the rail as you scroll through the projects.
+1. With motion enabled, follow the filled portion of the rail as you scroll through the projects. With reduced motion, the rail is static and the active dot still follows the scroll position.
 2. The project near the center of the viewport gets a filled dot. Scroll up to see the previous project become active again.
 3. Open **Details** on Mede Analytics or Kterio for case notes. Select an underlined technology to jump to its detail in Technical Skills.
 

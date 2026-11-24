@@ -37,11 +37,11 @@ Open **Expertise** from the header to find five engineering areas. Choose an are
 | API Integration | Choose **Simulate error**, wait for **Request failed**, then choose **Simulate success** to see the successful response. Select **Reset** while a simulated request is in progress to return to **Ready to send**. |
 | Application Architecture | With **Separate modules** selected, choose **View**, **Service**, or **Repository** to read each module. Select **One module** to see the combined code. |
 
-Under **Frontend Engineering**, try **Narrow** and **Wide** in **Responsive interfaces**. On a wide screen the examples switch between stacked and side-by-side panels. In **Accessibility**, open **Filter options**, press **Tab** to reach **Include completed items**, and press **Space** to toggle it. In **Performance**, use **Next** and **Previous** to page through four rows at a time, or choose **All rows** to see all 16.
+Under **Frontend Engineering**, try **Narrow** and **Wide** in **Responsive interfaces**. On a wide screen the examples switch between stacked and side-by-side panels. In **Accessibility**, open **Filter options**, press **Tab** to reach **Include completed items**, and press **Space** to toggle it. In **Performance**, use **Next page** and **Previous page** to page through four rows at a time, or choose **All rows** to see all 16.
 
 ## Professional Experience
 
-1. Open **Experience** and scroll through the three assignments. The filled rail (1) tracks how far you have scrolled through the list. The dot beside the project near the middle of the viewport fills in (2). Scroll back up to move both indicators in reverse.
+1. Open **Experience** and scroll through the three assignments. With motion enabled, the rail fill (1) follows the scroll position. The dot beside the project near the middle of the viewport fills in (2) in both scroll directions. With reduced motion, the rail is static and the current project still updates.
 2. Select **Details** (3) on Mede Analytics or Kterio to expand its project notes. Select **Details** again to collapse them. Alpha Data Solutions shows its summary and tools in the timeline entry.
 
 ![Experience timeline at the start of the project list, with Mede Analytics active and its Details control visible.](../screenshots/experience--timeline.webp)
