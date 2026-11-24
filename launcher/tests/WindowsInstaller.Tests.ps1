@@ -161,6 +161,11 @@ try {
     $server = $null
     Write-Output 'Stop released the demo port and left an independent listener untouched. Restart reused the local URL.'
 
+    # An unhandled worker exception must fail the smoke test without interrupting uninstall cleanup.
+    & $powerShellPaths[0] -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot 'WindowsStaticServerLifecycle.Tests.ps1') `
+        -ServerSource (Join-Path $installDirectory 'launcher\Launcher.StaticServer.cs') -WebRoot $webDirectory
+    if ($LASTEXITCODE -ne 0) { throw "The installed server failed its Start/Stop lifecycle check (exit $LASTEXITCODE)." }
+
     Invoke-TestInstallerStep $uninstaller "/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /LOG=`"$uninstallLog`"" $uninstallLog
     if ((Test-PortfolioRegistration) -or (Test-Path -LiteralPath $installDirectory) -or
         ($shortcuts | Where-Object { Test-Path -LiteralPath $_ }) -or

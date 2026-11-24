@@ -15,6 +15,7 @@ namespace PortfolioLauncher
     {
         private const int RequestLimit = 16384;
         private const int TimeoutMilliseconds = 3000;
+        private const int AcceptPollMicroseconds = 25000;
         private const int ConcurrentClients = 24;
         private static readonly Dictionary<string, string> MediaTypes =
             new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
@@ -36,9 +37,9 @@ namespace PortfolioLauncher
             };
 
         private readonly string root;
-        private readonly TcpListener listener;
+        private readonly Socket listener;
         private readonly Thread acceptThread;
-        private readonly HashSet<TcpClient> clients = new HashSet<TcpClient>();
+        private readonly HashSet<Socket> clients = new HashSet<Socket>();
         private readonly string instanceId = Guid.NewGuid().ToString("N");
         private volatile bool disposed;
 
@@ -48,18 +49,20 @@ namespace PortfolioLauncher
             if (!IsRegularEntry(root) || !File.Exists(Path.Combine(root, "index.html")))
                 throw new DirectoryNotFoundException("The bundled portfolio directory is unavailable.");
 
-            listener = new TcpListener(IPAddress.Loopback, port);
-            listener.ExclusiveAddressUse = true;
+            listener = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             try
             {
-                listener.Start(32);
-                Port = ((IPEndPoint)listener.LocalEndpoint).Port;
+                listener.ExclusiveAddressUse = true;
+                listener.Bind(new IPEndPoint(IPAddress.Loopback, port));
+                listener.Listen(32);
+                listener.Blocking = false;
+                Port = ((IPEndPoint)listener.LocalEndPoint).Port;
                 acceptThread = new Thread(AcceptClients) { IsBackground = true };
                 acceptThread.Start();
             }
             catch
             {
-                listener.Stop();
+                listener.Dispose();
                 throw;
             }
         }
@@ -94,34 +97,50 @@ namespace PortfolioLauncher
 
         private void AcceptClients()
         {
-            while (!disposed)
+            try
             {
-                TcpClient client;
-                try { client = listener.AcceptTcpClient(); }
-                catch (SocketException) { return; }
-                catch (ObjectDisposedException) { return; }
-
-                lock (clients)
+                while (!disposed)
                 {
-                    if (disposed || clients.Count >= ConcurrentClients)
+                    Socket client;
+                    try
                     {
-                        client.Close();
-                        continue;
+                        if (!listener.Poll(AcceptPollMicroseconds, SelectMode.SelectRead) || disposed) continue;
+                        client = listener.Accept();
                     }
-                    clients.Add(client);
+                    catch (SocketException error)
+                    {
+                        if (error.SocketErrorCode == SocketError.WouldBlock) continue;
+                        return;
+                    }
+
+                    lock (clients)
+                    {
+                        if (disposed || clients.Count >= ConcurrentClients)
+                        {
+                            client.Dispose();
+                            continue;
+                        }
+                        clients.Add(client);
+                    }
+                    ThreadPool.QueueUserWorkItem(state => Serve((Socket)state), client);
                 }
-                ThreadPool.QueueUserWorkItem(state => Serve((TcpClient)state), client);
+            }
+            finally
+            {
+                // Only the accept thread closes the listener, so Poll and Accept never race disposal.
+                listener.Dispose();
             }
         }
 
-        private void Serve(TcpClient client)
+        private void Serve(Socket client)
         {
             try
             {
                 using (client)
                 {
+                    client.Blocking = true;
                     client.SendTimeout = TimeoutMilliseconds;
-                    using (var stream = client.GetStream())
+                    using (var stream = new NetworkStream(client, ownsSocket: false))
                     {
                         var request = ReadRequest(stream);
                         if (request == null) return;
@@ -254,8 +273,7 @@ namespace PortfolioLauncher
             {
                 if (disposed) return;
                 disposed = true;
-                listener.Stop();
-                foreach (TcpClient client in clients) client.Close();
+                foreach (Socket client in clients) client.Dispose();
             }
             acceptThread.Join();
         }
