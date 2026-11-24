@@ -70,7 +70,7 @@
 .selected-work-legend span::before { content: ''; width: 0.8rem; border-top: 2px solid var(--accent); }
 .selected-work-legend span + span::before { border-top: 2px dashed var(--quiet); }
 .selected-work-plot-window { overflow: clip; margin-block: 0.8rem 0.45rem; }
-.selected-work-chart { display: block; width: 100%; height: auto; transform-origin: 72% 65%; }
+.selected-work-chart { display: block; width: 100%; height: auto; }
 
 .selected-work-contribution {
   display: grid;
@@ -145,17 +145,17 @@
   @keyframes case-details-in { from { opacity: 0.5; transform: translateY(-3px); } }
 }
 
-@supports (animation-timeline: view()) {
+@supports (animation-timeline: view()) and (animation-range: entry exit) and (clip-path: inset(0)) {
   @media (prefers-reduced-motion: no-preference) {
     #main:not(:has([data-editing])) .selected-work-plot-window { view-timeline: --work-plot block; }
     #main:not(:has([data-editing])) .selected-work-chart {
-      animation: work-plot-pullback linear both;
+      animation: work-plot-draw auto linear both;
       animation-timeline: --work-plot;
-      animation-range: entry 5% cover 42%;
+      animation-range: cover;
     }
-    @keyframes work-plot-pullback {
-      from { clip-path: inset(0 0 0 28%); transform: scale(1.2); }
-      to { clip-path: inset(0); transform: none; }
+    @keyframes work-plot-draw {
+      entry 0%, exit 100% { clip-path: inset(0 100% 0 0); }
+      entry 100%, exit 0% { clip-path: inset(0); }
     }
   }
 }

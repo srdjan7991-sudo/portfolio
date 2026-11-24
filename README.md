@@ -25,13 +25,13 @@ For live API calls, Swagger, and administrator controls, follow the [local backe
 
 | Feature | What it shows |
 | --- | --- |
-| Architectural Window | The staircase opens in step with the Hero heading, responds to a precise pointer, then narrows around the illuminated curve as you scroll past. With reduced motion the full composition is visible immediately. |
+| Architectural Window | The staircase opens in step with the Hero heading and responds to a precise pointer. With reduced motion the full composition is visible immediately. |
 | Behind every request | Scroll through a cross section of the browser, server, and database. Select a layer to read about its role. Open the six-stage walkthrough or try simulated HTTP scenarios for out-of-order responses, cancellation, and retry. With the API enabled, the walkthrough can show the response from the portfolio backend. |
-| Selected Work | Explore the Mede Analytics preview and case study or open its independent analytics demo. Filter monthly synthetic counts, select a bar to mark its cell in the table, review coverage by category, and compare two months on the same scale. Kterio describes work on its interface and service layer. |
+| Selected Work | The Mede Analytics preview chart draws as it enters view and erases as it leaves. Explore the case study or open its independent analytics demo. Filter monthly synthetic counts, select a bar to mark its cell in the table, review coverage by category, and compare two months on the same scale. Kterio describes work on its interface and service layer. |
 | Technical Skills | Explore 21 technologies across five categories. Open a technology to see its role and related tools. Highcharts links to Mede Analytics and C# links to Kterio. |
 | How I Engineer | Explore 26 concepts across frontend engineering, data visualization, API integration, application architecture, and testing. In Testing & Quality, compare what the same input produces with and without the quantity limit. |
 | Professional Experience | Follow the project timeline as you scroll. Open project details and follow links between the project stack and Technical Skills. Reduced motion keeps the rail static and updates the current project marker. |
-| Education and Contact | Read dated education entries, open the contact links or download the CV, and return to the top from the footer. |
+| Education and Contact | Read dated education entries, then find the contact links and CV download in a row below the contact description. The row wraps on narrow screens. Return to the top from the footer. |
 | English and Serbian | A header switch changes the language in place and remembers the selection on the next visit. |
 | Light and dark themes | A switch in the header with a saved preference. The interface respects reduced motion. |
 | Section ordering | In the HTTPS setup, the administrator can sort six content sections by dragging, using the up and down buttons, or using the keyboard. The API saves the order in SQL Server. |
