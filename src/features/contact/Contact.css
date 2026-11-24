@@ -16,7 +16,7 @@
 
 .contact-inner {
   display: grid;
-  gap: 1.75rem clamp(2rem, 7vw, 7rem);
+  gap: 1.75rem;
 }
 
 .contact-signature {
@@ -41,17 +41,12 @@
   list-style: none;
 }
 
-.contact-file-type { font: 0.68rem var(--mono); color: var(--muted); }
-
-@media (width >= 51rem) {
-  .contact-inner {
-    grid-template-columns: minmax(0, 1fr) auto;
-    align-items: end;
-  }
-
-  .contact-links { display: grid; grid-template-columns: repeat(2, max-content); }
-  .contact-links a { justify-content: space-between; }
+.contact-links .ui-pill {
+  column-gap: clamp(0.35rem, 1.1vw, 0.65rem);
+  padding-inline: clamp(0.55rem, 1.65vw, 1rem);
 }
+
+.contact-file-type { font: 0.68rem var(--mono); color: var(--muted); }
 
 @media (prefers-reduced-motion: no-preference) {
   .contact-arrow { transition: transform var(--quick) var(--ease-out); }
