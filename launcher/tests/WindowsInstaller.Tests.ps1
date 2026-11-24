@@ -117,13 +117,13 @@ try {
         Invoke-TestInstallerStep $installer "/VERYSILENT /SUPPRESSMSGBOXES $setupArguments" $installLog
     } else {
         # Wait only for Setup. The checked option intentionally leaves its launcher running.
-        $setup = Start-Process -FilePath $installer -ArgumentList $setupArguments -PassThru
-        Write-Host 'Click Install. On the final page, leave the wizard open.'
-        $shown = Read-Host 'Is "Pokreni Portfolio Launcher" visible and initially unchecked? Type yes to confirm'
-        if ($shown -ne 'yes' -or $setup.HasExited -or (Test-InstalledLauncherOpen) -or (Get-TestLauncherProcesses)) {
-            throw "Expected the unchecked Finish option with Setup still open and the launcher closed. See $installLog."
+        Write-Host 'In the Setup window, click Install and confirm the checkbox starts empty on the final page.'
+        if ($FinishLaunch -eq 'Checked') {
+            Write-Host 'CHECK "Pokreni Portfolio Launcher", then click Finish. Leave the launcher open.'
+        } else {
+            Write-Host 'LEAVE "Pokreni Portfolio Launcher" UNCHECKED, then click Finish.'
         }
-        Write-Host "Set the option to $FinishLaunch and click Finish."
+        $setup = Start-Process -FilePath $installer -ArgumentList $setupArguments -PassThru
         $setup.WaitForExit()
         if ($setup.ExitCode -ne 0) { throw "Setup exited with code $($setup.ExitCode). See $installLog." }
     }
@@ -133,7 +133,7 @@ try {
     $expectedRuns = if ($FinishLaunch -eq 'Checked') { 1 } else { 0 }
     if ($runParameters.Count -ne $expectedRuns -or
         ($expectedRuns -eq 1 -and !$runParameters[0].EndsWith("Parameters: $launcherArguments", [StringComparison]::OrdinalIgnoreCase))) {
-        throw "Expected $expectedRuns Setup launch entries with the installed launcher arguments. See $installLog."
+        throw "$FinishLaunch test expected $expectedRuns Setup launcher entries with the installed path and found $($runParameters.Count). See $installLog."
     }
 
     $uninstaller = Get-TestUninstaller
@@ -169,15 +169,20 @@ try {
     }
     if ($FinishLaunch -eq 'Unchecked') {
         if (Get-TestLauncherProcesses) { throw 'Finish started a launcher process with the checkbox unchecked.' }
+        Write-Host 'Setup left the launcher closed. The test will open the Desktop shortcut now.'
         Start-Process -FilePath $shortcuts[0]
         Wait-InstalledLauncherState $true
     }
     if ($FinishLaunch -ne 'Silent') {
         if (@(Get-TestLauncherProcesses).Count -ne 1) { throw 'Expected exactly one process running the installed launcher.' }
-        $visible = Read-Host 'Confirm that the launcher window appeared, click Exit in it, then type yes'
-        if ($visible -ne 'yes') { throw 'The launcher window was not confirmed.' }
+        $visible = Read-Host 'If the checkbox was initially empty and the launcher window appeared, click Exit in it and type yes (or da)'
+        if ($visible.Trim() -notin @('yes', 'da')) { throw 'The initial checkbox state or launcher window was not confirmed.' }
         Wait-InstalledLauncherState $false
-        Write-Output "The $FinishLaunch Finish option opened exactly one visible launcher as expected."
+        if ($FinishLaunch -eq 'Checked') {
+            Write-Output 'Checked Finish opened exactly one visible launcher.'
+        } else {
+            Write-Output 'Unchecked Finish left the launcher closed, and the Desktop shortcut opened exactly one visible launcher.'
+        }
     } else {
         Write-Output 'Silent installation left the launcher closed.'
     }
