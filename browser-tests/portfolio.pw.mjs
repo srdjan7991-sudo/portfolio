@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test'
 
 const action = (page, name) => page.getByRole('button', { name, exact: true })
 const reportPoint = (page, category) => page.getByRole('button', { name: new RegExp(`${category}, May 2026`) })
-const openTooltip = page => page.locator('[data-hoverable][data-open="true"][data-positioned="true"]')
+const openTooltip = page => page.locator('[data-open="true"][data-positioned="true"]')
 
 async function openReport(page) {
   await page.getByText('Try a sample report', { exact: true }).click()
@@ -80,6 +80,33 @@ test('Skills restores a modified visit after reload, Back and Forward', async ({
   await expect(restored).toBeFocused()
 })
 
+for (const plotTop of [96, -95]) {
+  test(`hover tooltip leaves both bars clickable at plot top ${plotTop}px`, async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 420 })
+    await page.goto('./')
+    await openReport(page)
+    const quality = reportPoint(page, 'Quality')
+    const utilization = reportPoint(page, 'Utilization')
+    await quality.evaluate((el, top) => {
+      window.scrollBy({ top: el.closest('[data-chart-plot]').getBoundingClientRect().top - top, behavior: 'instant' })
+    }, plotTop)
+
+    const table = page.getByRole('table', { name: 'Monthly data' })
+    const selectedValue = table.locator('td[aria-current="true"]')
+    for (const [point, value] of [[quality, '115'], [utilization, '77']]) {
+      const bar = await point.locator('[data-zero]').boundingBox()
+      const x = bar.x + bar.width / 2
+      const y = bar.y + bar.height - 10
+      await page.mouse.move(x, y)
+      await expect(openTooltip(page)).toContainText(value)
+      await page.mouse.click(x, y)
+      await expect(point).toHaveAttribute('aria-pressed', 'true')
+      await expect(selectedValue).toHaveText(value)
+    }
+    await expect(quality).toHaveAttribute('aria-pressed', 'false')
+  })
+}
+
 for (const [height, plotTop] of [[900, 330], [420, 96], [420, -48]]) {
   test(`chart readout stays hoverable with the plot at ${plotTop}px in a ${height}px viewport`, async ({ page }) => {
     await page.setViewportSize({ width: 1440, height })
@@ -99,8 +126,10 @@ for (const [height, plotTop] of [[900, 330], [420, 96], [420, -48]]) {
     expect(panel.y).toBeGreaterThanOrEqual(0)
     expect(panel.y + panel.height).toBeLessThanOrEqual(height)
 
+    await page.clock.install()
     await page.mouse.move(sourceX, panel.y + panel.height / 2, { steps: 6 })
     await page.mouse.move(panel.x + panel.width - 12, panel.y + panel.height - 12, { steps: 6 })
+    await page.clock.fastForward(200)
     await expect(readout).toContainText('115')
 
     const utilization = reportPoint(page, 'Utilization')

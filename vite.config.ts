@@ -16,12 +16,11 @@ export default defineConfig(({ command, isPreview }) => {
       proxy: {
         '/api': {
           target: 'http://127.0.0.1:5082',
-          configure(proxy) {
-            proxy.on('proxyReq', (outgoing, incoming) => {
-              outgoing.removeHeader('x-forwarded-for')
-              const clientAddress = incoming.socket.remoteAddress
-              if (clientAddress) outgoing.setHeader('x-forwarded-for', clientAddress)
-            })
+          bypass(incoming) {
+            // Normalize before Vite copies headers into the upstream request.
+            delete incoming.headers['x-forwarded-for']
+            const clientAddress = incoming.socket.remoteAddress
+            if (clientAddress) incoming.headers['x-forwarded-for'] = clientAddress
           },
         },
       },

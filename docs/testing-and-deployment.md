@@ -56,7 +56,7 @@ npx playwright install chromium --only-shell
 npm run test:browser
 ```
 
-Playwright starts a Vite production preview. Its HTTPS walkthrough uses a fixture for API responses and checks the real frontend. The browser suite requires no database. Use the manual checks below for other browser engines, wider visual coverage, and the real HTTPS proxy.
+Playwright starts a Vite production preview. Its HTTPS walkthrough uses a fixture for API responses and checks the real frontend. A separate test starts the Vite HTTPS development proxy on loopback and checks the forwarded address received by a test upstream for regular and HTTP continue requests. These tests require no database. Use the manual checks below for other browser engines, wider visual coverage, and the deployed ingress.
 
 ## Backend checks
 
