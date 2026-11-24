@@ -20,14 +20,15 @@ type Props = {
   editing: boolean
   saving: boolean
   onPreview: (order: SectionKey[]) => void
-  onCancel: () => void
-  onSave: () => void
+  onCancel: (beforeMove: SectionKey[]) => void
+  onSave?: () => void
 }
 
 export function PortfolioSections({ sections, order, editing, saving, onPreview, onCancel, onSave }: Props) {
   const { text } = useLanguage()
   const bounds = useRef<HTMLDivElement>(null)
   const moving = useRef<Move | null>(null)
+  const beforeMove = useRef(order)
   const [pickedUp, setPickedUp] = useState<SectionKey>()
   const [announcement, setAnnouncement] = useState<MoveAnnouncement>()
   const reduced = useReducedMotion()
@@ -35,6 +36,7 @@ export function PortfolioSections({ sections, order, editing, saving, onPreview,
   function start(move: Move) {
     if (!editing || saving || moving.current) return
     moving.current = move
+    beforeMove.current = order
     setPickedUp(move.key)
     setAnnouncement({ kind: 'picked', key: move.key })
   }
@@ -44,10 +46,10 @@ export function PortfolioSections({ sections, order, editing, saving, onPreview,
     if (!move) return
     moving.current = null
     setPickedUp(undefined)
-    if (commit) onSave()
+    if (commit) onSave?.()
     else {
       if (move.type === 'pointer') move.cancel()
-      onCancel()
+      onCancel(beforeMove.current)
       setAnnouncement({ kind: 'cancelled' })
     }
   }
@@ -144,7 +146,7 @@ export function PortfolioSections({ sections, order, editing, saving, onPreview,
       {editing && (
         <>
           <p id="section-order-instructions" className="visually-hidden">
-            {text.order.instructions}
+            {onSave ? text.order.instructions : text.order.local.instructions}
           </p>
           <ScreenReaderStatus message={message} />
         </>
@@ -154,7 +156,7 @@ export function PortfolioSections({ sections, order, editing, saving, onPreview,
           bounds={bounds} reduced={Boolean(reduced)} pickedUp={pickedUp === key}
           moveActive={pickedUp !== undefined} canMoveUp={index > 0} canMoveDown={index < order.length - 1}
           onStep={(direction, control) => {
-            if (editing && !saving && !moving.current && previewStep(key, direction, control)) onSave()
+            if (editing && !saving && !moving.current && previewStep(key, direction, control)) onSave?.()
           }}
           onPointerStart={cancel => start({ key, type: 'pointer', cancel })}
           onPointerEnd={commit => { if (moving.current?.type === 'pointer') finish(commit) }}

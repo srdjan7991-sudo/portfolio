@@ -17,6 +17,8 @@ The React features contain the public page copy. Selected Work opens the Mede An
 
 [`PortfolioSection.tsx`](../src/components/shared/PortfolioSection.tsx) supplies section markup and heading IDs. [`Layout.tsx`](../src/components/shared/Layout.tsx) owns the Header, Footer, and mobile menu. Navigation uses native hash links and follows the current section order. [`sectionNavigation.ts`](../src/hooks/sectionNavigation.ts) manages the active link and initial hash alignment. The current desktop link is underlined and exposes `aria-current="location"`. Each animated feature owns its own reveal behavior.
 
+The Windows installer packages the same page built in Vite's `windows-demo` mode with relative asset paths. This mode leaves out authentication and live API calls. It uses the existing reorder controls with a browser-local draft and save, and labels the guided request flow as a visual demonstration. API calls shown in Hero and How I Engineer are simulations or code examples. [Windows launcher](guide/windows-launcher.md)
+
 ## Sample analytics report
 
 Open the sample report under Selected Work. The default view shows 15 synthetic counts across Quality, Utilization, and Operations from January through June 2026. Operations reporting starts in April. Each reported observation has its own bar in the monthly group. The table shows the selected months and categories with the same counts. A missing observation is marked as unreported. A reported zero is a valid count. [Report data](../src/features/selected-work/analyticsReport.ts)
@@ -122,6 +124,8 @@ Choose **Try HTTP scenarios** in the same section. The simulator runs locally in
 ## Section ordering
 
 [`useSectionOrder.ts`](../src/features/section-order/useSectionOrder.ts) reads the order from `GET /api/sections/order` when API integration is enabled. It falls back to the bundled order if the response is unavailable or invalid. The Header and content group receive the same order.
+
+In the Windows demo, [`useLocalSectionOrder.ts`](../src/features/section-order/useLocalSectionOrder.ts) checks the saved order against the same six-key permutation rule. After a move, the Header and content reflect the draft immediately. **Save changes** writes the order to the current browser's local storage. **Cancel** restores the saved order, and **Reset layout** previews the bundled order.
 
 In **Editing mode**, click or tap the up or down button to move a section one position and save the change. You can also drag a section by its **Move section** handle. From the handle, press Space or Enter to pick up the section, use the arrow keys, then press Space or Enter to save. Escape cancels the move. A rejected save restores the last confirmed order. The administrator can change the sequence of the six sections. Editing the section copy remains a source change.
 

@@ -10,6 +10,7 @@
 | Interaction | CSS view timelines for scroll effects, Motion for React for the request cross section, section reordering, Skills, and How I Engineer, SVG and CSS for the Hero demo and request walkthrough, Radix UI Collapsible for the mobile menu |
 | API and data | ASP.NET Core Minimal APIs on .NET 10, Entity Framework Core, SQL Server, Swashbuckle and Swagger UI |
 | Authentication | ASP.NET Core Identity and JWT bearer authentication |
+| Windows launcher | Windows PowerShell 5.1, WinForms, and an in-process loopback HTTP server for the production frontend bundle. Inno Setup packages the installer. |
 | Testing | Vitest, React Testing Library, jest-dom, user-event, jsdom, V8 coverage, Playwright, xUnit, ASP.NET Core TestServer |
 | Code quality | Oxlint and the TypeScript compiler |
 
@@ -25,7 +26,8 @@
 | [`src/assets/`](../../src/assets/), [`src/fonts/`](../../src/fonts/), [`public/`](../../public/) | Illustration assets, technology logos, local fonts, and the downloadable CV |
 | [`vite.config.ts`](../../vite.config.ts), [`src/setupTests.ts`](../../src/setupTests.ts) | Vite, the development API proxy, Vitest, and common test setup |
 | [`backend/Portfolio.sln`](../../backend/Portfolio.sln), [`backend/Portfolio.Api/`](../../backend/Portfolio.Api/), [`backend/Portfolio.Api.Tests/`](../../backend/Portfolio.Api.Tests/) | API, database migrations, and backend tests |
-| [`.github/workflows/`](../../.github/workflows/) | Pull request checks and GitHub Pages deployment |
+| [`launcher/`](../../launcher/) | Windows launcher UI, static server, installer definition, build script, and installer smoke test |
+| [`.github/workflows/`](../../.github/workflows/) | Pull request checks, Windows installer build and release, and GitHub Pages deployment |
 
 ## npm scripts
 
@@ -45,4 +47,5 @@
 
 - [Architecture](../architecture.md) covers page composition, the Hero simulation, Technical Skills, How I Engineer, the experience timeline, the sample analytics report, themes, navigation, section ordering, the guided walkthrough, and the HTTP simulator.
 - [Local backend and API](../backend.md) covers SQL Server, migrations, HTTPS, administrator setup, and endpoint behavior.
+- [Windows launcher](windows-launcher.md) covers the frontend demo, browser-local layout editing, and packaging.
 - [Testing and deployment](../testing-and-deployment.md) covers frontend and backend checks, browser verification, and what GitHub Pages publishes.

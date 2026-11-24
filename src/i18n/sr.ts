@@ -237,6 +237,15 @@ export const sr = {
   },
   order: {
     admin: 'Administratorske kontrole', mode: 'Administracija', editing: 'Uređivanje', logout: 'Odjava',
+    local: {
+      label: 'Kontrole lokalnog rasporeda', mode: 'Lokalni raspored', editing: 'Uredi raspored',
+      save: 'Sačuvaj izmene', cancel: 'Otkaži', reset: 'Vrati raspored',
+      instructions: 'Prevuci sekciju ili koristi dugmad za pomeranje. Na tastaturi pritisni razmak ili Enter za izbor ili spuštanje sekcije. Pomeri je strelicama ili otkaži pomeranje tasterom Escape. Za čuvanje rasporeda izaberi Sačuvaj izmene.',
+      status: {
+        idle: 'Izmene se čuvaju u ovom pregledaču.', unsaved: 'Raspored ima nesačuvane izmene.',
+        saved: 'Raspored je sačuvan u ovom pregledaču.', failed: 'Raspored nije mogao da se sačuva u ovom pregledaču.',
+      },
+    },
     move: 'Pomeri sekciju', reorder: (title: string) => `Pomeri sekciju „${title}”`,
     moveUp: (title: string) => `Pomeri sekciju „${title}” gore`,
     moveDown: (title: string) => `Pomeri sekciju „${title}” dole`,
@@ -262,6 +271,7 @@ export const sr = {
     show: 'Prikaži mi kako to izgleda', player: 'Kako se sadržaj sajta učitava?',
     guided: 'Vođeni prikaz', live: 'Stvarni zahtev',
     guidedDescription: 'Prikaz koristi primer sadržaja. Svaki korak ostaje na ekranu dovoljno dugo za čitanje.',
+    offlineDescription: 'Ovaj vizuelni prikaz koristi primer sadržaja i ne šalje stvarni zahtev serveru.',
     liveDescription: 'Koraci su usporeni da možeš da ih pročitaš. Njihovo trajanje je odvojeno od trajanja zahteva.',
     controls: 'Kontrole prezentacije', play: 'Pokreni', pause: 'Pauziraj', previous: 'Prethodni korak',
     next: 'Sledeći korak', replay: 'Ponovi', explanation: 'Šta se trenutno dešava?',

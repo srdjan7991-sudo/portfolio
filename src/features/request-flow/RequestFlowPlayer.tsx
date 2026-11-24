@@ -22,6 +22,7 @@ const playLabels = flows.flatMap(flow => [flow.play, flow.pause])
 const playerTitles = flows.map(flow => flow.player)
 const liveModeDescriptions = flows.map(flow => flow.liveDescription)
 const guidedModeDescriptions = flows.map(flow => flow.guidedDescription)
+const offlineModeDescriptions = flows.map(flow => flow.offlineDescription)
 const firstDataStep = stepIndex('database')
 const totalSteps = String(steps.length).padStart(2, '0')
 
@@ -34,7 +35,7 @@ function PhaseText({ text, variants }: { text: string; variants: readonly string
   )
 }
 
-export function RequestFlowPlayer({ active, live }: { active: boolean; live: boolean }) {
+export function RequestFlowPlayer({ active, live, offlineDemo }: { active: boolean; live: boolean; offlineDemo?: boolean }) {
   const { text: { flow } } = useLanguage()
   const run = useRequestFlow(active, live)
   const heading = useRef<HTMLHeadingElement>(null)
@@ -64,8 +65,8 @@ export function RequestFlowPlayer({ active, live }: { active: boolean; live: boo
         </div>
         <div className={styles.mode}>
           <strong>{live ? flow.live : flow.guided}</strong>
-          <p><PhaseText text={live ? flow.liveDescription : flow.guidedDescription}
-            variants={live ? liveModeDescriptions : guidedModeDescriptions} /></p>
+          <p><PhaseText text={live ? flow.liveDescription : offlineDemo ? flow.offlineDescription : flow.guidedDescription}
+            variants={live ? liveModeDescriptions : offlineDemo ? offlineModeDescriptions : guidedModeDescriptions} /></p>
         </div>
       </div>
       <fieldset className={styles.playback} aria-label={flow.controls}>

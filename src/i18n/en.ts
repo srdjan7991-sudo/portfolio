@@ -237,6 +237,15 @@ export const en = {
   },
   order: {
     admin: 'Administrator controls', mode: 'Admin mode', editing: 'Editing mode', logout: 'Logout',
+    local: {
+      label: 'Local layout controls', mode: 'Local layout', editing: 'Edit layout',
+      save: 'Save changes', cancel: 'Cancel', reset: 'Reset layout',
+      instructions: 'Drag or use the up and down buttons. On the keyboard, press Space or Enter to pick up or drop a section. Arrow keys move it and Escape cancels the current move. Use Save changes to keep the layout.',
+      status: {
+        idle: 'Changes are stored in this browser.', unsaved: 'Unsaved layout changes.',
+        saved: 'Layout saved in this browser.', failed: 'Could not save the layout in this browser.',
+      },
+    },
     move: 'Move section', reorder: (title: string) => `Reorder ${title}`,
     moveUp: (title: string) => `Move ${title} up`,
     moveDown: (title: string) => `Move ${title} down`,
@@ -262,6 +271,7 @@ export const en = {
     show: 'Open walkthrough', player: 'How does the page load its content?',
     guided: 'Guided walkthrough', live: 'Live request',
     guidedDescription: 'This walkthrough uses example content. The steps leave time to read.',
+    offlineDescription: 'This visual walkthrough uses example content. It does not send a request to a backend.',
     liveDescription: 'The steps leave time to read. Their timing is separate from the request.',
     controls: 'Walkthrough controls', play: 'Play', pause: 'Pause', previous: 'Previous step',
     next: 'Next step', replay: 'Replay', explanation: 'What’s happening now?',

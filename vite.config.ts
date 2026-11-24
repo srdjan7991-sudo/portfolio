@@ -2,14 +2,15 @@ import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vitest/config'
 import { readFileSync } from 'node:fs'
 
-export default defineConfig(({ command, isPreview }) => {
+export default defineConfig(({ command, isPreview, mode }) => {
+  const windowsDemo = mode === 'windows-demo'
   const certificatePath = process.env.PORTFOLIO_TLS_PFX
-  const https = command === 'serve' && !isPreview && certificatePath
+  const https = command === 'serve' && !windowsDemo && !isPreview && certificatePath
     ? { pfx: readFileSync(certificatePath), passphrase: process.env.PORTFOLIO_TLS_PASSWORD }
     : undefined
 
   return {
-    base: command === 'build' || isPreview ? '/portfolio/' : '/',
+    base: windowsDemo ? './' : command === 'build' || isPreview ? '/portfolio/' : '/',
     plugins: [react()],
     server: https ? {
       https,

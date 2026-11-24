@@ -58,6 +58,19 @@ npm run test:browser
 
 Playwright starts a Vite production preview. Its HTTPS walkthrough uses a fixture for API responses and checks the real frontend. A separate test starts the Vite HTTPS development proxy on loopback and checks the forwarded address received by a test upstream for regular and HTTP continue requests. These tests require no database. Use the manual checks below for other browser engines, wider visual coverage, and the deployed ingress.
 
+## Windows demo checks
+
+Use Node.js 24, Windows PowerShell 5.1, and Inno Setup 6.7.4 to build the installer from a source checkout. The smoke test installs the generated EXE for the current user, checks both shortcuts and the loopback server with developer tools off `PATH`, and invokes the registered uninstaller. It also checks rapid Start/Stop, port reuse, and shutdown with local clients connected. Run it on a Windows test account without an existing installation. The Chromium suite also exercises the Windows build without an API.
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File launcher/Build-WindowsInstaller.ps1 -CompilerPath C:/tools/Inno/ISCC.exe -Version 0.1.0
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File launcher/tests/WindowsInstaller.Tests.ps1 -InstallerPath artifacts/Portfolio-Setup.exe
+```
+
+Use the [Windows walkthrough](guide/windows-launcher.md) to check the desktop launcher, default browser handoff, and local layout restoration after installation.
+
+The **Windows portfolio installer** workflow builds and tests `Portfolio-Setup.exe`. An ordinary run uploads the EXE as a build artifact. To publish it, an authorized maintainer runs the workflow from `main` with an existing stable `vMAJOR.MINOR.PATCH` tag in `release_tag`. That run builds the tagged source and attaches the tested EXE to the latest GitHub Release. The README links to the asset by its stable filename. [Workflow definition](../.github/workflows/windows-demo.yml)
+
 ## Backend checks
 
 Run with the .NET 10 SDK. Leave `PORTFOLIO_TEST_SQL` unset for the same SQL-free test path used by CI.
