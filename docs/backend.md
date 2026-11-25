@@ -88,6 +88,8 @@ Requests that need SQL return a 503 problem response when the connection is unco
 
 [`AuthEndpoints.cs`](../backend/Portfolio.Api/Auth/AuthEndpoints.cs) requires the exact configured browser origin and `X-Portfolio-Auth: 1` on session POST requests. Signup also requires `X-Portfolio-Setup`. The frontend keeps access tokens in memory. Access tokens last up to five minutes. The seven-day session uses a rotating refresh cookie with `Secure`, `HttpOnly`, `SameSite=Strict`, and the `/api/auth` path. The server stores hashes of refresh credentials. Reuse of a rotated credential revokes its session.
 
+Sign-in serializes updates to an existing administrator's failed-attempt count with a SQL Server transaction lock. API instances connected to the same database use the same lock as administrator password recovery. The fifth failed attempt locks the account for 15 minutes.
+
 If the database commits a rotation and the browser loses the response, the old cookie may still be stored in the browser. A failed renewal requires signing in again. Submitting valid login credentials starts a new session and revokes the old session associated with the browser cookie, including the discarded rotation. Retrying a consumed refresh credential instead triggers the existing replay protection.
 
 Use the HTTPS frontend to verify sign-in, refresh, and sign-out. Swagger over the loopback HTTP address is for browsing the contract and sending public requests or requests with an existing bearer token. The browser cookie flow requires the configured HTTPS origin. Keep tokens, setup codes, and certificate passwords out of logs and shared examples.

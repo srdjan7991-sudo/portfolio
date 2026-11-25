@@ -255,6 +255,7 @@ function Watch-LocalPortfolio {
         Report-StartFailure 'The local portfolio did not respond. Try starting it again.' 'The loopback readiness request did not return the bundled HTML.'
         return
     }
+    Save-PortfolioServerPort $script:paths $script:server
     $url = Get-PortfolioLauncherUrl $script:server
     $message = if ($script:usingFallbackPort) { 'The usual port was busy. The portfolio is running at the address below.' }
         else { 'Explore the demo in your browser.' }

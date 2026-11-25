@@ -200,6 +200,7 @@ try {
         !$server.ProbeAsync().GetAwaiter().GetResult()) {
         throw "The installed demo did not become ready on a free loopback port: $url."
     }
+    Save-PortfolioServerPort $paths $server
 
     $handler = [Net.Http.HttpClientHandler]::new()
     $handler.UseProxy = $false
@@ -240,6 +241,10 @@ try {
     & $powerShellPaths[0] -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot 'WindowsStaticServerLifecycle.Tests.ps1') `
         -ServerSource (Join-Path $installDirectory 'launcher\Launcher.StaticServer.cs') -WebRoot $webDirectory
     if ($LASTEXITCODE -ne 0) { throw "The installed server failed its Start/Stop lifecycle check (exit $LASTEXITCODE)." }
+
+    & $powerShellPaths[0] -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot 'WindowsLauncherPorts.Tests.ps1') `
+        -LauncherDirectory (Join-Path $installDirectory 'launcher') -ScratchParent $testDirectory
+    if ($LASTEXITCODE -ne 0) { throw "The installed launcher failed its port readiness check (exit $LASTEXITCODE)." }
 
     if (Test-InstalledLauncherOpen) { throw 'The launcher must be closed before the uninstall check.' }
     Invoke-TestInstallerStep $uninstaller "/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /LOG=`"$uninstallLog`"" $uninstallLog

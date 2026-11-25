@@ -47,10 +47,15 @@ function Start-PortfolioServer {
 
     # Keep a stable browser origin for this checkout even when the first start needed another port.
     $preferred = 4378
-    if (Test-Path -LiteralPath $Paths.PortPath -PathType Leaf) {
+    try {
         $stored = 0
         if ([int]::TryParse([IO.File]::ReadAllText($Paths.PortPath), [ref]$stored) -and $stored -ge 1024 -and $stored -le 65535) {
             $preferred = $stored
+        }
+    } catch {
+        $reason = $_.Exception.GetBaseException()
+        if ($reason -isnot [IO.FileNotFoundException] -and $reason -isnot [IO.DirectoryNotFoundException]) {
+            Write-PortfolioLog $Paths 'Warning' 'Could not read the saved port. Trying the default port.' $reason.Message
         }
     }
     try { $server = [PortfolioLauncher.StaticServer]::new($Directory, $preferred) }
@@ -62,7 +67,11 @@ function Start-PortfolioServer {
         if ($FallbackUsed) { $FallbackUsed.Value = $true }
         Write-PortfolioLog $Paths 'Info' 'The usual local port was unavailable.' (Get-PortfolioLauncherUrl $server)
     }
-    try { [IO.File]::WriteAllText($Paths.PortPath, [string]$server.Port) }
-    catch { Write-PortfolioLog $Paths 'Warning' 'Could not remember the local port.' }
     return $server
+}
+
+function Save-PortfolioServerPort {
+    param($Paths, $Server)
+    try { [IO.File]::WriteAllText($Paths.PortPath, [string]$Server.Port) }
+    catch { Write-PortfolioLog $Paths 'Warning' 'Could not remember the local port.' $_.Exception.GetBaseException().Message }
 }
