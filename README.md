@@ -1,6 +1,6 @@
 # Srdjan Pajic | Portfolio walkthrough
 
-Explore the work and technical demonstrations of a frontend-focused software engineer.
+Try the request walkthrough, filter a sample analytics report, or open the engineering examples alongside Srdjan Pajic's selected work.
 
 [Open the portfolio](https://srdjan7991-sudo.github.io/portfolio/)
 

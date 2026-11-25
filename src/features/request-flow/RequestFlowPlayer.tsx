@@ -38,6 +38,8 @@ export function RequestFlowPlayer({ active, live }: { active: boolean; live: boo
   const { text: { flow } } = useLanguage()
   const run = useRequestFlow(active, live)
   const heading = useRef<HTMLHeadingElement>(null)
+  const playButton = useRef<HTMLButtonElement>(null)
+  const replayButton = useRef<HTMLButtonElement>(null)
   const step = steps[run.index]
   const phase = flow.phases[step.id]
   const started = run.result.kind !== 'idle'
@@ -55,6 +57,16 @@ export function RequestFlowPlayer({ active, live }: { active: boolean; live: boo
     heading.current?.scrollIntoView({ block: 'start' })
   }, [])
 
+  function move(direction: -1 | 1, control: HTMLButtonElement) {
+    const destination = run.index + direction
+    if (document.activeElement === control) {
+      // A button that becomes disabled loses focus in the browser.
+      if (destination === 0) playButton.current?.focus({ preventScroll: true })
+      if (destination === steps.length - 1) replayButton.current?.focus({ preventScroll: true })
+    }
+    run.move(direction)
+  }
+
   return (
     <div className={styles.player}>
       <div className={styles.playerHeading}>
@@ -70,15 +82,15 @@ export function RequestFlowPlayer({ active, live }: { active: boolean; live: boo
       </div>
       <fieldset className={styles.playback} aria-label={flow.controls}>
         <div className={styles.buttons}>
-          <button type="button" className="ui-pill ui-pill--accent" onClick={run.toggle} disabled={run.finished}>
+          <button ref={playButton} type="button" className="ui-pill ui-pill--accent" onClick={run.toggle} disabled={run.finished}>
             <span className={styles.playIcon} aria-hidden="true">{run.playing ? 'Ⅱ' : '▶'}</span>
             <PhaseText text={run.playing ? flow.pause : flow.play} variants={playLabels} />
           </button>
           <button type="button" className="ui-pill" aria-label={flow.previous}
-            onClick={() => run.move(-1)} disabled={!started || run.index === 0}><span aria-hidden="true">←</span></button>
+            onClick={event => move(-1, event.currentTarget)} disabled={!started || run.index === 0}><span aria-hidden="true">←</span></button>
           <button type="button" className="ui-pill" aria-label={flow.next}
-            onClick={() => run.move(1)} disabled={!started || hasResult}><span aria-hidden="true">→</span></button>
-          <button type="button" className="ui-pill" onClick={run.start} disabled={!started}>
+            onClick={event => move(1, event.currentTarget)} disabled={!started || hasResult}><span aria-hidden="true">→</span></button>
+          <button ref={replayButton} type="button" className="ui-pill" onClick={run.start} disabled={!started}>
             <span aria-hidden="true">↻</span> {flow.replay}
           </button>
         </div>

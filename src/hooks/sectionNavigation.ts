@@ -77,13 +77,19 @@ export function useSectionNavigation(orderReady = true) {
     target.focus({ preventScroll: true })
     target.scrollIntoView({ behavior: 'instant' })
 
-    let initialScroll = window.scrollY
+    let alignedScroll = window.scrollY
     let cancelled = false
     function alignWhileUntouched() {
-      if (target && !cancelled && location.hash === hash && document.activeElement === target && window.scrollY === initialScroll) {
-        target.scrollIntoView({ behavior: 'instant' })
-        initialScroll = window.scrollY
+      if (!target || cancelled || location.hash !== hash || document.activeElement !== target) return
+      const scroll = window.scrollY
+      if (scroll !== alignedScroll) {
+        const { scrollHeight, clientHeight } = document.documentElement
+        const bottom = Math.max(0, scrollHeight - clientHeight)
+        // A shorter document can move the browser to its new bottom without user input.
+        if (bottom >= alignedScroll || Math.abs(scroll - bottom) > 1) return
       }
+      target.scrollIntoView({ behavior: 'instant' })
+      alignedScroll = window.scrollY
     }
     realign.current = alignWhileUntouched
     void document.fonts?.ready.then(alignWhileUntouched)

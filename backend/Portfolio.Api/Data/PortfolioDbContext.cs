@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.Data.SqlClient;
 using Portfolio.Api.Auth;
 using Portfolio.Api.Sections;
 
@@ -13,9 +14,25 @@ public sealed class PortfolioDbContext(DbContextOptions<PortfolioDbContext> opti
     internal DbSet<AuthSession> AuthSessions => Set<AuthSession>();
     internal DbSet<RefreshCredential> RefreshCredentials => Set<RefreshCredential>();
 
+    internal bool HasValidConnectionString()
+    {
+        var connectionString = Database.GetConnectionString();
+        if (string.IsNullOrWhiteSpace(connectionString)) return false;
+
+        try
+        {
+            using var connection = new SqlConnection(connectionString);
+            return true;
+        }
+        catch (Exception exception) when (exception is ArgumentException or FormatException or OverflowException or InvalidOperationException)
+        {
+            return false;
+        }
+    }
+
     internal void RequireConnection()
     {
-        if (string.IsNullOrWhiteSpace(Database.GetConnectionString()))
+        if (!HasValidConnectionString())
             throw new PortfolioDatabaseUnavailableException();
     }
 

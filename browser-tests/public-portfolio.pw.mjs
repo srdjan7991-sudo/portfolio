@@ -1,13 +1,15 @@
+import { readFile } from 'node:fs/promises'
 import { expect, test as base } from '@playwright/test'
 
 const button = (page, name) => page.getByRole('button', { name, exact: true })
+const apiPath = /^\/api(?:\/|$)/
 
 const test = base.extend({
   page: async ({ page }, use) => {
     const apiRequests = []
     const errors = []
     page.on('request', request => {
-      if (/^\/api(?:\/|$)/.test(new URL(request.url()).pathname)) apiRequests.push(request.url())
+      if (apiPath.test(new URL(request.url()).pathname)) apiRequests.push(request.url())
     })
     page.on('pageerror', error => errors.push(error.message))
     page.on('console', message => {
@@ -44,13 +46,17 @@ test('keeps the Hero and all six request stages interactive without a live respo
   await page.clock.fastForward(4_100)
   await expect(page.getByText('02 · Communication', { exact: true })).toBeVisible()
   for (const phase of ['03 · Processing', '04 · Database', '05 · Response', '06 · Result']) {
-    await button(page, 'Next step').click()
+    await button(page, 'Next step').press('Enter')
     await expect(page.getByText(phase, { exact: true })).toBeVisible()
     await expect(page.locator('#request-flow pre')).toHaveCount(0)
     await expect(page.locator('#request-flow').getByText(/\bHTTP [245]\d\d\b/)).toHaveCount(0)
   }
-  await button(page, 'Previous step').click()
+  await expect(button(page, 'Replay')).toBeFocused()
+  await button(page, 'Previous step').press('Enter')
   await expect(page.getByText('05 · Response', { exact: true })).toBeVisible()
+  for (let i = 0; i < 4; i++) await button(page, 'Previous step').press('Enter')
+  await expect(page.getByText('01 · Interaction', { exact: true })).toBeVisible()
+  await expect(button(page, 'Play')).toBeFocused()
   await button(page, 'Replay').click()
   await expect(page.getByText('01 · Interaction', { exact: true })).toBeVisible()
   await expect(button(page, 'Pause')).toBeVisible()
@@ -92,7 +98,10 @@ test.describe('mobile portfolio', () => {
     const cv = page.getByRole('link', { name: /Preuzmi CV/ })
     const downloaded = page.waitForEvent('download')
     await cv.tap()
-    expect((await downloaded).suggestedFilename()).toBe('Srdjan_Pajic_CV.docx')
+    const download = await downloaded
+    expect(download.suggestedFilename()).toBe('Srdjan_Pajic_CV.docx')
+    const expectedCv = await readFile(new URL('../public/Srdjan_Pajic_CV.docx', import.meta.url))
+    expect((await readFile(await download.path())).equals(expectedCv), 'Downloaded CV bytes match the repository DOCX').toBe(true)
     await expect(page.getByRole('contentinfo').getByText('© Srdjan Pajic')).toBeVisible()
     await page.getByRole('link', { name: 'Nazad na vrh' }).tap()
     await expect(page).toHaveURL(/#top$/)

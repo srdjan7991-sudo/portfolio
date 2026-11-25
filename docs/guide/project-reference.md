@@ -46,3 +46,4 @@
 - [Architecture](../architecture.md) covers page composition, the Hero simulation, Technical Skills, How I Engineer, the experience timeline, the sample analytics report, themes, navigation, section ordering, the guided walkthrough, and the HTTP simulator.
 - [Local backend and API](../backend.md) covers SQL Server, migrations, HTTPS, administrator setup, and endpoint behavior.
 - [Testing and deployment](../testing-and-deployment.md) covers frontend and backend checks, browser verification, and what GitHub Pages publishes.
+- [Portfolio engineering quality skill](../../.agents/skills/professional-engineering-quality/SKILL.md) describes the review, verification, and writing checks for repository changes.

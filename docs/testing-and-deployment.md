@@ -56,7 +56,9 @@ npx playwright install chromium --only-shell
 npm run test:browser
 ```
 
-Playwright starts a Vite production preview. Its HTTPS walkthrough uses a fixture for API responses and checks the real frontend. A separate test starts the Vite HTTPS development proxy on loopback and checks the forwarded address received by a test upstream for regular and HTTP continue requests. These tests require no database. Use the manual checks below for other browser engines, wider visual coverage, and the deployed ingress.
+Playwright serves the default Vite production build over loopback HTTPS with the test certificate. Public tests assert that the walkthrough uses example data, makes no API calls, and downloads a CV that matches the source file. The live walkthrough uses a second build with API integration enabled and routes its requests to fixture responses.
+
+A separate test starts the Vite HTTPS development proxy on loopback and checks the forwarded address for regular and HTTP continue requests. These tests require no database. Use the manual checks below for other browser engines, wider visual coverage, and the deployed ingress.
 
 ## Backend checks
 
@@ -102,8 +104,12 @@ At 320 px, check that grouped report bars are easy to activate individually. In 
 
 The [pull request workflow](../.github/workflows/ci.yml) runs Vitest, lint, TypeScript, the production build, and the Chromium suite on Linux with Node.js 24. Its backend job uses .NET 10, builds the solution in Release mode, and runs the tests that need no database. A separate `backend-sql` job runs the SQL integration tests against a temporary SQL Server 2022 container on the runner.
 
-The [Pages workflow](../.github/workflows/pages.yml) runs on pushes to `main` and supports manual dispatch. Select **GitHub Actions** as the Pages source in the repository settings. The workflow runs `npm ci`, Vitest, lint, the production build, and the Chromium suite before uploading `dist/` and deploying it. The production asset base is `/portfolio/`.
+The [Pages workflow](../.github/workflows/pages.yml) runs on pushes to `main` and supports manual dispatch. Only runs on `main` can deploy. Select **GitHub Actions** as the Pages source in the repository settings. The workflow runs `npm ci`, Vitest, lint, the production build, and the Chromium suite before uploading `dist/` and deploying it. The production asset base is `/portfolio/`.
+
+The build writes `dist/third-party-licenses.md` with the notices for bundled npm dependencies. Keep that file with the published assets. The source contains the Geist font license separately.
 
 GitHub Pages serves the static frontend. After an authorized release, verify the workflow result and open the [public portfolio](https://srdjan7991-sudo.github.io/portfolio/) to check the deployed HTML, styles, fonts, and JavaScript. A build from the current code with the standard Pages configuration uses bundled section content and supports the guided walkthrough and simulated HTTP scenarios. The live site reflects the last successful deployment of `main`.
+
+GitHub Release tags identify source snapshots. The private npm package version is local package metadata. The Pages workflow deploys the branch independently of any release tag.
 
 The live API and administrator UI need a separate HTTPS host. Serve the built frontend under its configured base and route `/api` at the same browser origin to the API. Set `VITE_PORTFOLIO_AUTH_ENABLED=true` at frontend build time and configure `Auth:Origin` to that origin. Follow the [backend configuration guide](backend.md#local-setup) for the database and server-side settings.

@@ -82,13 +82,19 @@ After success, restart the API and sign in with the new passphrase through the H
 
 [`SectionOrderEndpoints.cs`](../backend/Portfolio.Api/Sections/SectionOrderEndpoints.cs) accepts `work`, `skills`, `expertise`, `experience`, `education`, and `contact`. An invalid order returns 400. The server updates only the sort order of existing rows and inserts any missing keys as enabled rows with their default English titles and empty bodies, all within one SQL transaction. On a fresh database, the first successful order write changes `GET /api/sections` from an empty array to six title-only rows in saved order. The public endpoint retains the `key`, `title`, and `body` shape and excludes disabled rows. The portfolio UI renders section copy from its React features.
 
-Requests that need SQL return a 503 problem response when the connection is unconfigured or the database is unavailable. The status endpoint can return `{"setupRequired":false}` without SQL when initial setup is disabled. Refresh and logout handle absent or malformed cookies without SQL.
+Requests that need SQL return a 503 problem response when the connection string is missing or malformed, or the server is unavailable. Connection errors in the response omit the connection string. The status endpoint can return `{"setupRequired":false}` without SQL when initial setup is disabled. Refresh and logout handle absent or malformed cookies without SQL.
 
 ## Sessions and Swagger
 
 [`AuthEndpoints.cs`](../backend/Portfolio.Api/Auth/AuthEndpoints.cs) requires the exact configured browser origin and `X-Portfolio-Auth: 1` on session POST requests. Signup also requires `X-Portfolio-Setup`. The frontend keeps access tokens in memory. Access tokens last up to five minutes. The seven-day session uses a rotating refresh cookie with `Secure`, `HttpOnly`, `SameSite=Strict`, and the `/api/auth` path. The server stores hashes of refresh credentials. Reuse of a rotated credential revokes its session.
 
 Sign-in serializes updates to an existing administrator's failed-attempt count with a SQL Server transaction lock. API instances connected to the same database use the same lock as administrator password recovery. The fifth failed attempt locks the account for 15 minutes.
+
+The account lockout applies across IP addresses. Someone who knows the administrator's email can temporarily prevent new sign-ins with failed attempts. Restrict access to authentication endpoints at the ingress on a publicly reachable API deployment and retain the account lockout for credential protection.
+
+The browser serializes cookie refresh across tabs when Web Locks is available. On browsers without Web Locks, separate tabs can refresh the same cookie at once and cause replay protection to revoke the session. Use a current browser with Web Locks for multi-tab administration.
+
+Expired and revoked sessions are retained in SQL Server. A cleanup job for a long-running deployment should delete expired sessions in batches. The foreign key cascades to their refresh records. Keep used refresh hashes for active sessions so that replay detection can revoke them.
 
 If the database commits a rotation and the browser loses the response, the old cookie may still be stored in the browser. A failed renewal requires signing in again. Submitting valid login credentials starts a new session and revokes the old session associated with the browser cookie, including the discarded rotation. Retrying a consumed refresh credential instead triggers the existing replay protection.
 
@@ -104,7 +110,7 @@ Keep the backend listener private and have the immediate proxy overwrite the inc
 
 | Symptom | Check |
 | --- | --- |
-| `/health` answers while a section endpoint returns 503 | Check the development connection string, database access for the Windows account running the API, and whether the migrations were applied. Check the API log for the SQL error. |
+| `/health` answers while a section endpoint returns 503 | Check that the API has a valid connection string. If it does, check the API log for the SQL error, the account's database access, and the migrations. |
 | The browser reports a TLS protocol error | Confirm the process on port 5173 is Vite launched with the PFX variables and open `https://localhost:5173/`. |
 | The browser displays a certificate trust warning | Verify that the localhost certificate used by Vite is trusted in the current browser and Windows user session. |
 | Auth POST returns 403 | Compare the browser origin with `Auth:Origin`. The browser must use the configured hostname, port, and HTTPS scheme. |

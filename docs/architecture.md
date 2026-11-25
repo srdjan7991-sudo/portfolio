@@ -17,6 +17,8 @@ The React features contain the public page copy. Selected Work opens the Mede An
 
 [`PortfolioSection.tsx`](../src/components/shared/PortfolioSection.tsx) supplies section markup and heading IDs. [`Layout.tsx`](../src/components/shared/Layout.tsx) owns the Header, Footer, and mobile menu. Navigation uses native hash links and follows the current section order. [`sectionNavigation.ts`](../src/hooks/sectionNavigation.ts) manages the active link and initial hash alignment. The current desktop link is underlined and exposes `aria-current="location"`. Each animated feature owns its own reveal behavior.
 
+Initial hash alignment runs again after fonts load or the saved section order arrives, while the original target retains focus and the visitor has kept the initial scroll position. The hook accounts for the browser clamping the scroll position when the document becomes shorter.
+
 ## Sample analytics report
 
 Open the sample report under Selected Work. The default view shows 15 synthetic counts across Quality, Utilization, and Operations from January through June 2026. Operations reporting starts in April. Each reported observation has its own bar in the monthly group. The table shows the selected months and categories with the same counts. A missing observation is marked as unreported. A reported zero is a valid count. [Report data](../src/features/selected-work/analyticsReport.ts)

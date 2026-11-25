@@ -6,6 +6,15 @@ test-results/
 /artifacts/
 .idea/
 *.local
+.env
+.env.*
+!.env.example
+*.pfx
+*.p12
+*.key
+*.pem
+!/browser-tests/fixtures/proxy-test.pfx
+!/browser-tests/fixtures/proxy-test.pem
 
 # Private agent instructions, settings, and skill bundles at any depth.
 # Before committing or pushing, review the index and full staged diff for agent files.
@@ -25,3 +34,12 @@ SKILL.md
 .mcp.json
 .claudeignore
 .codexignore
+
+# Publish only the portfolio's engineering quality skill.
+!/.agents/
+/.agents/*
+!/.agents/skills/
+/.agents/skills/*
+!/.agents/skills/professional-engineering-quality/
+/.agents/skills/professional-engineering-quality/*
+!/.agents/skills/professional-engineering-quality/SKILL.md

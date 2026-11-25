@@ -61,10 +61,30 @@ public sealed class AuthTests
         Assert.Equal(HttpStatusCode.BadRequest, tooLong.StatusCode);
     }
 
-    [Fact]
-    public async Task Database_dependent_auth_routes_return_an_uncached_service_unavailable_problem()
+    [Theory]
+    [InlineData("missing")]
+    [InlineData("malformed")]
+    [InlineData("unknown-option")]
+    [InlineData("non-numeric-timeout")]
+    [InlineData("timeout-overflow")]
+    [InlineData("unsupported-context")]
+    [InlineData("inverted-pool-limits")]
+    [InlineData("conflicting-authentication")]
+    public async Task Database_dependent_routes_return_service_unavailable_with_an_invalid_connection(string scenario)
     {
-        using var app = new AuthApplication();
+        var connection = scenario switch
+        {
+            "missing" => "",
+            "malformed" => "invalid connection format",
+            "unknown-option" => "UnrecognizedOption=value",
+            "non-numeric-timeout" => "Connect Timeout=not-an-integer",
+            "timeout-overflow" => "Connect Timeout=2147483648",
+            "unsupported-context" => "Context Connection=true",
+            "inverted-pool-limits" => "Min Pool Size=10;Max Pool Size=1",
+            "conflicting-authentication" => "Integrated Security=true;Authentication=Active Directory Integrated",
+            _ => throw new ArgumentOutOfRangeException(nameof(scenario))
+        };
+        using var app = new AuthApplication(connection);
         using var client = app.Client();
         var now = DateTime.UtcNow;
         var token = app.CreateToken(app.SigningKey, now.AddMinutes(-1), now.AddMinutes(1));
@@ -85,9 +105,15 @@ public sealed class AuthTests
             using var body = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
             Assert.Equal(503, body.RootElement.GetProperty("status").GetInt32());
         }
-        using var order = await SaveOrder(client, DefaultSectionOrder, token);
-        Assert.Equal(HttpStatusCode.ServiceUnavailable, order.StatusCode);
-        Assert.Equal("application/problem+json", order.Content.Headers.ContentType?.MediaType);
+        using var sections = await client.GetAsync("/api/sections");
+        using var readOrder = await client.GetAsync("/api/sections/order");
+        using var writeOrder = await SaveOrder(client, DefaultSectionOrder, token);
+        foreach (var response in new[] { sections, readOrder, writeOrder })
+        {
+            Assert.Equal(HttpStatusCode.ServiceUnavailable, response.StatusCode);
+            Assert.Equal("application/problem+json", response.Content.Headers.ContentType?.MediaType);
+        }
+        Assert.True(readOrder.Headers.CacheControl?.NoStore);
     }
 
     [Fact]
