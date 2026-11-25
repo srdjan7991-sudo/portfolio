@@ -45,11 +45,16 @@ export function useActiveSection(header: { readonly current: HTMLElement | null 
       if (!frame) frame = requestAnimationFrame(update)
     }
 
+    const content = document.getElementById('main')
+    const resize = typeof ResizeObserver === 'function' ? new ResizeObserver(scheduleUpdate) : undefined
+    if (content) resize?.observe(content)
+
     scheduleUpdate()
     window.addEventListener('scroll', scheduleUpdate, { passive: true })
     window.addEventListener('resize', scheduleUpdate)
     window.addEventListener('hashchange', scheduleUpdate)
     return () => {
+      resize?.disconnect()
       cancelAnimationFrame(frame)
       window.removeEventListener('scroll', scheduleUpdate)
       window.removeEventListener('resize', scheduleUpdate)

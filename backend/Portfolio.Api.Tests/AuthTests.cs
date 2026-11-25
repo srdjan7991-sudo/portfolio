@@ -1,3 +1,4 @@
+using System.Data.Common;
 using System.IdentityModel.Tokens.Jwt;
 using System.Net;
 using System.Net.Http.Headers;
@@ -8,8 +9,10 @@ using System.Text.Json;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.AspNetCore.TestHost;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -236,6 +239,70 @@ public sealed class AuthTests
         }
         using var locked = await Send(client, "login", Credentials("owner@example.com"));
         Assert.Equal(HttpStatusCode.Unauthorized, locked.StatusCode);
+    }
+
+    [SqlFact]
+    public async Task Sql_server_counts_parallel_failures_across_hosts_and_recovery_revokes_sessions()
+    {
+        await using var fixture = await SqlFixture.Create();
+        var app = fixture.App;
+        using var setupClient = app.Client();
+        const string email = "owner@example.com";
+        const string newPassword = "a different test passphrase";
+        using var signup = await Send(setupClient, "signup", Credentials(email), setup: app.SetupKey);
+        Assert.Equal(HttpStatusCode.OK, signup.StatusCode);
+        using var login = await Send(setupClient, "login", Credentials(email));
+        Assert.Equal(HttpStatusCode.OK, login.StatusCode);
+
+        var firstWrites = new AuthWriteRequests(2);
+        var secondWrites = new AuthWriteRequests(2);
+        await using var firstHost = fixture.CreatePeer(firstWrites);
+        await using var secondHost = fixture.CreatePeer(secondWrites);
+        using var firstClient = firstHost.Client();
+        using var secondClient = secondHost.Client();
+        var activeAccess = (await login.Content.ReadFromJsonAsync<Access>())!.AccessToken;
+        using var active = await Me(secondClient, activeAccess);
+        Assert.Equal(HttpStatusCode.OK, active.StatusCode);
+
+        await using var scope = app.Services.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<PortfolioDbContext>();
+        Task<HttpStatusCode[]> attempts;
+        // Use a separate connection to hold the lock until both hosts are in the SQL write path.
+        await using (var heldLock = await AuthDatabase.LockWriteAsync(db, CancellationToken.None))
+        {
+            var waiting = Task.WhenAll(firstWrites.Arrived, secondWrites.Arrived);
+            attempts = Task.WhenAll(FailedLogin(firstClient), FailedLogin(secondClient),
+                FailedLogin(firstClient), FailedLogin(secondClient));
+            Assert.Same(waiting, await Task.WhenAny(waiting, attempts).WaitAsync(TimeSpan.FromSeconds(10)));
+            Assert.False(attempts.IsCompleted);
+        }
+        Assert.All(await attempts, status => Assert.Equal(HttpStatusCode.Unauthorized, status));
+        var afterBatch = await db.Users.AsNoTracking().SingleAsync(user => user.Email == email);
+        Assert.Equal(4, afterBatch.AccessFailedCount);
+        Assert.Null(afterBatch.LockoutEnd);
+
+        Assert.Equal(HttpStatusCode.Unauthorized, await FailedLogin(secondClient));
+        var locked = await db.Users.AsNoTracking().SingleAsync(user => user.Email == email);
+        Assert.Equal(0, locked.AccessFailedCount);
+        Assert.True(locked.LockoutEnd > DateTimeOffset.UtcNow);
+        using var denied = await Send(firstClient, "login", Credentials(email));
+        Assert.Equal(HttpStatusCode.Unauthorized, denied.StatusCode);
+
+        Assert.True(await AdminRecovery.ResetAsync(secondHost.Services, email, newPassword));
+        using var revokedAccess = await Me(firstClient, activeAccess);
+        using var revokedRefresh = await Send(firstClient, "refresh", cookie: RefreshCookie(signup));
+        Assert.Equal(HttpStatusCode.Unauthorized, revokedAccess.StatusCode);
+        Assert.Equal(HttpStatusCode.Unauthorized, revokedRefresh.StatusCode);
+        using var recovered = await Send(firstClient, "login", new { email, password = newPassword });
+        Assert.Equal(HttpStatusCode.OK, recovered.StatusCode);
+        using var recoveredSession = await Me(secondClient, (await recovered.Content.ReadFromJsonAsync<Access>())!.AccessToken);
+        Assert.Equal(HttpStatusCode.OK, recoveredSession.StatusCode);
+
+        async Task<HttpStatusCode> FailedLogin(HttpClient client)
+        {
+            using var response = await Send(client, "login", new { email, password = "wrong" });
+            return response.StatusCode;
+        }
     }
 
     [SqlFact]
@@ -553,10 +620,11 @@ public sealed class AuthTests
     private sealed record Access(string AccessToken);
     private sealed record SetupStatus(bool SetupRequired);
 
-    private sealed class AuthApplication(string? connection = null, bool authEnabled = true, bool setupEnabled = true) : WebApplicationFactory<Program>
+    private sealed class AuthApplication(string? connection = null, bool authEnabled = true, bool setupEnabled = true,
+        byte[]? signingKey = null, DbCommandInterceptor? interceptor = null) : WebApplicationFactory<Program>
     {
         public const string Origin = "https://localhost:5173";
-        public byte[] SigningKey { get; } = RandomNumberGenerator.GetBytes(48);
+        public byte[] SigningKey { get; } = signingKey ?? RandomNumberGenerator.GetBytes(48);
         public string SetupKey { get; } = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32));
 
         public HttpClient Client() => CreateClient(new WebApplicationFactoryClientOptions
@@ -564,7 +632,8 @@ public sealed class AuthTests
             BaseAddress = new Uri(Origin), HandleCookies = false, AllowAutoRedirect = false
         });
 
-        protected override void ConfigureWebHost(IWebHostBuilder builder) =>
+        protected override void ConfigureWebHost(IWebHostBuilder builder)
+        {
             builder.ConfigureAppConfiguration((_, configuration) => configuration.AddInMemoryCollection(
                 new Dictionary<string, string?>
                 {
@@ -573,6 +642,10 @@ public sealed class AuthTests
                     ["Auth:SigningKey"] = Convert.ToBase64String(SigningKey),
                     ["Auth:SetupKey"] = setupEnabled ? SetupKey : null,
                 }));
+            if (interceptor is not null)
+                builder.ConfigureTestServices(services => services.ConfigureDbContext<PortfolioDbContext>(
+                    options => options.AddInterceptors(interceptor)));
+        }
 
         public string CreateToken(byte[] key, DateTime start, DateTime end, string audience = "portfolio-admin",
             string issuer = "portfolio-api", string algorithm = SecurityAlgorithms.HmacSha256,
@@ -590,9 +663,30 @@ public sealed class AuthTests
         }
     }
 
-    private sealed class SqlFixture : IAsyncDisposable
+    private sealed class AuthWriteRequests(int expected) : DbCommandInterceptor
     {
-        public required AuthApplication App { get; init; }
+        private readonly TaskCompletionSource arrived = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        private int remaining = expected;
+        public Task Arrived => arrived.Task;
+
+        public override ValueTask<InterceptionResult<int>> NonQueryExecutingAsync(
+            DbCommand command, CommandEventData eventData, InterceptionResult<int> result, CancellationToken cancellationToken)
+        {
+            if (command.CommandText.Contains("N'Portfolio.Auth.Write'", StringComparison.Ordinal) &&
+                Interlocked.Decrement(ref remaining) == 0)
+            {
+                arrived.TrySetResult();
+            }
+            return new(result);
+        }
+    }
+
+    private sealed class SqlFixture(string connection) : IAsyncDisposable
+    {
+        public AuthApplication App { get; } = new(connection);
+
+        public AuthApplication CreatePeer(DbCommandInterceptor interceptor) =>
+            new(connection, signingKey: App.SigningKey, interceptor: interceptor);
 
         public static async Task<SqlFixture> Create()
         {
@@ -601,7 +695,7 @@ public sealed class AuthTests
                 InitialCatalog = "PortfolioAuthTests_" + Guid.NewGuid().ToString("N"),
                 Pooling = false,
             };
-            var fixture = new SqlFixture { App = new AuthApplication(settings.ConnectionString) };
+            var fixture = new SqlFixture(settings.ConnectionString);
             try
             {
                 await using var scope = fixture.App.Services.CreateAsyncScope();

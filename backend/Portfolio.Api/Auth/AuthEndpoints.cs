@@ -100,30 +100,27 @@ internal static class AuthEndpoints
     {
         if (!ValidCredentials(input, signup: false)) return InvalidInput();
         db.RequireConnection();
-        var user = await users.FindByEmailAsync(input.Email!.Trim());
-        if (user is null)
+        var email = input.Email!.Trim();
+        var normalizedEmail = users.NormalizeEmail(email);
+        if (!await db.Users.AnyAsync(candidate => candidate.NormalizedEmail == normalizedEmail, ct))
         {
             dummy.Verify(input.Password!);
             return InvalidLogin();
         }
+
+        // Identity reads and updates the failure count during the password check.
+        await using var transaction = await AuthDatabase.LockWriteAsync(db, ct);
+        var user = await users.FindByEmailAsync(email);
+        if (user is null) return InvalidLogin();
         if (!(await signIn.CheckPasswordSignInAsync(user, input.Password!, lockoutOnFailure: true)).Succeeded ||
             !await users.IsInRoleAsync(user, AuthSettings.Admin))
         {
+            // A disconnect after password verification must not undo a recorded attempt.
+            await transaction.CommitAsync();
             return InvalidLogin();
         }
 
-        await using var transaction = await AuthDatabase.LockWriteAsync(db, ct);
-        // Recovery can change the credentials while the password check is in flight.
-        var current = await db.Users.AsNoTracking().Where(candidate => candidate.Id == user.Id)
-            .Select(candidate => new { candidate.SecurityStamp, candidate.LockoutEnabled, candidate.LockoutEnd })
-            .SingleOrDefaultAsync(ct);
         var now = time.GetUtcNow();
-        if (current is null || !string.Equals(current.SecurityStamp, user.SecurityStamp, StringComparison.Ordinal) ||
-            (current.LockoutEnabled && current.LockoutEnd >= now))
-        {
-            return InvalidLogin();
-        }
-
         var oldCredential = await FindRefresh(db, ReadRefreshHash(context), ct);
         if (oldCredential is not null) oldCredential.Session.RevokedAt ??= now;
         var (session, token) = NewSession(db, user.Id, now);

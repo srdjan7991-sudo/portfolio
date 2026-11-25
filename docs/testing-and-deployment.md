@@ -49,7 +49,7 @@ npm test -- src/features/professional-experience src/features/technical-skills s
 
 Run `npm run test:coverage` to generate the V8 report. Open `coverage/index.html` for file-level results from your checkout.
 
-The simulated DOM tests cover state, controls, and response handling. Run the Chromium suite to check native Tab navigation and readable live responses during playback, Skills history and focus after reload, and chart tooltip behavior with mouse, keyboard, and touch.
+The simulated DOM tests cover state, controls, and response handling. Run the Chromium suite to check native Tab navigation and readable live responses during playback, Skills history and focus after reload, and chart tooltip behavior with mouse, keyboard, and touch. It also checks that the navigation updates when closing Experience details moves Education above the reading line at the same scroll position.
 
 ```sh
 npx playwright install chromium --only-shell
@@ -60,7 +60,7 @@ Playwright starts a Vite production preview. Its HTTPS walkthrough uses a fixtur
 
 ## Windows demo checks
 
-Use Node.js 24, Windows PowerShell 5.1, and Inno Setup 6.7.4 to build the installer from a source checkout. The smoke test installs the generated EXE for the current user, checks both shortcuts and the loopback server with developer tools off `PATH`, and invokes the registered uninstaller. It also checks rapid Start/Stop, port reuse, and shutdown with local clients connected. Run it on a Windows test account without an existing installation. The Chromium suite also exercises the Windows build without an API.
+Use Node.js 24, Windows PowerShell 5.1, and Inno Setup 6.7.4 to build the installer from a source checkout. The smoke test installs the generated EXE for the current user, checks both shortcuts and the loopback server with developer tools off `PATH`, and invokes the registered uninstaller. It checks rapid Start/Stop, port reuse, and shutdown with local clients connected. It also covers unreadable or invalid saved ports, fallback when a port is busy, and preserving the saved port when the readiness check fails. Run it on a Windows test account without an existing installation. The Chromium suite also exercises the Windows build without an API.
 
 ```powershell
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File launcher/Build-WindowsInstaller.ps1 -CompilerPath C:/tools/Inno/ISCC.exe
@@ -85,6 +85,8 @@ dotnet test backend/Portfolio.sln --configuration Release --no-build --no-restor
 ```
 
 The xUnit suite uses ASP.NET Core TestServer. It covers HTTP responses, validation, authorization, trusted proxy configuration, rate limiting, and the development Swagger contract. The SQL integration tests opt in through `PORTFOLIO_TEST_SQL`. They cover first administrator setup, session rotation and logout, recovery from a lost refresh response, account lockout, administrator password recovery, published section responses, and first and subsequent section order writes. Supply a connection string for an isolated SQL Server with permission to create and remove test databases. The fixture creates, migrates, and attempts to remove its own uniquely named `PortfolioAuthTests_*` database. Run the same test command after setting the variable in the test terminal.
+
+The concurrent sign-in regression uses two API hosts sharing one test database. It checks the persisted failed-attempt count before lockout and verifies that password recovery revokes the earlier session.
 
 ## Browser verification
 
