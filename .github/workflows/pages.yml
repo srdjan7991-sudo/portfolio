@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: pages
+  group: pages-${{ github.ref }}
   cancel-in-progress: false
 
 permissions:
@@ -27,6 +27,10 @@ jobs:
       - run: npm run lint
       - run: npm test
       - run: npm run build
+      - name: Verify published license notices
+        run: |
+          cmp public/Geist-OFL.txt dist/Geist-OFL.txt
+          test -s dist/third-party-licenses.md
       - run: npx playwright install --with-deps chromium --only-shell
       - run: npm run test:browser
       - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5

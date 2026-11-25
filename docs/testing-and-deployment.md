@@ -104,9 +104,9 @@ At 320 px, check that grouped report bars are easy to activate individually. In 
 
 The [pull request workflow](../.github/workflows/ci.yml) runs Vitest, lint, TypeScript, the production build, and the Chromium suite on Linux with Node.js 24. Its backend job uses .NET 10, builds the solution in Release mode, and runs the tests that need no database. A separate `backend-sql` job runs the SQL integration tests against a temporary SQL Server 2022 container on the runner.
 
-The [Pages workflow](../.github/workflows/pages.yml) runs on pushes to `main` and supports manual dispatch. Only runs on `main` can deploy. Select **GitHub Actions** as the Pages source in the repository settings. The workflow runs `npm ci`, Vitest, lint, the production build, and the Chromium suite before uploading `dist/` and deploying it. The production asset base is `/portfolio/`.
+The [Pages workflow](../.github/workflows/pages.yml) runs on pushes to `main` and supports manual dispatch. Only runs on `main` can deploy. Concurrency is scoped to the Git ref, so builds on other branches do not replace queued deploys. Select **GitHub Actions** as the Pages source in the repository settings. The workflow runs `npm ci`, Vitest, lint, the production build, and the Chromium suite before uploading `dist/` and deploying it. The production asset base is `/portfolio/`.
 
-The build writes `dist/third-party-licenses.md` with the notices for bundled npm dependencies. Keep that file with the published assets. The source contains the Geist font license separately.
+The build writes `dist/third-party-licenses.md` with the notices for bundled npm dependencies and copies the [Geist and Geist Mono license](../public/Geist-OFL.txt) to `dist/Geist-OFL.txt`. The Pages workflow checks both files before deployment.
 
 GitHub Pages serves the static frontend. After an authorized release, verify the workflow result and open the [public portfolio](https://srdjan7991-sudo.github.io/portfolio/) to check the deployed HTML, styles, fonts, and JavaScript. A build from the current code with the standard Pages configuration uses bundled section content and supports the guided walkthrough and simulated HTTP scenarios. The live site reflects the last successful deployment of `main`.
 
