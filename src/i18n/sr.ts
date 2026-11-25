@@ -126,7 +126,7 @@ export const sr = {
     delivery: { title: 'Isporuka i saradnja', description: 'Kontrola verzija, isporuka softvera i saradnja sa dizajnerima.' },
   },
   expertise: {
-    intro: 'Istraži odluke iza interfejsa koje pravim, od podele odgovornosti između komponenti do testova koji čuvaju njihovo ponašanje.',
+    intro: 'Pogledaj kako delim React komponente, obrađujem odgovore API-ja i testiram izmene pravila za količinu.',
     areasLabel: 'Oblasti razvoja softvera',
     conceptsLabel: 'Koncepti',
     back: 'Sve oblasti',

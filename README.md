@@ -1,6 +1,6 @@
 # Srdjan Pajic | Portfolio walkthrough
 
-Try the request walkthrough, filter a sample analytics report, or open the engineering examples alongside Srdjan Pajic's selected work.
+I’m a frontend-focused software engineer working mainly with React and TypeScript. Browse my work on Mede Analytics and Kterio, try a sample report, or follow a browser request through the application.
 
 [Open the portfolio](https://srdjan7991-sudo.github.io/portfolio/)
 

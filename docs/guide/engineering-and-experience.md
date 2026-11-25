@@ -18,7 +18,6 @@ Open **Expertise** from the header to find five engineering areas. Choose an are
 
 1. Open **Testing & Quality** (1). The **Component tests** tab opens with the implementation visible and the quantity set to 2.
 2. Choose **Tests** to read the example test. Select **Run checks** (2) to evaluate the quantity rule in the browser. Both checks pass (3).
-3. Select **Remove the quantity limit** and choose **Run checks** again. The check at the limit fails with an expected quantity of 3 and an actual quantity of 4. Open **Compare both rules** to see both calculations for the same input.
 
 ![Testing and Quality shows the Tests view, the Run checks control, and two passing checks with the quantity limit enabled](../screenshots/engineering--quality-checks.webp)
 
@@ -27,6 +26,7 @@ Open **Expertise** from the header to find five engineering areas. Choose an are
 1. Check **Remove the quantity limit**.
 2. Select **Run checks** again.
 3. Read **Expected 3 · Actual 4** under the failing check. The check for adding one item below the limit still passes.
+4. Open **Compare both rules** to see both calculations for the same input.
 
 ### Try the other areas
 
