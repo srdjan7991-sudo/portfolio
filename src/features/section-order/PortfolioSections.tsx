@@ -146,7 +146,7 @@ export function PortfolioSections({ sections, order, editing, saving, onPreview,
       {editing && (
         <>
           <p id="section-order-instructions" className="visually-hidden">
-            {onSave ? text.order.instructions : text.order.local.instructions}
+            {text.order.instructions}
           </p>
           <ScreenReaderStatus message={message} />
         </>
