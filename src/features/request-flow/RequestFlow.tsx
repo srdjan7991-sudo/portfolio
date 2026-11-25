@@ -20,7 +20,7 @@ function SystemIcon({ index }: { index: number }) {
   )
 }
 
-export function RequestFlow({ live, offlineDemo }: { live: boolean; offlineDemo?: boolean }) {
+export function RequestFlow({ live }: { live: boolean }) {
   const { text: { flow } } = useLanguage()
   const [expanded, setExpanded] = useState(false)
   const [screen, setScreen] = useState<'intro' | 'player' | 'scenarios'>('intro')
@@ -106,7 +106,7 @@ export function RequestFlow({ live, offlineDemo }: { live: boolean; offlineDemo?
                     {flow.show} <span aria-hidden="true">→</span>
                   </button>
                 </div>
-              ) : screen === 'player' ? <RequestFlowPlayer active={expanded} live={live} offlineDemo={offlineDemo} />
+              ) : screen === 'player' ? <RequestFlowPlayer active={expanded} live={live} />
                 : <RequestScenarios key={scenarioSession} active={expanded} headingRef={scenariosTitle} />}
             </div>
           </div>
