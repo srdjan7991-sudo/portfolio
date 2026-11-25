@@ -102,6 +102,7 @@
   .layers button { flex-direction: column; }
 }
 
+/* Short desktop viewports animate in normal flow. Only the sticky frame needs extra height. */
 @media (min-width: 60rem) and (min-height: 51rem) and (prefers-reduced-motion: no-preference) {
   .sequence[data-animated]::after {
     content: '';
