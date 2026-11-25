@@ -23,7 +23,7 @@ internal static class SectionOrderEndpoints
         ILogger<PortfolioDbContext> logger, CancellationToken ct)
     {
         context.Response.Headers.CacheControl = "no-store";
-        if (string.IsNullOrWhiteSpace(db.Database.GetConnectionString())) return Unavailable();
+        if (!db.HasValidConnectionString()) return Unavailable();
         try
         {
             var rows = await db.Sections.AsNoTracking().Where(section => Keys.Contains(section.Key))
@@ -52,7 +52,7 @@ internal static class SectionOrderEndpoints
                 ["expectedKeys"] = ["Provide the previously read order with each of the six keys exactly once."]
             });
 
-        if (string.IsNullOrWhiteSpace(db.Database.GetConnectionString())) return Unavailable();
+        if (!db.HasValidConnectionString()) return Unavailable();
         try
         {
             var id = principal.FindFirstValue(JwtRegisteredClaimNames.Sub);

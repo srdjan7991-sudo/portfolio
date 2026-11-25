@@ -29,7 +29,7 @@ internal static class SectionEndpoints
         ILogger<PortfolioDbContext> logger,
         CancellationToken cancellationToken)
     {
-        if (string.IsNullOrWhiteSpace(database.Database.GetConnectionString()))
+        if (!database.HasValidConnectionString())
         {
             return DatabaseUnavailable();
         }

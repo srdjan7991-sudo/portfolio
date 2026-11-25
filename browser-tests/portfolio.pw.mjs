@@ -9,7 +9,7 @@ async function openReport(page) {
   await expect(page.getByRole('table', { name: 'Monthly data' })).toBeVisible()
 }
 
-async function openLiveWalkthrough(page, baseURL) {
+async function openLiveWalkthrough(page) {
   // Keep the browser on HTTPS to exercise the application's live-mode entry point.
   // Assets come from the local preview. Only API results use fixtures.
   const origin = 'https://portfolio.test'
@@ -19,7 +19,10 @@ async function openLiveWalkthrough(page, baseURL) {
       return route.fulfill({ json: [{ key: 'expertise', title: 'How I Engineer', body: 'Published section' }] })
     }
     if (url.pathname.startsWith('/api/')) return route.fulfill({ status: 401 })
-    const response = await route.fetch({ url: new URL(url.pathname + url.search, baseURL).href, maxRedirects: 0 })
+    const response = await route.fetch({
+      url: new URL(url.pathname + url.search, process.env.PORTFOLIO_TEST_AUTH_PREVIEW_URL).href,
+      maxRedirects: 0,
+    })
     return route.fulfill({ response })
   })
   await page.goto(`${origin}/portfolio/`)
@@ -28,9 +31,9 @@ async function openLiveWalkthrough(page, baseURL) {
   await expect(page.getByText('Live request', { exact: true })).toBeVisible()
 }
 
-test('keyboard focus holds a live response until playback resumes', async ({ page, baseURL }) => {
+test('keyboard focus holds a live response until playback resumes', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'no-preference' })
-  await openLiveWalkthrough(page, baseURL)
+  await openLiveWalkthrough(page)
   await page.clock.install()
   await action(page, 'Play').click()
 

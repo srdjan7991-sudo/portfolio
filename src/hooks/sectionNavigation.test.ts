@@ -109,6 +109,44 @@ test.each([
   }
 })
 
+test.each([
+  { scenario: 'the browser clamps the scroll to the shorter document', scrollY: 570, aligned: true },
+  { scenario: 'the reader scrolls away from the target', scrollY: 450, aligned: false },
+])('handles a delayed order after $scenario', async ({ scrollY, aligned }) => {
+  window.history.replaceState(null, '', '#contact')
+  vi.stubGlobal('scrollY', 600)
+  const root = document.documentElement
+  vi.spyOn(root, 'clientHeight', 'get').mockReturnValue(400)
+  const scrollHeight = vi.spyOn(root, 'scrollHeight', 'get').mockReturnValue(1000)
+  render(createElement('section', { id: 'contact', tabIndex: -1, 'aria-label': 'Contact' }))
+  const section = screen.getByRole('region', { name: 'Contact' })
+  section.scrollIntoView = vi.fn()
+  let finishLoadingFonts = () => {}
+  const fontsReady = new Promise<void>((resolve) => { finishLoadingFonts = resolve })
+  const originalFonts = Object.getOwnPropertyDescriptor(document, 'fonts')
+  Object.defineProperty(document, 'fonts', { configurable: true, value: { ready: fontsReady } })
+
+  try {
+    const { rerender } = renderHook(({ ready }) => useSectionNavigation(ready), { initialProps: { ready: false } })
+    expect(section).toHaveFocus()
+    expect(section.scrollIntoView).toHaveBeenCalledOnce()
+
+    scrollHeight.mockReturnValue(970)
+    vi.stubGlobal('scrollY', scrollY)
+    await act(async () => { finishLoadingFonts() })
+    expect(section.scrollIntoView).toHaveBeenCalledTimes(aligned ? 2 : 1)
+
+    // Restoring the admin toolbar grows the document before the order arrives.
+    scrollHeight.mockReturnValue(1018)
+    rerender({ ready: true })
+    expect(section).toHaveFocus()
+    expect(section.scrollIntoView).toHaveBeenCalledTimes(aligned ? 3 : 1)
+  } finally {
+    if (originalFonts) Object.defineProperty(document, 'fonts', originalFonts)
+    else Reflect.deleteProperty(document, 'fonts')
+  }
+})
+
 test('leaves focus alone when a deep link points at an element that is missing', () => {
   window.history.replaceState(null, '', '#missing')
   render(createElement('button', null, 'Keep focus'))

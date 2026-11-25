@@ -16,7 +16,7 @@ Scroll past the Hero to **What happens when you click?**. Start with the archite
 
 1. From the diagram on the public portfolio, select **Explore the request**, then **Open walkthrough**. The player opens at **01 · Interaction** and uses example content.
 2. Select **Play** or **Load content** inside the illustrated browser to start. Select **Pause** whenever you want to read a stage.
-3. Use the right arrow (**Next step**) or the left arrow (**Previous step**) to inspect one stage at a time. Either control pauses playback on the selected stage.
+3. Use the right arrow (**Next step**) or the left arrow (**Previous step**) to inspect one stage at a time. Either control pauses playback on the selected stage. If the arrow has keyboard focus and reaches the end, focus moves to **Replay**. At the start it moves to **Play**.
 
 ![The guided walkthrough paused at step 04. Markers identify progress, the database lookup, and playback controls.](../screenshots/request-flow--guided-walkthrough.webp)
 

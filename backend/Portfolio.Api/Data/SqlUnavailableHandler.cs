@@ -23,4 +23,4 @@ internal sealed class SqlUnavailableHandler(ILogger<SqlUnavailableHandler> logge
     }
 }
 
-internal sealed class PortfolioDatabaseUnavailableException() : InvalidOperationException("The portfolio database connection is not configured.");
+internal sealed class PortfolioDatabaseUnavailableException() : InvalidOperationException("The portfolio database connection is missing or invalid.");

@@ -11,6 +11,9 @@ export default defineConfig(({ command, isPreview }) => {
   return {
     base: command === 'build' || isPreview ? '/portfolio/' : '/',
     plugins: [react()],
+    build: {
+      license: { fileName: 'third-party-licenses.md' },
+    },
     server: https ? {
       https,
       proxy: {
