@@ -126,7 +126,7 @@ export const en = {
     delivery: { title: 'Delivery & Collaboration', description: 'Version control, delivery, and design collaboration.' },
   },
   expertise: {
-    intro: 'Explore the decisions behind the interfaces I build, from component boundaries to the tests that keep them reliable.',
+    intro: 'See how I split React components, handle API responses, and test changes to a quantity rule.',
     areasLabel: 'Engineering areas',
     conceptsLabel: 'Concepts',
     back: 'All areas',
