@@ -3,6 +3,7 @@ import { expect, test } from '@playwright/test'
 const scene = page => page.locator('[data-request-cross-section]')
 const graphic = section => section.locator('figure svg:visible')
 const plane = section => graphic(section).locator('g[data-selected]').first()
+const requestCable = section => graphic(section).locator('path[data-response="false"]').first()
 const responseCable = section => graphic(section).locator('path[data-response="true"]').first()
 
 async function scrollToStage(section, stage) {
@@ -81,6 +82,48 @@ for (const [language, colorScheme] of [['en', 'light'], ['sr', 'dark']]) {
   })
 }
 
+test('scrubs the request diagram with the wheel in a short desktop viewport', async ({ page }) => {
+  await page.setViewportSize({ width: 1366, height: 768 })
+  await page.emulateMedia({ reducedMotion: 'no-preference' })
+  await page.goto('./')
+  await page.getByRole('switch', { name: 'Dark theme' }).click()
+  await page.getByRole('switch', { name: 'EN / SR, Serbian language' }).click()
+  await expect(page.locator('html')).toHaveAttribute('lang', 'sr')
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
+  await page.evaluate(() => document.fonts.ready)
+
+  const sequence = scene(page)
+  await expectStage(sequence, before, assembled)
+  await page.mouse.move(15, 400)
+
+  async function wheelToStage(point, pose) {
+    const { delta, target } = await sequence.evaluate((node, { edge, viewport, distance = 0 }) => {
+      const delta = Math.round(node.getBoundingClientRect()[edge] - innerHeight * viewport + distance)
+      return { delta, target: scrollY + delta }
+    }, point)
+    await page.mouse.wheel(0, delta)
+    await expect.poll(() => page.evaluate(() => window.scrollY)).toBeCloseTo(target, 0)
+    await expect.poll(() => readPlane(sequence)).toEqual(pose)
+  }
+
+  for (let pass = 0; pass < 2; pass++) {
+    await wheelToStage(display, aligned)
+    await expect(graphic(sequence)).toBeInViewport()
+    await expect(requestCable(sequence)).toHaveCSS('opacity', '1')
+    await expect(responseCable(sequence)).toHaveCSS('opacity', '1')
+
+    await wheelToStage(departing, separated)
+    await expect(graphic(sequence)).toBeInViewport()
+    await wheelToStage(after, assembled)
+    await expect(graphic(sequence)).not.toBeInViewport()
+
+    await wheelToStage(departing, separated)
+    await wheelToStage(display, aligned)
+    await expect(responseCable(sequence)).toHaveCSS('opacity', '1')
+    await wheelToStage(before, assembled)
+  }
+})
+
 test('keeps the static alternatives when preferences or viewport change in place', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 950 })
   await page.emulateMedia({ reducedMotion: 'no-preference' })
@@ -94,8 +137,21 @@ test('keeps the static alternatives when preferences or viewport change in place
   await expectStage(sequence, before, aligned)
   await expectStage(sequence, after, aligned)
 
-  await page.emulateMedia({ reducedMotion: 'no-preference' })
   await page.setViewportSize({ width: 1440, height: 800 })
+  await expectStage(sequence, before, aligned)
+  await page.emulateMedia({ reducedMotion: 'no-preference' })
+  await expect(sequence).toHaveAttribute('data-animated', 'true')
+  await expectStage(sequence, before, assembled)
+  await expectStage(sequence, display, aligned)
+  await expectStage(sequence, after, assembled)
+
+  await page.setViewportSize({ width: 1920, height: 512 })
+  await expect(sequence).toHaveAttribute('data-animated', 'true')
+  await expectStage(sequence, display, aligned)
+  await expect(requestCable(sequence)).toHaveCSS('opacity', '1')
+  await expect(responseCable(sequence)).toHaveCSS('opacity', '1')
+
+  await page.setViewportSize({ width: 1920, height: 511 })
   await expect(sequence).not.toHaveAttribute('data-animated')
   await expectStage(sequence, before, aligned)
   await expectStage(sequence, after, aligned)

@@ -79,7 +79,7 @@ The live walkthrough translates known default titles in the browser result cards
 
 ## Request walkthrough
 
-Before the player opens, the request cross section presents the browser, application server, and database. On wide, tall screens with motion enabled, the scene briefly sticks below the header. Scrolling separates the layers, then aligns them with distinct request and response paths. The moving planes and path endpoints share the same SVG coordinates. Narrow screens use a stepped diagram, and short viewports and reduced motion use a static layout. Layer buttons reveal explanations independently of the walkthrough and simulations. [Cross section](../src/features/request-flow/RequestCrossSection.tsx)
+Before the player opens, the request cross section presents the browser, application server, and database. On supported desktop layouts with motion enabled, scrolling separates, aligns, and stacks the layers again on each pass. The frame briefly sticks below the header at 51rem of height and moves with the page from 32rem up to that threshold. The planes and paths share the same SVG coordinates. Reduced motion, very short or tall viewports, and narrow portrait ratios use a static diagram with both paths visible. The smallest widths use a stepped layout. Layer buttons reveal explanations independently of the walkthrough and simulations. [Cross section](../src/features/request-flow/RequestCrossSection.tsx)
 
 In **Behind every request**, choose **Explore the request**, then **Open walkthrough**. Start with **Load content** in the illustrated browser or **Play** in the player controls. Use **Pause**, the previous and next step, and **Replay** to control playback. Closing the panel returns focus to its opener.
 

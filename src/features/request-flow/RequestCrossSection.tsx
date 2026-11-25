@@ -6,8 +6,8 @@ import { useLanguage } from '../../i18n/language'
 import { systems } from './requestFlowSteps'
 import styles from './RequestCrossSection.module.css'
 
-// In tall portrait viewports the aligned phase can fall above the document.
-const animatedScene = '(min-width: 60rem) and (51rem <= height <= 135rem) and (min-aspect-ratio: 3/4) and (prefers-reduced-motion: no-preference)'
+// Leave room for the paths below the header and keep the aligned phase reachable on tall screens.
+const animatedScene = '(min-width: 60rem) and (min-height: 32rem) and (max-height: 135rem) and (min-aspect-ratio: 3/4) and (prefers-reduced-motion: no-preference)'
 const planeWidth = 182
 type Point = readonly [x: number, y: number]
 type Layer = 0 | 1 | 2
