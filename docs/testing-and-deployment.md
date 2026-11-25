@@ -104,6 +104,8 @@ At 320 px, check that grouped report bars are easy to activate individually. In 
 
 The [pull request workflow](../.github/workflows/ci.yml) runs Vitest, lint, TypeScript, the production build, and the Chromium suite on Linux with Node.js 24. Its backend job uses .NET 10, builds the solution in Release mode, and runs the tests that need no database. A separate `backend-sql` job runs the SQL integration tests against a temporary SQL Server 2022 container on the runner.
 
+The Professional Engineering Quality skill is available in [Codex](../.agents/skills/professional-engineering-quality/SKILL.md) as `$professional-engineering-quality` and in [Claude Code](../.claude/skills/professional-engineering-quality/SKILL.md) as `/professional-engineering-quality`. Update both copies together. The pull request workflow checks that their bytes match.
+
 The [Pages workflow](../.github/workflows/pages.yml) runs on pushes to `main` and supports manual dispatch. Only runs on `main` can deploy. Select **GitHub Actions** as the Pages source in the repository settings. The workflow runs `npm ci`, Vitest, lint, the production build, and the Chromium suite before uploading `dist/` and deploying it. The production asset base is `/portfolio/`.
 
 The build writes `dist/third-party-licenses.md` with the notices for bundled npm dependencies. Keep that file with the published assets. The source contains the Geist font license separately.

@@ -35,11 +35,18 @@ SKILL.md
 .claudeignore
 .codexignore
 
-# Publish only the portfolio's engineering quality skill.
+# Publish only the Codex and Claude Code copies of the engineering quality skill.
 !/.agents/
 /.agents/*
 !/.agents/skills/
 /.agents/skills/*
 !/.agents/skills/professional-engineering-quality/
-/.agents/skills/professional-engineering-quality/*
+/.agents/skills/professional-engineering-quality/**
 !/.agents/skills/professional-engineering-quality/SKILL.md
+!/.claude/
+/.claude/*
+!/.claude/skills/
+/.claude/skills/*
+!/.claude/skills/professional-engineering-quality/
+/.claude/skills/professional-engineering-quality/**
+!/.claude/skills/professional-engineering-quality/SKILL.md
