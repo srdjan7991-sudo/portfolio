@@ -15,38 +15,3 @@ test-results/
 *.pem
 !/browser-tests/fixtures/proxy-test.pfx
 !/browser-tests/fixtures/proxy-test.pem
-
-# Private agent instructions, settings, and skill bundles at any depth.
-# Before committing or pushing, review the index and full staged diff for agent files.
-.agents/
-.claude/
-.codex/
-skills/
-AGENTS.md
-AGENTS.override.md
-CLAUDE.md
-CLAUDE.local.md
-CODEX.md
-SKILL.md
-.agents.json
-.claude.json
-.codex.json
-.mcp.json
-.claudeignore
-.codexignore
-
-# Publish only the Codex and Claude Code copies of the engineering quality skill.
-!/.agents/
-/.agents/*
-!/.agents/skills/
-/.agents/skills/*
-!/.agents/skills/professional-engineering-quality/
-/.agents/skills/professional-engineering-quality/**
-!/.agents/skills/professional-engineering-quality/SKILL.md
-!/.claude/
-/.claude/*
-!/.claude/skills/
-/.claude/skills/*
-!/.claude/skills/professional-engineering-quality/
-/.claude/skills/professional-engineering-quality/**
-!/.claude/skills/professional-engineering-quality/SKILL.md
