@@ -6,13 +6,13 @@
 
 1. Open **Skills** from the header. **Frontend Engineering** is the featured category. The other categories cover analytics, testing, APIs and data, and delivery.
 2. Choose **Frontend Engineering**, then **React** (1). Hovering over or focusing a technology highlights related technologies. Selecting it opens the skill detail (2), which explains the tool and where it was used.
-3. Choose **TypeScript** under **Works with** (3) to replace the React detail with the TypeScript detail. Use **Close details** to return focus to the current technology, or **All categories** to return to the category overview.
+3. Choose **TypeScript** under **Works with** (3) to replace the React detail with the TypeScript detail. React, TypeScript, and Highcharts link to the Mede Analytics project. C# links to the Kterio experience entry. Use **Close details** to return focus to the technology, or **All categories** to return to the overview.
 
 ![Technical Skills with React selected, its description open, and related technologies under Works with](../screenshots/skills--react-details.webp)
 
 ## How I Engineer
 
-Open **Expertise** from the header to find five engineering areas. Choose an area, then select a concept tab. While a tab has keyboard focus, use the left and right arrow keys to switch concepts. **All areas** returns to the index and places focus back on the selected area.
+Open **Expertise** from the header to find five engineering areas. Choose an area, then select a concept tab for a specific task. For example, **Maintainable change** starts at the repository snippet and **Regression prevention** starts with the test and both quantity rules visible. Use the left and right arrow keys to switch focused tabs. **All areas** returns focus to the selected area in the index.
 
 ### Run the quantity checks
 
@@ -46,7 +46,7 @@ Under **Frontend Engineering**, try **Narrow** and **Wide** in **Responsive inte
 
 ![Experience timeline at the start of the project list, with Mede Analytics active and its Details control visible.](../screenshots/experience--timeline.webp)
 
-3. On Mede Analytics, **Details** (1) reveals the case notes (2), including the contribution, implementation, and validation. Select the underlined **Highcharts** link (3) to open and focus that technology in Skills. The browser's **Back** button returns to the originating technology link in the project.
+3. On Mede Analytics, **Details** (1) reveals the .NET 8 migration collaboration note (2). Kterio's details describe the work with Entity Framework Core and PostgreSQL. Select the underlined **Highcharts** link (3) to open and focus that technology in Skills. The browser's **Back** button returns to the originating technology link.
 
 ![Mobile Mede Analytics entry expanded with the Details control, case notes, and the Highcharts technology link](../screenshots/experience--project-details.webp)
 

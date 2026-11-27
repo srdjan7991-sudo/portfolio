@@ -1,26 +1,10 @@
 import { PortfolioSection } from '../../components/shared/PortfolioSection'
 import { TechnologyTags } from '../../components/shared/TechnologyTags'
 import { useLanguage } from '../../i18n/language'
-import type { Language } from '../../i18n/language'
 import { AnalyticsReportDemo } from './AnalyticsReportDemo'
 import './SelectedWork.css'
 
 const seriesAPath = 'M0 161 C40 166 67 130 112 137 S178 155 224 120 S287 76 320 92 S390 108 432 66 S505 90 544 48 S610 60 640 21'
-
-const projectCopy = {
-  en: {
-    contribution: 'What I built',
-    features: ['Reusable React components', 'Report filters and pagination', 'Frontend tests'],
-    interfaces: 'Interface and data',
-    services: 'Services and REST endpoints',
-  },
-  sr: {
-    contribution: 'Moj doprinos',
-    features: ['React komponente za višekratnu upotrebu', 'Filteri i straničenje izveštaja', 'Frontend testovi'],
-    interfaces: 'Interfejs i podaci',
-    services: 'Servisi i REST rute',
-  },
-} satisfies Record<Language, { contribution: string; features: readonly string[]; interfaces: string; services: string }>
 
 function AnalyticsPreview() {
   const { text: { work: { preview } } } = useLanguage()
@@ -61,8 +45,7 @@ function AnalyticsPreview() {
 }
 
 export function SelectedWork() {
-  const { language, text: { work } } = useLanguage()
-  const copy = projectCopy[language]
+  const { text: { work } } = useLanguage()
   return (
     <PortfolioSection id="work" intro={work.intro}>
       <div>
@@ -72,15 +55,13 @@ export function SelectedWork() {
             <h3 id="work-mede-title">Mede Analytics</h3>
             <p>{work.mede}</p>
             <TechnologyTags label={work.technologies('Mede Analytics')} tools={['React', 'TypeScript', 'Redux', 'Highcharts', '.NET 8', 'Vitest']} />
+            <div className="selected-work-contribution">
+              <p className="selected-work-eyebrow" id="work-mede-contribution">{work.contributions.label}</p>
+              <ul aria-labelledby="work-mede-contribution">
+                {work.contributions.items.map(feature => <li key={feature}>{feature}</li>)}
+              </ul>
+            </div>
           </div>
-          <AnalyticsPreview />
-          <div className="selected-work-contribution">
-            <p className="selected-work-eyebrow" id="work-mede-contribution">{copy.contribution}</p>
-            <ul aria-labelledby="work-mede-contribution">
-              {copy.features.map(feature => <li key={feature}>{feature}</li>)}
-            </ul>
-          </div>
-          <AnalyticsReportDemo />
           <details className="selected-work-case-study">
             <summary>{work.read}</summary>
             <dl className="selected-work-case-details">
@@ -89,6 +70,8 @@ export function SelectedWork() {
               ))}
             </dl>
           </details>
+          <AnalyticsPreview />
+          <AnalyticsReportDemo />
         </article>
         <article id="work-kterio" className="selected-work-secondary-project" tabIndex={-1} aria-labelledby="work-kterio-title">
           <div>
@@ -97,9 +80,10 @@ export function SelectedWork() {
           </div>
           <div className="selected-work-secondary-copy">
             <p>{work.kterio}</p>
-            <dl className="selected-work-kterio-stack">
-              <div><dt>{copy.interfaces}</dt><dd>React · Redux</dd></div>
-              <div><dt>{copy.services}</dt><dd>C# · .NET Core</dd></div>
+            <dl className="selected-work-kterio-details">
+              {Object.entries(work.kterioWork).map(([id, detail]) => (
+                <div key={id}><dt>{detail.label}</dt><dd>{detail.body}</dd></div>
+              ))}
             </dl>
           </div>
         </article>

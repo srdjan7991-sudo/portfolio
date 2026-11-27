@@ -9,16 +9,15 @@ async function openReport(page) {
   await expect(page.getByRole('table', { name: 'Monthly data' })).toBeVisible()
 }
 
-async function openLiveWalkthrough(page) {
+async function openLivePortfolio(page, respond) {
   // Keep the browser on HTTPS to exercise the application's live-mode entry point.
   // Assets come from the local preview. Only API results use fixtures.
   const origin = 'https://portfolio.test'
   await page.route(`${origin}/**`, async route => {
     const url = new URL(route.request().url())
-    if (url.pathname === '/api/sections') {
-      return route.fulfill({ json: [{ key: 'expertise', title: 'How I Engineer', body: 'Published section' }] })
+    if (url.pathname.startsWith('/api/')) {
+      return route.fulfill(respond(url.pathname, route.request()) ?? { status: 401 })
     }
-    if (url.pathname.startsWith('/api/')) return route.fulfill({ status: 401 })
     const response = await route.fetch({
       url: new URL(url.pathname + url.search, process.env.PORTFOLIO_TEST_AUTH_PREVIEW_URL).href,
       maxRedirects: 0,
@@ -26,14 +25,15 @@ async function openLiveWalkthrough(page) {
     return route.fulfill({ response })
   })
   await page.goto(`${origin}/portfolio/`)
-  await action(page, 'Explore the request').click()
-  await action(page, 'Open walkthrough').click()
-  await expect(page.getByText('Live request', { exact: true })).toBeVisible()
 }
 
 test('keyboard focus holds a live response until playback resumes', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'no-preference' })
-  await openLiveWalkthrough(page)
+  await openLivePortfolio(page, path => path === '/api/sections' ? {
+    json: [{ key: 'expertise', title: 'How I Engineer', body: 'Published section' }],
+  } : undefined)
+  await action(page, 'Explore the request').click()
+  await expect(page.getByText('Live request', { exact: true })).toBeVisible()
   await page.clock.install()
   await action(page, 'Play').click()
 
@@ -59,6 +59,91 @@ test('keyboard focus holds a live response until playback resumes', async ({ pag
   await action(page, 'Play').click()
   await page.clock.fastForward(4_100)
   await expect(page.getByText('06 · Result', { exact: true })).toBeVisible()
+})
+
+test('keeps administrator controls on the main alignment and saves a keyboard reorder', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 })
+  const original = ['work', 'skills', 'expertise', 'experience', 'education', 'contact']
+  let order = original
+  const submissions = []
+  await openLivePortfolio(page, (path, request) => {
+    if (path === '/api/auth/refresh') {
+      return { json: { accessToken: 'test-session', expiresAt: new Date(Date.now() + 600_000).toISOString() } }
+    }
+    if (path === '/api/auth/me') return { json: { id: 'test-admin', email: null, role: 'Admin' } }
+    if (path === '/api/sections/order' && request.method() === 'PUT') {
+      const requestBody = request.postDataJSON()
+      submissions.push(requestBody)
+      order = requestBody.keys
+      return { json: { keys: order } }
+    }
+    if (path === '/api/sections/order') return { json: { keys: order } }
+  })
+  const editing = action(page, 'Editing mode')
+  await editing.click()
+  await openReport(page)
+  const report = page.getByText('Try a sample report', { exact: true }).locator('xpath=following-sibling::div')
+  const checkReport = async () => {
+    await expect(report).toBeVisible()
+    const work = await page.locator('#work').boundingBox()
+    const panel = await report.boundingBox()
+    expect(panel.width).toBeGreaterThan(work.width)
+    expect(panel.x + panel.width / 2).toBeCloseTo(work.x + work.width / 2, 0)
+  }
+  const handle = action(page, 'Reorder Selected Work')
+  const orderOnPage = () => page.locator('.portfolio-order-item > section').evaluateAll(sections => sections.map(section => section.id))
+  await expect.poll(orderOnPage).toEqual(original)
+  await handle.press('Enter')
+  await handle.press('ArrowDown')
+  const updated = ['skills', 'work', 'expertise', 'experience', 'education', 'contact']
+  await expect.poll(orderOnPage).toEqual(updated)
+  await handle.press('Escape')
+  await expect.poll(orderOnPage).toEqual(original)
+  await checkReport()
+  expect(submissions).toEqual([])
+  await handle.press('Enter')
+  await handle.press('ArrowDown')
+  await handle.press('Enter')
+  await expect(page.getByText('Saved', { exact: true })).toBeVisible()
+  await expect.poll(orderOnPage).toEqual(updated)
+  await checkReport()
+  expect(submissions).toEqual([{ keys: updated, expectedKeys: original }])
+
+  for (const language of ['en', 'sr']) {
+    if (language === 'sr') await page.getByRole('switch', { name: 'EN / SR, Serbian language' }).click()
+    for (const width of [1440, 1280, 1024, 768, 640, 620, 609, 608, 390, 320]) {
+      await page.setViewportSize({ width, height: 900 })
+      const layout = await page.locator('.portfolio-admin-toolbar-inner').evaluate(toolbar => {
+        const left = element => element.getBoundingClientRect().left
+        const right = element => element.getBoundingClientRect().right
+        return {
+          toolbarLeft: left(toolbar), workLeft: left(document.querySelector('#work')),
+          overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+          controlsFit: [...toolbar.querySelectorAll('button')].every(button =>
+            left(button) >= left(toolbar) - 1 && right(button) <= right(toolbar) + 1),
+        }
+      })
+      expect(layout, `${language} / ${width} px`).toEqual({
+        toolbarLeft: layout.workLeft, workLeft: layout.workLeft, overflow: 0, controlsFit: true,
+      })
+    }
+  }
+
+  await page.setViewportSize({ width: 1920, height: 512 })
+  await page.emulateMedia({ reducedMotion: 'no-preference' })
+  const scene = page.locator('[data-request-cross-section]')
+  await expect(scene).toHaveAttribute('data-animated', 'true')
+  await scene.evaluate(section => window.scrollTo({
+    top: window.scrollY + section.getBoundingClientRect().bottom - 0.85 * window.innerHeight,
+    behavior: 'instant',
+  }))
+  const graphic = scene.locator('figure svg:visible')
+  await expect(graphic.locator('path[data-response="true"]').first()).toHaveCSS('opacity', '1')
+  const clearance = await graphic.evaluate(svg => {
+    const header = document.querySelector('header').getBoundingClientRect().bottom
+    return Math.min(...Array.from(svg.querySelectorAll('g[data-selected]'), layer => layer.getBoundingClientRect().top)) - header
+  })
+  expect(clearance).toBeGreaterThanOrEqual(0)
 })
 
 test('Skills restores a modified visit after reload, Back and Forward', async ({ page }) => {
@@ -165,11 +250,14 @@ test.describe('touch chart', () => {
     await openReport(page)
     const quality = reportPoint(page, 'Quality')
     const utilization = reportPoint(page, 'Utilization')
+    const reading = page.getByRole('figure', { name: 'Completed reports by month' }).locator('[data-open="true"]')
     await quality.tap()
-    await expect(openTooltip(page)).toContainText('115')
+    await expect(reading).toBeInViewport()
+    await expect(reading).toContainText('115')
     await expect(quality).toHaveAttribute('aria-pressed', 'true')
     await utilization.tap()
-    await expect(openTooltip(page)).toContainText('77')
+    await expect(reading).toBeInViewport()
+    await expect(reading).toContainText('77')
     await expect(quality).toHaveAttribute('aria-pressed', 'false')
     await expect(utilization).toHaveAttribute('aria-pressed', 'true')
   })

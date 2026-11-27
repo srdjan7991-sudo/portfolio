@@ -119,6 +119,8 @@ test('retains the selected technology when the language changes', async () => {
 })
 
 test.each([
+  ['React', 'View work on Mede Analytics', '#work-mede'],
+  ['TypeScript', 'View work on Mede Analytics', '#work-mede'],
   ['Highcharts', 'View work on Mede Analytics', '#work-mede'],
   ['C#', 'View work on Kterio', '#experience-kterio'],
 ])('links %s to its confirmed project', async (skill, label, href) => {

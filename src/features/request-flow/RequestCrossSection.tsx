@@ -216,7 +216,7 @@ export function RequestCrossSection({ expanded, children }: { expanded: boolean;
       <div className={styles.frame}>
         {children}
         {!expanded && <figure className={styles.figure} aria-label={text.label}>
-          <div className={styles.surface}>
+          <div className={`container container--full container--breakout ${styles.surface}`}>
             {animated ? <AnimatedLayers target={sequence} selected={picked} /> : <Layers progress={still} selected={picked} />}
             <CompactLayers selected={picked} />
             <div className={styles.legend} aria-hidden="true">

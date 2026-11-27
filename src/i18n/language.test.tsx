@@ -78,7 +78,6 @@ test('relabels an open walkthrough without losing its paused stage', async () =>
   const user = userEvent.setup()
   render(<App />)
   await user.click(screen.getByRole('button', { name: 'Explore the request' }))
-  await user.click(screen.getByRole('button', { name: 'Open walkthrough' }))
   await user.click(screen.getByRole('button', { name: 'Load content' }))
   await user.click(screen.getByRole('button', { name: 'Next step' }))
   expect(screen.getByText('02 / 06')).toBeVisible()

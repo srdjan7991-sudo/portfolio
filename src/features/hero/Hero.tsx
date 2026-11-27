@@ -26,8 +26,8 @@ export function Hero() {
             </div>
           </div>
         </div>
-        <HeroArchitecture />
       </div>
+      <HeroArchitecture />
     </section>
   )
 }

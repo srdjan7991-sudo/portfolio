@@ -19,8 +19,13 @@
   --pill: 999px;
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
   --quick: 180ms;
+  --reading-width: 42rem;
   --content-width: 80rem;
+  --wide-width: 92rem;
+  --full-width: 104rem;
   --gutter: clamp(1.25rem, 4.8vw, 4.5rem);
+  --wide-gutter: clamp(1rem, 2.8vw, 2.5rem);
+  --full-gutter: clamp(0.75rem, 1.875vw, 1.5rem);
   --header-height: 4.5rem;
   --section-space: clamp(4.4rem, 8vw, 8rem);
   font-family: var(--sans);
@@ -46,8 +51,35 @@ a { color: inherit; text-underline-offset: 0.24em; }
 section[id] { scroll-margin-top: 1.25rem; }
 
 .container {
-  width: min(100% - var(--gutter) * 2, var(--content-width));
+  --container-gutter: var(--gutter);
+  --container-limit: var(--content-width);
+  inline-size: min(100% - var(--container-gutter) * 2, var(--container-limit));
   margin-inline: auto;
+}
+
+.container--wide {
+  --container-limit: var(--wide-width);
+  --container-gutter: var(--wide-gutter);
+}
+
+.container--full {
+  --container-limit: var(--full-width);
+  --container-gutter: var(--full-gutter);
+}
+
+@supports (inline-size: 1cqi) {
+  /* Size shared breakouts against the page content box, including on scrollbars. */
+  #main { container-type: inline-size; }
+
+  .container--breakout {
+    --breakout-width: min(100cqi - var(--container-gutter) * 2, var(--container-limit));
+    inline-size: var(--breakout-width);
+    margin-inline: calc((100% - var(--breakout-width)) / 2);
+  }
+}
+
+@supports not (inline-size: 1cqi) {
+  .container--breakout { inline-size: 100%; }
 }
 
 .ui-pill {

@@ -1,3 +1,5 @@
+.experience-employment, .experience-project-heading, .experience-timeline { max-inline-size: 54rem; }
+
 .experience-employment {
   padding-block: 0.9rem clamp(1.25rem, 3vw, 2.5rem);
   border-bottom: 1px solid var(--line);
@@ -10,7 +12,8 @@
   gap: 0.45rem 1.5rem;
 }
 .experience-entry-heading p { font: 0.78rem/1.5 var(--mono); font-variant-numeric: tabular-nums; }
-.experience-employment > p { margin-top: 0.85rem; max-width: 66ch; }
+.experience-employment > p, .experience-project > p { max-inline-size: 66ch; }
+.experience-employment > p { margin-top: 0.85rem; }
 .experience-project-heading { margin-top: clamp(1.8rem, 4vw, 3.3rem); }
 
 .experience-timeline {

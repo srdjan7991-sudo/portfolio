@@ -19,6 +19,10 @@ export function useReportTooltipPosition(
 
     const place = () => {
       frame = 0
+      if (getComputedStyle(panel).position !== 'absolute') {
+        panel.removeAttribute('data-positioned')
+        return
+      }
       const bounds = container.getBoundingClientRect()
       const bar = anchor.getBoundingClientRect()
       const screenLeft = viewport?.offsetLeft ?? 0

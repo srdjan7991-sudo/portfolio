@@ -15,14 +15,20 @@ type Props = {
   onProjectLink: (event: MouseEvent<HTMLAnchorElement>) => void
 }
 
-const projectEvidence: Partial<Record<SkillName, {
+type ProjectEvidence = {
   href: `#${string}`
   label: Record<Language, string>
-}>> = {
-  Highcharts: {
-    href: '#work-mede',
-    label: { en: 'View work on Mede Analytics', sr: 'Pogledaj rad na Mede Analytics' },
-  },
+}
+
+const medeEvidence: ProjectEvidence = {
+  href: '#work-mede',
+  label: { en: 'View work on Mede Analytics', sr: 'Pogledaj rad na projektu Mede Analytics' },
+}
+
+const projectEvidence: Partial<Record<SkillName, ProjectEvidence>> = {
+  React: medeEvidence,
+  TypeScript: medeEvidence,
+  Highcharts: medeEvidence,
   'C#': {
     href: '#experience-kterio',
     label: { en: 'View work on Kterio', sr: 'Pogledaj rad na projektu Kterio' },

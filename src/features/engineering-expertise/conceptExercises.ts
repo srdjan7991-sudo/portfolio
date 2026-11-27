@@ -1,0 +1,51 @@
+import type { Language } from '../../i18n/language'
+import type { engineeringAreas, EngineeringConcept } from './engineeringAreas'
+
+type SharedDemoConcept = Exclude<EngineeringConcept, (typeof engineeringAreas.frontend)[number]>
+
+export const conceptExercises: Readonly<Record<Language, Partial<Record<EngineeringConcept, string>>>> = {
+  en: {
+    dashboards: 'Switch to three weeks and check that the chart and its average cover the same period.',
+    presentation: 'Compare the labels for weeks 5 and 6. Read the value and its unit before comparing bar heights.',
+    charts: 'Focus, hover, or tap a bar to read its exact value and the change from the previous week.',
+    aggregation: 'Change the range and compare the six-week average with the three-week average.',
+    dataDriven: 'Select six weeks and choose week 2, then switch to three weeks. Check which bars and reading remain.',
+    rest: 'Simulate a successful GET request and match its HTTP status to the result shown in the interface.',
+    async: 'Send a request and watch the status change while it waits and when the response is ready.',
+    lifecycle: 'Follow Ready, Loading, and Response as the request progresses.',
+    errors: 'Simulate an HTTP 503, then send a successful request to recover.',
+    communication: 'Compare HTTP 200 and 503 to see how service outcomes become different messages in the interface.',
+    separation: 'Follow the view, service, and repository to see which part owns each decision.',
+    modularity: 'Inspect the service’s report filter and the repository call that supplies its input.',
+    shared: 'Find ReportTable in the view and inspect the rows and status it receives.',
+    maintenance: 'Find the endpoint in the repository. Switch to the view to see what it needs from the service.',
+    modernization: 'Compare the combined module with separate modules and trace the same report behavior through both.',
+    componentTests: 'Activate Add item twice with the limit enabled, then open Tests to see the matching assertion.',
+    integrationTests: 'Use Add item below the limit and check how the button, quantity rule, and displayed result agree.',
+    interactionTests: 'Activate Add item twice using the keyboard and check the displayed quantity.',
+    regressions: 'Compare both rules, then remove the limit and run the checks to see which assertion fails.',
+    reliability: 'Add items, reset the quantity, and repeat the same action to check the result.',
+  },
+  sr: {
+    dashboards: 'Prebaci prikaz na tri nedelje i proveri da li grafikon i prosek obuhvataju isti period.',
+    presentation: 'Uporedi oznake za petu i šestu nedelju. Pročitaj tačnu vrednost i jedinicu pre poređenja visine stubova.',
+    charts: 'Fokusiraj stub, pređi mišem preko njega ili ga dodirni da vidiš vrednost i promenu u odnosu na prethodnu nedelju.',
+    aggregation: 'Promeni raspon i uporedi proseke za šest i tri nedelje.',
+    dataDriven: 'Izaberi raspon od šest nedelja i drugu nedelju, pa prebaci prikaz na tri nedelje. Proveri koji stubovi i očitavanje ostaju.',
+    rest: 'Simuliraj uspešan GET zahtev i poveži njegov HTTP status sa rezultatom u interfejsu.',
+    async: 'Pošalji zahtev i prati status dok čekaš odgovor i kada odgovor stigne.',
+    lifecycle: 'Prati stanja Spremno, Učitavanje i Odgovor dok zahtev napreduje.',
+    errors: 'Simuliraj HTTP 503, pa pošalji uspešan zahtev da se oporaviš od greške.',
+    communication: 'Uporedi HTTP 200 i 503 da vidiš kako različiti ishodi servisa postaju različite poruke u interfejsu.',
+    separation: 'Prati prikaz, servis i repozitorijum da vidiš koji deo donosi koju odluku.',
+    modularity: 'Pregledaj filter izveštaja u servisu i poziv repozitorijuma od kojeg servis dobija podatke.',
+    shared: 'Pronađi ReportTable u prikazu i pogledaj koje redove i status prima.',
+    maintenance: 'Pronađi endpoint u repozitorijumu. Pređi na prikaz da vidiš šta mu je potrebno od servisa.',
+    modernization: 'Uporedi jedan modul sa odvojenim modulima i prati isto ponašanje izveštaja kroz obe verzije.',
+    componentTests: 'Dva puta aktiviraj Dodaj stavku sa uključenim ograničenjem, pa otvori Testove da vidiš odgovarajuću proveru.',
+    integrationTests: 'Dodaj stavku ispod ograničenja i proveri vezu dugmeta, pravila o količini i prikazanog rezultata.',
+    interactionTests: 'Tastaturom dva puta aktiviraj Dodaj stavku i proveri prikazanu količinu.',
+    regressions: 'Uporedi oba pravila, zatim ukloni ograničenje i pokreni provere da vidiš koja pada.',
+    reliability: 'Dodaj stavke, resetuj količinu i ponovi istu akciju da proveriš rezultat.',
+  },
+} satisfies Record<Language, Record<SharedDemoConcept, string>>

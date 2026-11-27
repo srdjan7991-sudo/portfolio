@@ -46,12 +46,18 @@ for (const [language, colorScheme] of [['en', 'light'], ['sr', 'dark']]) {
 
     const sequence = scene(page)
     await expect(sequence).toHaveAttribute('data-animated', 'true')
+    await expect(sequence.locator(':scope > div').first()).toHaveCSS('position', 'sticky')
     await page.evaluate(() => document.fonts.ready)
 
     await expectStage(sequence, before, assembled)
     await expect(responseCable(sequence)).toHaveCSS('opacity', '0')
     await expectStage(sequence, display, aligned)
     await expect(responseCable(sequence)).toHaveCSS('opacity', '1')
+    const art = await graphic(sequence).evaluate(svg => ({
+      renderedWidth: svg.getScreenCTM().a * svg.viewBox.baseVal.width,
+      readingWidth: svg.closest('figure').getBoundingClientRect().width,
+    }))
+    expect(art.renderedWidth).toBeGreaterThan(art.readingWidth)
     await expectStage(sequence, departing, separated)
     await expect(graphic(sequence)).toBeInViewport()
     await expectStage(sequence, after, assembled)
@@ -72,7 +78,6 @@ for (const [language, colorScheme] of [['en', 'light'], ['sr', 'dark']]) {
       const explore = page.getByRole('button', { name: 'Explore the request' })
       await explore.click()
       await expect(sequence.locator('figure')).toHaveCount(0)
-      await page.getByRole('button', { name: 'Open walkthrough' }).click()
       await expect(page.getByRole('button', { name: 'Play', exact: true })).toBeEnabled()
       await page.getByRole('button', { name: 'Close walkthrough' }).click()
       await expect(explore).toBeFocused()
@@ -93,6 +98,7 @@ test('scrubs the request diagram with the wheel in a short desktop viewport', as
   await page.evaluate(() => document.fonts.ready)
 
   const sequence = scene(page)
+  await expect(sequence.locator(':scope > div').first()).toHaveCSS('position', 'static')
   await expectStage(sequence, before, assembled)
   await page.mouse.move(15, 400)
 
@@ -145,9 +151,23 @@ test('keeps the static alternatives when preferences or viewport change in place
   await expectStage(sequence, display, aligned)
   await expectStage(sequence, after, assembled)
 
+  for (const [height, position] of [[815, 'static'], [816, 'sticky']]) {
+    await page.setViewportSize({ width: 1440, height })
+    await expect(sequence.locator(':scope > div').first()).toHaveCSS('position', position)
+    await expectStage(sequence, display, aligned)
+    await expect(graphic(sequence)).toBeInViewport()
+    await expectStage(sequence, after, assembled)
+    await expectStage(sequence, display, aligned)
+  }
+
   await page.setViewportSize({ width: 1920, height: 512 })
   await expect(sequence).toHaveAttribute('data-animated', 'true')
   await expectStage(sequence, display, aligned)
+  const { planeTop, headerBottom } = await plane(sequence).evaluate(layer => ({
+    planeTop: layer.getBoundingClientRect().top,
+    headerBottom: document.querySelector('header').getBoundingClientRect().bottom,
+  }))
+  expect(planeTop).toBeGreaterThanOrEqual(headerBottom)
   await expect(requestCable(sequence)).toHaveCSS('opacity', '1')
   await expect(responseCable(sequence)).toHaveCSS('opacity', '1')
 
