@@ -2,6 +2,12 @@
 
 [Back to the portfolio walkthrough](../../README.md#opening-screen-and-navigation)
 
+## Explore Living Architecture
+
+Scroll below the opening text to separate, assemble, and connect the layers of a software system. As you continue, the camera moves closer and the top layer becomes a sample interface. Scroll back to see the same sequence in reverse. A mouse over the scene adds a small camera movement.
+
+The still illustration appears with reduced motion or unavailable WebGL 2. Use **Explore the interface** to jump to **Living application architecture** and try the interactive queue.
+
 ## Refresh the review queue
 
 On a fresh load, **Frontend** shows **Revision 1**. In the desktop layout, hover over **Refresh queue** to preview its connection. Keyboard focus also highlights the related part of the simulation.

@@ -23,6 +23,12 @@ Run the Hero tests for the localized heading and CTA links, route previews, queu
 npm test -- src/features/hero/Hero.test.tsx
 ```
 
+Run the Living Architecture browser tests for the five scroll poses, pointer movement, phone layout, direct links, and the fallback on context loss.
+
+```sh
+npm run test:browser -- browser-tests/living-architecture.pw.mjs
+```
+
 Run the Selected Work and report tests for project anchors, bar selection, coverage, and month comparisons.
 
 ```sh
@@ -80,6 +86,7 @@ Run the static build locally with `npm run build` followed by `npm run preview`.
 | Area | What to verify |
 | --- | --- |
 | Section widths | At 1440, 1280, 1024, 768, 390, and 320 px, compare the Standard section line with the Hero architecture, the open analytics report, and the request diagram. Check both languages and themes for horizontal overflow. At 848 and 849 px, change concepts in the open Engineering workspace and confirm that the notes stay above the demo and that returning to the index restores focus. |
+| Living Architecture | Scroll through all five poses and return to the same points in reverse. Confirm that the scene stays in view on tall screens and that its layout fits at phone width. Switch theme during the sequence. Enable reduced motion or disable WebGL 2 and check for the still illustration. Use **Explore the interface** to reach the queue. |
 | Hero | At 320, 390, 768, and 1440 px, check the heading, both CTA links, and the review queue. Activate **Refresh queue** and **Pin first task** with the mouse, keyboard, and touch. Verify that the queue changes when the response returns and that only the latest action takes effect after rapid activation. Explore a backend layer to trace the signal back to the frontend. Check that the signal travels between the backend layers during the simulation and that those gaps are clear after it ends. Filter the Network panel by `api/queue` and verify that both actions complete with zero matching requests. Repeat with English and Serbian and both themes. |
 | Request cross section | At 1366 × 768 and 1440 × 950 with motion enabled, verify that the three layers separate, align and stack again during repeated scroll passes in both directions. Check that the sticky frame is used on the taller viewport and that both routes stay connected to their ports. Select a layer by keyboard and on a touch screen. On a narrow viewport, check the stepped diagram and tap a layer button. Open and close the walkthrough and scenarios on a short screen, including 320 × 350 px, and check the visible focus target and return to the opener. In the HTTPS build, verify that scrolling past the cross section produces no request to the public sections endpoint. |
 | Public page | Review the layout at 320, 375, 390, 768, 1024, 1280, 1440, and 1920 px in both languages and themes. Check keyboard focus, the mobile menu, section hash links, the case study, and asset loading. Switch languages with the menu or case study open. From the language switch, press Escape to return focus to the menu trigger. Reopen the menu and tab out of the header to check that the focused content is visible. Reload to verify the saved language on the first render. |

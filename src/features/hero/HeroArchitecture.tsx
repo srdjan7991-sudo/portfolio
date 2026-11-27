@@ -106,7 +106,7 @@ export function HeroArchitecture() {
   return (
     <div className="container container--wide living-scene">
       <div className="living-heading">
-        <h2>{living.title}</h2>
+        <h2 id="living-application" tabIndex={-1}>{living.title}</h2>
         <p>{living.simulation}</p>
       </div>
       <div className="living-shell">
