@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react'
 import type { KeyboardEvent } from 'react'
 import { useLanguage } from '../../i18n/language'
+import { conceptExercises } from './conceptExercises'
 import { engineeringAreas } from './engineeringAreas'
 import type { EngineeringArea, EngineeringConcept } from './engineeringAreas'
 import { ArchitectureDemo } from './ArchitectureDemo'
@@ -9,21 +10,33 @@ import { QualityDemo } from './QualityDemo'
 import { RequestDemo } from './RequestDemo'
 import { VisualizationDemo } from './VisualizationDemo'
 
-const otherDemos = {
-  visualization: VisualizationDemo,
-  integration: RequestDemo,
-  architecture: ArchitectureDemo,
-  quality: QualityDemo,
+function renderDemo(area: EngineeringArea, index: number) {
+  switch (area) {
+    case 'frontend':
+      return <FrontendDemo concept={engineeringAreas.frontend[index]} />
+    case 'visualization':
+      return <VisualizationDemo />
+    case 'integration':
+      return <RequestDemo key={engineeringAreas.integration[index]} />
+    case 'architecture': {
+      const concept = engineeringAreas.architecture[index]
+      return <ArchitectureDemo key={concept} concept={concept} />
+    }
+    case 'quality': {
+      const concept = engineeringAreas.quality[index]
+      return <QualityDemo key={concept} concept={concept} />
+    }
+  }
 }
 
 export function EngineeringWorkspace({ area }: { area: EngineeringArea }) {
-  const { text: { expertise } } = useLanguage()
+  const { language, text: { expertise } } = useLanguage()
   const concepts: readonly EngineeringConcept[] = engineeringAreas[area]
   const [selectedIndex, setSelectedIndex] = useState(0)
   const buttons = useRef<Partial<Record<EngineeringConcept, HTMLButtonElement | null>>>({})
   const selected = concepts[selectedIndex]
   const activeConcept = expertise.concepts[selected]
-  const Demo = area === 'frontend' ? null : otherDemos[area]
+  const exercise = conceptExercises[language][selected]
 
   function onTabKey(event: KeyboardEvent<HTMLButtonElement>, index: number) {
     if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return
@@ -69,7 +82,8 @@ export function EngineeringWorkspace({ area }: { area: EngineeringArea }) {
           </div>
           <div className="engineer-demo">
             <h5 className="engineer-label">{expertise.demo}</h5>
-            {Demo ? <Demo /> : <FrontendDemo concept={engineeringAreas.frontend[selectedIndex]} />}
+            {exercise && <p className="engineer-exercise">{exercise}</p>}
+            {renderDemo(area, selectedIndex)}
           </div>
         </div>
       </div>

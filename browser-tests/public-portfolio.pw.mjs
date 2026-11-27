@@ -29,8 +29,10 @@ test('keeps the Hero and all six request stages interactive without a live respo
   await button(page, 'Refresh queue').click()
   await expect(page.getByText('Revision 2', { exact: true })).toBeVisible()
 
-  await button(page, 'Explore the request').click()
-  await button(page, 'Open walkthrough').click()
+  const walkthrough = button(page, 'Explore the request')
+  await walkthrough.press('Enter')
+  await expect(page.getByRole('heading', { name: 'How does the page load its content?' })).toBeFocused()
+  await expect(page.getByText('01 / 06', { exact: true })).toBeVisible()
   await expect(page.getByText('This walkthrough uses example content. The steps leave time to read.', { exact: true })).toBeVisible()
   await expect(page.getByText('Live request', { exact: true })).toHaveCount(0)
   await expect(page.getByRole('heading', { name: 'Your browser' })).toBeVisible()
@@ -60,6 +62,15 @@ test('keeps the Hero and all six request stages interactive without a live respo
   await button(page, 'Replay').click()
   await expect(page.getByText('01 · Interaction', { exact: true })).toBeVisible()
   await expect(button(page, 'Pause')).toBeVisible()
+  await button(page, 'Close walkthrough').press('Enter')
+  await expect(walkthrough).toBeFocused()
+
+  const scenarios = button(page, 'Try HTTP scenarios')
+  await scenarios.press('Enter')
+  await expect(page.getByRole('heading', { name: 'When requests don’t go to plan' })).toBeFocused()
+  await expect(button(page, 'Play')).toHaveCount(0)
+  await button(page, 'Close HTTP scenarios').press('Enter')
+  await expect(scenarios).toBeFocused()
 })
 
 test.describe('mobile portfolio', () => {

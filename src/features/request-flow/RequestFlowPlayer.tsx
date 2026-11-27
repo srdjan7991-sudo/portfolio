@@ -1,5 +1,5 @@
-import { useEffect, useRef } from 'react'
-import type { CSSProperties } from 'react'
+import { useRef } from 'react'
+import type { CSSProperties, Ref } from 'react'
 import { RequestFlowDiagram } from './RequestFlowDiagram'
 import { stepIndex, steps } from './requestFlowSteps'
 import { useRequestFlow } from './useRequestFlow'
@@ -34,10 +34,9 @@ function PhaseText({ text, variants }: { text: string; variants: readonly string
   )
 }
 
-export function RequestFlowPlayer({ active, live }: { active: boolean; live: boolean }) {
+export function RequestFlowPlayer({ active, live, headingRef }: { active: boolean; live: boolean; headingRef: Ref<HTMLHeadingElement> }) {
   const { text: { flow } } = useLanguage()
   const run = useRequestFlow(active, live)
-  const heading = useRef<HTMLHeadingElement>(null)
   const playButton = useRef<HTMLButtonElement>(null)
   const replayButton = useRef<HTMLButtonElement>(null)
   const step = steps[run.index]
@@ -51,11 +50,6 @@ export function RequestFlowPlayer({ active, live }: { active: boolean; live: boo
   const title = failedLookup ? flow.failedLookup : showFailure ? flow.failedTitle : waiting ? flow.pendingTitle : phase.title
   const outcome = failedLookup ? flow.failedLookupDescription : showFailure ? flow.failedDescription
     : waiting ? flow.pendingDescription : undefined
-
-  useEffect(() => {
-    heading.current?.focus({ preventScroll: true })
-    heading.current?.scrollIntoView({ block: 'start' })
-  }, [])
 
   function move(direction: -1 | 1, control: HTMLButtonElement) {
     const destination = run.index + direction
@@ -72,7 +66,7 @@ export function RequestFlowPlayer({ active, live }: { active: boolean; live: boo
       <div className={styles.playerHeading}>
         <div>
           <p className={styles.eyebrow}>{flow.name}</p>
-          <h3 ref={heading} tabIndex={-1}><PhaseText text={flow.player} variants={playerTitles} /></h3>
+          <h3 ref={headingRef} tabIndex={-1}><PhaseText text={flow.player} variants={playerTitles} /></h3>
         </div>
         <div className={styles.mode}>
           <strong>{live ? flow.live : flow.guided}</strong>

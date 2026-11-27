@@ -75,18 +75,14 @@ export function ProfessionalExperience() {
               <p>{experience[contribution]}</p>
               <TechnologyTags label={work.technologies(title)} tools={tools}
                 linkFor={tool => skillLink(contribution, tool)} onLinkClick={requestSkillLink} />
-              {contribution === 'mede' && (
+              {contribution !== 'alpha' && (
                 <ProjectDetails label={experience.details} title={experience.detailsFor(title)}>
                   <dl>
-                    {Object.values(work.details).map(({ label, body }) => (
-                      <div key={label}><dt>{label}</dt><dd>{body}</dd></div>
-                    ))}
+                    <div>
+                      <dt>{experience.projectNotes[contribution].label}</dt>
+                      <dd>{experience.projectNotes[contribution].body}</dd>
+                    </div>
                   </dl>
-                </ProjectDetails>
-              )}
-              {contribution === 'kterio' && (
-                <ProjectDetails label={experience.details} title={experience.detailsFor(title)}>
-                  <p>{work.kterio}</p>
                 </ProjectDetails>
               )}
             </div>

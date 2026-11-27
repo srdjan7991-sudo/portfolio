@@ -6,32 +6,19 @@ import { systems } from './requestFlowSteps'
 import { useLanguage } from '../../i18n/language'
 import styles from './RequestFlow.module.css'
 
-function SystemIcon({ index }: { index: number }) {
-  return (
-    <svg viewBox="0 0 40 40" fill="none" stroke="currentColor" strokeWidth="1.35" aria-hidden="true">
-      {index === 0 ? (
-        <><rect x="4" y="8" width="32" height="24" rx="3" /><path d="M4 15h32 M9 11.5h2 M13 11.5h2 M9 23h12 M9 27h19" /></>
-      ) : index === 1 ? (
-        <><rect x="6" y="8" width="28" height="10" rx="2" /><rect x="6" y="22" width="28" height="10" rx="2" /><path d="M11 13h2 M11 27h2 M19 13h10 M19 27h10" /></>
-      ) : (
-        <><ellipse cx="20" cy="10" rx="13" ry="5" /><path d="M7 10v20c0 2.8 5.8 5 13 5s13-2.2 13-5V10 M7 20c0 2.8 5.8 5 13 5s13-2.2 13-5" /></>
-      )}
-    </svg>
-  )
-}
+type View = 'player' | 'scenarios'
+const requestStack = systems.map(system => system.stack).join(' · ')
 
 export function RequestFlow({ live }: { live: boolean }) {
   const { text: { flow } } = useLanguage()
   const [expanded, setExpanded] = useState(false)
-  const [screen, setScreen] = useState<'intro' | 'player' | 'scenarios'>('intro')
-  const [scenarioSession, setScenarioSession] = useState(0)
+  const [panel, setPanel] = useState<{ view: View; session: number } | null>(null)
   const openButton = useRef<HTMLButtonElement>(null)
   const closeButton = useRef<HTMLButtonElement>(null)
-  const introTitle = useRef<HTMLHeadingElement>(null)
-  const scenariosTitle = useRef<HTMLHeadingElement>(null)
+  const panelHeading = useRef<HTMLHeadingElement>(null)
 
   useEffect(() => {
-    const title = scenariosTitle.current ?? introTitle.current
+    const title = panelHeading.current
     if (expanded && title) {
       const close = closeButton.current
       title.focus({ preventScroll: true })
@@ -46,16 +33,15 @@ export function RequestFlow({ live }: { live: boolean }) {
     }
   }, [expanded])
 
-  function open(view: 'intro' | 'scenarios', button: HTMLButtonElement) {
+  function open(view: View, button: HTMLButtonElement) {
     openButton.current = button
-    if (view === 'scenarios') setScenarioSession(current => current + 1)
-    setScreen(view)
+    setPanel(current => ({ view, session: (current?.session ?? 0) + 1 }))
     setExpanded(true)
   }
 
   return (
     <section id="request-flow" className={styles.section}
-      aria-labelledby="request-flow-title" data-expanded={expanded} data-view={screen}>
+      aria-labelledby="request-flow-title" data-expanded={expanded} data-view={panel?.view}>
       <div className="container">
         <RequestCrossSection expanded={expanded}>
           <div className={styles.teaser}>
@@ -65,15 +51,15 @@ export function RequestFlow({ live }: { live: boolean }) {
               <p className={styles.lead}>{flow.lead}</p>
             </div>
             <div className={styles.teaserAction}>
-              <p className={styles.stack}>React · ASP.NET Core · SQL Server</p>
+              <p className={styles.stack}>{requestStack}</p>
               <div className={styles.teaserButton} inert={expanded}>
                 <div>
                   <button type="button" className="ui-pill ui-pill--accent"
-                    onClick={event => open('intro', event.currentTarget)} aria-expanded={expanded && screen !== 'scenarios'} aria-controls="request-flow-panel">
+                    onClick={event => open('player', event.currentTarget)} aria-expanded={expanded && panel?.view === 'player'} aria-controls="request-flow-panel">
                     {flow.open} <span aria-hidden="true">↓</span>
                   </button>
                   <button type="button" className="ui-pill" onClick={event => open('scenarios', event.currentTarget)}
-                    aria-expanded={expanded && screen === 'scenarios'} aria-controls="request-flow-panel">
+                    aria-expanded={expanded && panel?.view === 'scenarios'} aria-controls="request-flow-panel">
                     {flow.scenarios.open} <span aria-hidden="true">↓</span>
                   </button>
                 </div>
@@ -85,29 +71,10 @@ export function RequestFlow({ live }: { live: boolean }) {
           <div>
             <div className={styles.panel}>
               <button ref={closeButton} type="button" className={styles.close} onClick={() => setExpanded(false)}>
-                <span aria-hidden="true">×</span> {screen === 'scenarios' ? flow.scenarios.close : flow.close}
+                <span aria-hidden="true">×</span> {panel?.view === 'scenarios' ? flow.scenarios.close : flow.close}
               </button>
-              {screen === 'intro' ? (
-                <div>
-                  <p className={styles.eyebrow}>{flow.name}</p>
-                  <h3 ref={introTitle} tabIndex={-1}>{flow.intro}</h3>
-                  <p className={styles.lead}>{flow.introDescription}</p>
-                  <ol className={styles.systems}>
-                    {systems.map((system, i) => (
-                      <li key={system.id}>
-                        <SystemIcon index={i} />
-                        <h4>{flow.systems[i].name}</h4>
-                        <p>{flow.systems[i].role}</p>
-                        <p className={styles.stack}>{system.stack}</p>
-                      </li>
-                    ))}
-                  </ol>
-                  <button type="button" className="ui-pill ui-pill--accent" onClick={() => setScreen('player')}>
-                    {flow.show} <span aria-hidden="true">→</span>
-                  </button>
-                </div>
-              ) : screen === 'player' ? <RequestFlowPlayer active={expanded} live={live} />
-                : <RequestScenarios key={scenarioSession} active={expanded} headingRef={scenariosTitle} />}
+              {panel?.view === 'player' && <RequestFlowPlayer key={panel.session} active={expanded} live={live} headingRef={panelHeading} />}
+              {panel?.view === 'scenarios' && <RequestScenarios key={panel.session} active={expanded} headingRef={panelHeading} />}
             </div>
           </div>
         </div>

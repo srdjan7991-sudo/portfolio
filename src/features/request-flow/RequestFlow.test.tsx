@@ -27,8 +27,6 @@ async function openPlayer(live = false) {
   const button = within(flow).getByRole('button', { name: /Istraži kako funkcioniše/ })
   button.focus()
   await user.keyboard('{Enter}')
-  expect(within(flow).getByRole('heading', { name: /Hajde da ispratimo/ })).toHaveFocus()
-  await user.click(within(flow).getByRole('button', { name: /Prikaži mi kako/ }))
   expect(within(flow).getByRole('heading', { name: /Kako se sadržaj sajta/ })).toHaveFocus()
   return { user, flow, button }
 }
@@ -53,17 +51,25 @@ test('lets a visitor inspect a layer without starting playback or requesting dat
   expect(within(preview).getByText(sr.flow.systems[1].role)).toHaveAttribute('aria-hidden', 'true')
 })
 
-test('opens inline, waits for explicit playback and restores focus after closing', async () => {
-  const fetch = vi.fn()
+test('opens the first stage directly and restores focus and initial playback on reopening', async () => {
+  const fetch = vi.fn().mockResolvedValue(Response.json([{ key: 'work', title: 'Selected Work', body: 'Work' }]))
   vi.stubGlobal('fetch', fetch)
   const { user, flow, button } = await openPlayer(true)
+  const walkthrough = within(flow)
   expect(fetch).not.toHaveBeenCalled()
-  expect(within(flow).getByRole('button', { name: 'Sledeći korak' })).toBeDisabled()
-  await user.click(within(flow).getByRole('button', { name: 'Zatvori prikaz' }))
+  expect(walkthrough.getByText('01 / 06')).toBeVisible()
+  expect(walkthrough.getByRole('button', { name: 'Sledeći korak' })).toBeDisabled()
+  await user.click(walkthrough.getByRole('button', { name: 'Pokreni' }))
+  await user.click(walkthrough.getByRole('button', { name: 'Sledeći korak' }))
+  expect(walkthrough.getByText('02 / 06')).toBeVisible()
+  await user.click(walkthrough.getByRole('button', { name: 'Zatvori prikaz' }))
   expect(button).toHaveFocus()
   expect(button).toHaveAttribute('aria-expanded', 'false')
   await user.keyboard('{Enter}')
-  expect(within(flow).getByRole('heading', { name: /Hajde da ispratimo/ })).toHaveFocus()
+  expect(walkthrough.getByRole('heading', { name: /Kako se sadržaj sajta/ })).toHaveFocus()
+  expect(walkthrough.getByText('01 / 06')).toBeVisible()
+  expect(walkthrough.getByRole('button', { name: 'Sledeći korak' })).toBeDisabled()
+  expect(fetch).toHaveBeenCalledOnce()
 })
 
 test('holds each explanation, pauses and navigates manually without calling an API in the guided mode', async () => {

@@ -137,6 +137,7 @@
 .engineer-concept-notes h4 { margin: 0 0 0.6rem; font-size: clamp(1.12rem, 2vw, 1.48rem); line-height: 1.18; letter-spacing: -0.035em; text-wrap: balance; }
 .engineer-concept-notes p { max-width: 55ch; font-size: 0.94rem; }
 .engineer-demo { display: grid; gap: 0.8rem; min-width: 0; align-content: start; }
+.engineer .engineer-exercise { font-size: 0.85rem; }
 .engineer-evidence, .engineer-tools { margin-block-start: 0.8rem; max-width: 76ch; font-size: 0.86rem; }
 .engineer-evidence strong, .engineer-tools strong { color: var(--ink); margin-inline-end: 0.45rem; font-weight: 650; }
 

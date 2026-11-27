@@ -1,8 +1,18 @@
 import { useState } from 'react'
 import { useLanguage } from '../../i18n/language'
+import type { engineeringAreas } from './engineeringAreas'
 
 const boundaries = ['view', 'service', 'repository'] as const
 type Boundary = typeof boundaries[number]
+type ArchitectureConcept = (typeof engineeringAreas.architecture)[number]
+
+const exampleStarts = {
+  separation: 'view',
+  modularity: 'service',
+  shared: 'view',
+  maintenance: 'repository',
+  modernization: 'combined',
+} as const satisfies Record<ArchitectureConcept, Boundary | 'combined'>
 
 const files = { view: 'ReportView.tsx', service: 'reportService.ts', repository: 'reportRepository.ts' }
 
@@ -62,11 +72,12 @@ const copy = {
   },
 }
 
-export function ArchitectureDemo() {
+export function ArchitectureDemo({ concept }: { concept: ArchitectureConcept }) {
   const { language } = useLanguage()
   const text = copy[language]
-  const [separated, setSeparated] = useState(true)
-  const [boundary, setBoundary] = useState<Boundary>('view')
+  const start = exampleStarts[concept]
+  const [separated, setSeparated] = useState(start !== 'combined')
+  const [boundary, setBoundary] = useState<Boundary>(start === 'combined' ? 'view' : start)
 
   return (
     <>

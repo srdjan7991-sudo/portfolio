@@ -72,7 +72,6 @@ for (const [language, colorScheme] of [['en', 'light'], ['sr', 'dark']]) {
       const explore = page.getByRole('button', { name: 'Explore the request' })
       await explore.click()
       await expect(sequence.locator('figure')).toHaveCount(0)
-      await page.getByRole('button', { name: 'Open walkthrough' }).click()
       await expect(page.getByRole('button', { name: 'Play', exact: true })).toBeEnabled()
       await page.getByRole('button', { name: 'Close walkthrough' }).click()
       await expect(explore).toBeFocused()

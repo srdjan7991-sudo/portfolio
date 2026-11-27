@@ -8,13 +8,13 @@ Scroll past the Hero to **What happens when you click?**. Start with the archite
 
 ![Request architecture with the Application server selected. Markers identify the walkthrough and simulator buttons, layer controls, and selected server role.](../screenshots/request-flow--cross-section.webp)
 
-1. **Open an interactive example.** Choose **Explore the request** to open the walkthrough introduction, or **Try HTTP scenarios** to open the simulator.
+1. **Open an interactive example.** Choose **Explore the request** to open the paused walkthrough, or **Try HTTP scenarios** to open the simulator.
 2. **Select a layer.** Choose **Your browser**, **Application server**, or **Database** to highlight it and read its role. Select the same layer again to close the detail.
 3. **Follow the connections.** The solid route carries the request from the browser through the application server to the database. The dashed route carries the result back. In the animated desktop layout, each pass separates the layers, reveals the connections and stacks the layers again as you leave. Reversing the scroll retraces the scene. The connections stay visible in the static layouts for compact, very tall, or reduced-motion views.
 
 ## Follow one request
 
-1. From the diagram on the public portfolio, select **Explore the request**, then **Open walkthrough**. The player opens at **01 · Interaction** and uses example content.
+1. From the diagram on the public portfolio, select **Explore the request**. The player opens at **01 · Interaction** and uses example content.
 2. Select **Play** or **Load content** inside the illustrated browser to start. Select **Pause** whenever you want to read a stage.
 3. Use the right arrow (**Next step**) or the left arrow (**Previous step**) to inspect one stage at a time. Either control pauses playback on the selected stage. If the arrow has keyboard focus and reaches the end, focus moves to **Replay**. At the start it moves to **Play**.
 

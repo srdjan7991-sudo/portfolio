@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import type { Messages } from '../../i18n/en'
 import { reportScaleMaximum, reportSeries } from './analyticsReport'
 import type { Observation, ReportFilters, ReportPoint, ReportSeries, summarizeReport } from './analyticsReport'
@@ -52,6 +52,8 @@ export function AnalyticsReportChart(props: ChartProps) {
   const id = useId()
   const figure = useRef<HTMLElement>(null)
   const tooltip = useRef<HTMLDivElement>(null)
+  const touchPress = useRef<HTMLButtonElement>(null)
+  const revealReading = useRef(false)
   const scope = useMemo(() => ({ filters, active }), [filters, active])
   const [inspection, setInspection] = useState<Inspection | null>(null)
   const current = inspection?.scope === scope && active ? inspection : null
@@ -61,6 +63,15 @@ export function AnalyticsReportChart(props: ChartProps) {
   const open = Boolean(current?.entries.length && selectedPoint)
 
   useReportTooltipPosition(figure, tooltip, open ? selected?.anchor : undefined)
+
+  useLayoutEffect(() => {
+    if (!revealReading.current) return
+    revealReading.current = false
+    const panel = tooltip.current
+    if (open && panel && getComputedStyle(panel).position === 'static') {
+      panel.scrollIntoView({ block: 'nearest', behavior: 'instant' })
+    }
+  }, [open, selected])
 
   const dismiss = useCallback((...sources: Source[]) => {
     setInspection(current => {
@@ -97,8 +108,8 @@ export function AnalyticsReportChart(props: ChartProps) {
       }
       // Keep the readout hoverable without giving it ownership of clicks over bars.
       const panel = tooltip.current
-      const bounds = panel?.dataset.positioned === 'true' && panel.getBoundingClientRect()
-      if (bounds && event.clientX >= bounds.left && event.clientX <= bounds.right &&
+      const bounds = panel && getComputedStyle(panel).visibility === 'visible' && panel.getBoundingClientRect()
+      if (bounds && bounds.width > 0 && bounds.height > 0 && event.clientX >= bounds.left && event.clientX <= bounds.right &&
         event.clientY >= bounds.top && event.clientY <= bounds.bottom) {
         clearHoverExit()
       } else if (hoverExit === undefined) {
@@ -140,6 +151,7 @@ export function AnalyticsReportChart(props: ChartProps) {
   }
 
   const plots = [rows.slice(0, 3), rows.slice(3)].filter(months => months.length > 0)
+  const chartHint = `${text.chartHint} ${pinHint}`
   const hasPartialMonths = rows.some(row => row.partial)
   const hasMissing = rows.some(row => row.inPeriod && series.some(key => row.points[key] === null))
 
@@ -149,7 +161,7 @@ export function AnalyticsReportChart(props: ChartProps) {
       <ul className={styles.legend}>
         {series.map(key => <li key={key} data-series={key}><span aria-hidden="true" />{text.categories[key]}</li>)}
       </ul>
-      <p className={styles.chartHint}>{text.chartHint} {pinHint}</p>
+      <p className={styles.chartHint}>{chartHint}</p>
       <div className={styles.chartBody}>
         <Scale counts={counts} className={`${styles.scale} ${styles.sharedScale}`} />
         {plots.map(months => (
@@ -177,8 +189,14 @@ export function AnalyticsReportChart(props: ChartProps) {
                             onPointerEnter={event => {
                               if (enabled && event.pointerType !== 'touch') inspect(event.currentTarget, row.month, key, 'hover')
                             }}
+                            onPointerDown={event => {
+                              touchPress.current = event.pointerType === 'touch' ? event.currentTarget : null
+                            }}
+                            onPointerCancel={() => { touchPress.current = null }}
                             onFocus={event => inspect(event.currentTarget, row.month, key, 'focus')}
                             onClick={event => {
+                              revealReading.current = event.detail > 0 && event.currentTarget === touchPress.current
+                              touchPress.current = null
                               inspect(event.currentTarget, row.month, key, 'activation')
                               onPin({ month: row.month, series: key })
                             }}>
@@ -200,21 +218,24 @@ export function AnalyticsReportChart(props: ChartProps) {
             </div>
           </div>
         ))}
-      </div>
-      {selected && selectedRow && selectedPoint && (
-        <div ref={tooltip} className={styles.tooltip} data-open={open} aria-hidden="true">
-          <div className={styles.tooltipCard}>
-            <div className={styles.tooltipHeader}>
-              <strong className={styles.tooltipTitle} data-series={selected.series}><span />{text.categories[selected.series]}</strong>
-              <p className={styles.tooltipPeriod}>{selectedRow.periodLabel}</p>
+        <div className={styles.readoutSlot}>
+          <p className={styles.readoutHint} aria-hidden="true">{chartHint}</p>
+          {selected && selectedRow && selectedPoint && (
+            <div ref={tooltip} className={styles.tooltip} data-open={open} aria-hidden="true">
+              <div className={styles.tooltipCard}>
+                <div className={styles.tooltipHeader}>
+                  <strong className={styles.tooltipTitle} data-series={selected.series}><span />{text.categories[selected.series]}</strong>
+                  <p className={styles.tooltipPeriod}>{selectedRow.periodLabel}</p>
+                </div>
+                <dl>
+                  <div><dt>{text.total}</dt><dd>{counts.format(selectedPoint.count)}</dd></div>
+                  <div><dt>{text.previousMonth(selectedRow.previousLabel)}</dt><dd>{formatChange(selectedPoint, props)}</dd></div>
+                </dl>
+              </div>
             </div>
-            <dl>
-              <div><dt>{text.total}</dt><dd>{counts.format(selectedPoint.count)}</dd></div>
-              <div><dt>{text.previousMonth(selectedRow.previousLabel)}</dt><dd>{formatChange(selectedPoint, props)}</dd></div>
-            </dl>
-          </div>
+          )}
         </div>
-      )}
+      </div>
       {hasPartialMonths && <p className={styles.chartNote}>{text.partialNote}</p>}
       {active && hasMissing && <p className={styles.chartNote}>{text.missingNote}</p>}
     </figure>

@@ -2,16 +2,16 @@
 
 [Back to the portfolio guide](../../README.md) · [Open Selected Work](https://srdjan7991-sudo.github.io/portfolio/#work)
 
-In **Selected Work**, scroll to the **Mede Analytics** project. With motion enabled in a browser that supports scroll-linked animations, the **Analytics overview** preview draws its lines and grid as the plot enters view and clears them as you scroll past. Scrolling back reverses the change. With reduced motion the full chart is visible.
-
-![The Selected Work preview mid-scroll, with a marker where the chart lines are being drawn.](../screenshots/work--diagram-scroll.webp)
-
-Choose **Read the case study** to see the context, contribution, implementation, and validation. Choose it again to close the details. Farther down, the Kterio summary lists the interface and data work alongside the services and REST endpoints.
+In **Selected Work**, scroll to **Mede Analytics**. Read **What I built** and open **Read the case study** for the responsibilities, technical approach, implementation, verification, and value of the reporting work.
 
 ![The Mede Analytics case study open on mobile, with markers for the toggle and project notes.](../screenshots/work--case-study.webp)
 
 1. Tap **Read the case study** to expand it.
-2. Read the context, contribution, implementation, and validation beneath the toggle.
+2. Read the project notes beneath the toggle. Tap the same control to close them.
+
+The compact **Analytics overview** illustrates a reporting layout with synthetic data. With motion enabled and scroll timeline support, its lines and grid draw as the plot enters view and clear as you pass it. Scrolling back reverses the change. With reduced motion the full chart is visible.
+
+![The Selected Work preview mid-scroll, with a marker where the chart lines are being drawn.](../screenshots/work--diagram-scroll.webp)
 
 Choose **Try a sample report** under Mede Analytics to open the separate interactive demo. It uses synthetic data created for the portfolio.
 
@@ -30,7 +30,7 @@ Choose **Try a sample report** under Mede Analytics to open the separate interac
 
 ## Follow a bar into the table
 
-1. Choose **Reset filters** to return to the default view. Hover over or focus the **Quality** bar for **May 2026**. The tooltip shows **115**, up **13** or **12.7%** from April.
+1. Choose **Reset filters** to return to the default view. Hover over or focus the **Quality** bar for **May 2026**. The reading shows **115**, up **13** or **12.7%** from April. On narrow charts, the reading has its own space in the layout and comes into view when tapped if needed.
 2. Click or tap the bar, or press **Enter** or **Space** while it has focus. The corresponding table cell is marked and the **Marked in the table** summary appears.
 3. Press **Escape** to dismiss the tooltip and keep the mark. Close and reopen the report to see the same cell still marked.
 

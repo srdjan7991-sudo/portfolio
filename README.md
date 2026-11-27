@@ -31,7 +31,7 @@ See the controls on a phone and follow a queue refresh from click to response. [
 
 ![Request cross section with Application server selected, showing connections among the browser, server, and database.](docs/screenshots/request-flow--cross-section.webp)
 
-1. Choose **Explore the request** to step through a request or **Try HTTP scenarios** to try a failure or a slower response.
+1. Choose **Explore the request** to open the six-stage walkthrough. **Try HTTP scenarios** opens a separate simulator for errors, late responses, and cancellation.
 2. Choose **Your browser**, **Application server**, or **Database** to reveal its role in the diagram.
 3. Follow the solid request line and the dashed response line. In the animated layout, scrolling separates the layers as you approach and stacks them again as you leave. Scroll back through the section to replay the same sequence in reverse.
 
@@ -39,12 +39,14 @@ Follow all six phases or recover from a simulated HTTP 500. [Behind every reques
 
 ## Selected Work
 
-![Mede Analytics and Kterio in Selected Work with numbered callouts for the preview, report, and case study.](docs/screenshots/work--project-preview.webp)
+![Mede Analytics contribution, case-study control, compact reporting illustration, and sample report link.](docs/screenshots/work--project-preview.webp)
 
-1. Scroll toward the Mede Analytics preview. With motion enabled and browser support for scroll-linked animations, its lines draw into view and clear as you scroll past. The full preview is visible with reduced motion, in editing mode, or in browsers without scroll timeline support.
-2. Open **Try a sample report** to work with filters and the bar chart.
-3. Open **Read the case study** to see the project context, contribution, implementation, and validation.
-4. Continue to **Kterio** for the building operations work and the split between the interface and services.
+Read **What I built** for the Mede Analytics contribution, then use the numbered callouts to explore the projects.
+
+1. **Analytics overview** draws its lines as you scroll past in browsers with scroll timelines. With reduced motion, the full illustration is visible.
+2. **Try a sample report** opens the filters, interactive bar chart, and table.
+3. **Read the case study** covers the context, responsibilities, approach, implementation, validation, and value.
+4. **Kterio** shows the React and API integration work alongside the C# endpoints and service logic.
 
 ## Analytics Report Demo
 
@@ -52,7 +54,7 @@ Follow all six phases or recover from a simulated HTTP 500. [Behind every reques
 
 1. Set **Reporting period** to **April to June 2026** and **Report category** to **Operations**.
 2. The summary shows **82** completed reports and an average of **27.3** per month.
-3. Hover over or focus a bar to see its value and the previous-month comparison when available. Select the bar by clicking, tapping, or pressing **Enter** to mark its value in the table.
+3. Hover over or focus a bar to see its value and the previous-month comparison when available. Narrow charts reserve space for the reading in the page layout. Select the bar by clicking, tapping, or pressing **Enter** to mark its value in the table.
 4. Read the matching counts of **24**, **28**, and **30** in **Monthly data**. Use **Reset filters** to return to the starting view.
 
 The demo uses synthetic portfolio data. See bar selection, month comparison, and the empty result on mobile. [Analytics Report Demo guide](docs/guide/analytics-report.md)
@@ -62,7 +64,7 @@ The demo uses synthetic portfolio data. See bar selection, month comparison, and
 ![Frontend Engineering skills with React selected and the React role, project example, and related technologies visible.](docs/screenshots/skills--react-details.webp)
 
 1. Open **Frontend Engineering** in Skills and select **React**.
-2. Read the description and the example from Mede Analytics in the open detail.
+2. Read the description and follow **View work on Mede Analytics** to the project and case study. TypeScript and Highcharts link to the same project.
 3. Choose a technology under **Works with**, such as **TypeScript**, to open its detail. Use **All categories** to explore the other groups.
 
 ## How I Engineer
