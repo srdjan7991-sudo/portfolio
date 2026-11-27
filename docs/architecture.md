@@ -19,6 +19,19 @@ The React features contain the public page copy. Selected Work presents the Mede
 
 Initial hash alignment runs again after fonts load or the saved section order arrives, while the original target retains focus and the visitor has kept the initial scroll position. The hook accounts for the browser clamping the scroll position when the document becomes shorter.
 
+### Content widths
+
+The shared container in [global.css](../src/global.css) keeps the standard alignment for section headings, the header, the editor toolbar, Contact, and the footer. Reading widths are maximum line lengths within their section and stay aligned to the section's text.
+
+| Width | Maximum | Used for |
+| --- | ---: | --- |
+| Reading | `42rem` | Introductions and exercise instructions |
+| Standard | `80rem` | Section content, navigation, and walkthrough controls |
+| Wide | `92rem` | Hero architecture, the open report, and the open engineering workspace |
+| Full | `104rem` | The desktop request cross section's visual surface |
+
+Wide and Full have their own minimum side margins. A breakout inside a Standard section centers on the main content box, which excludes the space taken by a classic scrollbar. The compact request diagram returns to the Standard alignment. The report, case study, and engineering workspace use their available width to decide when columns fit. The Experience timeline and education list stay within the Standard section at `54rem` and `64rem`, respectively.
+
 ## Sample analytics report
 
 Open the sample report under Selected Work. The default view shows 15 synthetic counts across Quality, Utilization, and Operations from January through June 2026. Operations reporting starts in April. Each reported observation has its own bar in the monthly group. The table shows the selected months and categories with the same counts. A missing observation is marked as unreported. A reported zero is a valid count. [Report data](../src/features/selected-work/analyticsReport.ts)

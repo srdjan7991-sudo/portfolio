@@ -93,6 +93,7 @@
 }
 
 @media (max-width: 36rem) {
+  .figure > .surface { inline-size: 100%; margin-inline: 0; }
   .graphic { display: none; }
   .compactGraphic { display: block; }
   .legendRule span { transform: rotate(90deg); }
@@ -102,6 +103,11 @@
   .layers button { flex-direction: column; }
 }
 
+/* Leave room above the aligned layers for the header and below for the caption. */
+.sequence[data-animated] .graphic {
+  max-block-size: calc(100svh - var(--header-height) - var(--admin-toolbar-height, 0px) - 5.5rem);
+}
+
 /* Short desktop viewports animate in normal flow. Only the sticky frame needs extra height. */
 @media (min-width: 60rem) and (min-height: 51rem) and (prefers-reduced-motion: no-preference) {
   .sequence[data-animated]::after {
@@ -109,7 +115,7 @@
     display: block;
     block-size: clamp(9rem, 24svh, 16rem);
   }
-  .sequence[data-animated] .graphic { max-block-size: min(35svh, 21rem); }
+  .sequence[data-animated] .graphic { max-block-size: min(39svh, 24rem); }
   .sequence[data-animated] .frame {
     position: sticky;
     inset-block-start: calc(var(--header-height) + var(--admin-toolbar-height, 0px) + 1rem);

@@ -90,7 +90,7 @@ function AnalyticsReport({ active }: { active: boolean }) {
   }
 
   return (
-    <div className={styles.report}>
+    <div className={`container container--wide container--breakout ${styles.report}`}>
       <header className={styles.intro}>
         <h4>{report.title}</h4>
         <p>{report.description}</p>

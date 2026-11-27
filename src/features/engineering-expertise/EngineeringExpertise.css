@@ -8,7 +8,11 @@
   border-block: 1px solid var(--line-glass);
 }
 
-.engineer[data-view='area'] { grid-template-columns: minmax(10.5rem, 0.28fr) minmax(0, 1fr); }
+.engineer[data-view='area'] {
+  container: engineer-areas / inline-size;
+  grid-template-columns: clamp(10.5rem, 14vw, 13rem) minmax(0, 1fr);
+  row-gap: 0;
+}
 .engineer :where(button, .engineer-index li, .engineer-area-header, [role='tabpanel']) { scroll-margin-block: 1.25rem; }
 .engineer :where(button) { font: inherit; color: inherit; cursor: pointer; }
 .engineer button:focus-visible,
@@ -44,6 +48,14 @@
 .engineer[data-view='area'] .engineer-index-name { font-size: 0.97rem; font-weight: 580; letter-spacing: -0.018em; line-height: 1.35; }
 .engineer[data-view='area'] .engineer-index-description,
 .engineer[data-view='area'] .engineer-index button:not([aria-current]) .engineer-index-arrow { display: none; }
+.engineer[data-view='area'] :is(.engineer-index, .engineer-explore) { grid-column: 1 / -1; }
+.engineer[data-view='area'] .engineer-index:not(:focus-within) { display: none; }
+
+@container engineer-areas (min-width: 56rem) {
+  .engineer[data-view='area'] .engineer-index { grid-column: 1; }
+  .engineer[data-view='area'] .engineer-index:not(:focus-within) { display: block; }
+  .engineer[data-view='area'] .engineer-explore { grid-column: 2; }
+}
 
 .engineer-explore { min-width: 0; container: engineer-workspace / inline-size; }
 .engineer-preview {
@@ -51,11 +63,10 @@
   isolation: isolate;
   grid-column: 2;
   display: grid;
-  align-self: stretch;
-  align-items: center;
+  align-self: center;
   min-width: 0;
   margin-block: clamp(0.9rem, 2vw, 1.5rem);
-  padding: clamp(1.25rem, 3.4vw, 3rem);
+  padding: clamp(1.25rem, 2.8vw, 2.5rem);
   pointer-events: none;
 }
 .engineer-preview::before {
@@ -105,7 +116,7 @@
   line-height: 1.04;
   overflow-wrap: anywhere;
 }
-.engineer-area-header p { margin-block-start: 0.5rem; }
+.engineer-area-header p { margin-block-start: 0.5rem; max-inline-size: var(--reading-width); }
 .engineer-concepts {
   display: flex;
   flex-wrap: wrap;
@@ -130,19 +141,19 @@
 .engineer-concept-panel::before { position: absolute; z-index: -1; inset: 0; background: var(--surface-subtle); content: ''; }
 .engineer-concept-content {
   display: grid;
-  gap: clamp(1.25rem, 2.5vw, 2.2rem);
+  gap: clamp(0.9rem, 2.2vw, 2rem);
   min-width: 0;
   padding: clamp(0.95rem, 2.65vw, 2.15rem);
 }
 .engineer-concept-notes h4 { margin: 0 0 0.6rem; font-size: clamp(1.12rem, 2vw, 1.48rem); line-height: 1.18; letter-spacing: -0.035em; text-wrap: balance; }
 .engineer-concept-notes p { max-width: 55ch; font-size: 0.94rem; }
-.engineer-demo { display: grid; gap: 0.8rem; min-width: 0; align-content: start; }
-.engineer .engineer-exercise { font-size: 0.85rem; }
+.engineer-demo { display: grid; gap: 0.8rem; min-width: 0; align-content: start; container: engineer-demo / inline-size; }
+.engineer .engineer-exercise { max-inline-size: var(--reading-width); font-size: 0.85rem; }
 .engineer-evidence, .engineer-tools { margin-block-start: 0.8rem; max-width: 76ch; font-size: 0.86rem; }
 .engineer-evidence strong, .engineer-tools strong { color: var(--ink); margin-inline-end: 0.45rem; font-weight: 650; }
 
-@container engineer-workspace (min-width: 43rem) {
-  .engineer-concept-content { grid-template-columns: minmax(0, 0.72fr) minmax(0, 1.28fr); }
+@container engineer-workspace (min-width: 66rem) {
+  .engineer-concept-content { grid-template-columns: minmax(14rem, 1fr) minmax(40rem, 2.6fr); }
 }
 
 .engineer-demo-controls,
@@ -276,7 +287,7 @@ ul.engineer-demo-detail { padding-inline-start: 1.95rem; }
 .engineer-request-stages [data-stage='complete'] { border-color: var(--accent-edge); }
 .engineer-request-stages [data-stage='current'] { border-color: var(--accent); color: var(--accent); font-weight: 680; }
 
-@container engineer-workspace (min-width: 30rem) {
+@container engineer-demo (min-width: 30rem) {
   .engineer-demo-split { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
@@ -333,11 +344,6 @@ ul.engineer-demo-detail { padding-inline-start: 1.95rem; }
   .engineer-area-header h3 { transform: none !important; opacity: 1 !important; }
   .engineer[data-view='area'] .engineer-preview { visibility: hidden; }
   .engineer[data-view='index'] .engineer-preview { opacity: 1 !important; }
-}
-
-@media (max-width: 53rem) {
-  .engineer[data-view='area'] { display: block; }
-  .engineer[data-view='area'] .engineer-index:not(:focus-within) { display: none; }
 }
 
 @media (max-width: 40rem) {

@@ -61,7 +61,8 @@ export function EngineeringExpertise() {
   return (
     <LayoutGroup id="how-i-engineer">
       <PortfolioSection id="expertise" intro={expertise.intro}>
-        <div className="engineer" data-view={area ? 'area' : 'index'}>
+        <div className={area ? 'engineer container container--wide container--breakout' : 'engineer'}
+          data-view={area ? 'area' : 'index'}>
           <nav className="engineer-index" aria-label={expertise.areasLabel}>
             <ul>
               {engineeringAreaIds.map(id => (

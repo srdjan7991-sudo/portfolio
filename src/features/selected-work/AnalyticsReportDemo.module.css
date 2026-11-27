@@ -506,7 +506,7 @@
   .coverageMark[data-kind='reported'] { forced-color-adjust: none; background: CanvasText; }
 }
 
-@media (min-width: 52rem) {
+@container analytics-report (min-width: 44rem) {
   .filters { grid-template-columns: repeat(2, minmax(0, 15rem)) auto; }
 }
 

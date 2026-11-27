@@ -18,7 +18,7 @@
   text-decoration: underline var(--accent) 2px;
   text-underline-offset: 0.16em;
 }
-.section-intro { max-width: 56ch; margin-bottom: clamp(1.75rem, 4vw, 3.4rem); font-size: clamp(1rem, 1.8vw, 1.17rem); }
+.section-intro { max-inline-size: min(56ch, var(--reading-width)); margin-bottom: clamp(1.75rem, 4vw, 3.4rem); font-size: clamp(1rem, 1.8vw, 1.17rem); }
 .portfolio-section p, .portfolio-section dd { color: var(--muted); }
 .portfolio-section h3 {
   font-size: clamp(1.2rem, 2.5vw, 1.8rem);
