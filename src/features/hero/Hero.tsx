@@ -1,5 +1,6 @@
 import { useLanguage } from '../../i18n/language'
 import { HeroArchitecture } from './HeroArchitecture'
+import { LivingArchitecture } from './living-architecture/LivingArchitecture'
 import './Hero.css'
 
 export function Hero() {
@@ -27,6 +28,7 @@ export function Hero() {
           </div>
         </div>
       </div>
+      <LivingArchitecture />
       <HeroArchitecture />
     </section>
   )

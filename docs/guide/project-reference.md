@@ -7,7 +7,7 @@
 | Area | Tools |
 | --- | --- |
 | Frontend | React, TypeScript, Vite, CSS Modules, CSS custom properties, locally hosted Geist and Geist Mono |
-| Interaction | CSS view timelines for scroll effects, Motion for React for the request cross section, section reordering, Skills, and How I Engineer, SVG and CSS for the Hero demo and request walkthrough, Radix UI Collapsible for the mobile menu |
+| Interaction | WebGL 2 and an SVG fallback for Living Architecture, CSS view timelines for scroll effects, Motion for React for the request cross section, section reordering, Skills, and How I Engineer, SVG and CSS for the Hero queue and request walkthrough, Radix UI Collapsible for the mobile menu |
 | API and data | ASP.NET Core Minimal APIs on .NET 10, Entity Framework Core, SQL Server, Swashbuckle and Swagger UI |
 | Authentication | ASP.NET Core Identity and JWT bearer authentication |
 | Testing | Vitest, React Testing Library, jest-dom, user-event, jsdom, V8 coverage, Playwright, xUnit, ASP.NET Core TestServer |

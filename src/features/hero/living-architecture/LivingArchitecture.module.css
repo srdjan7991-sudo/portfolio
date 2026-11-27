@@ -1,0 +1,158 @@
+.track {
+  --stage-height: clamp(28rem, 72svh, 43rem);
+  --scene-run: clamp(44rem, 115svh, 72rem);
+  --scene-progress: 0;
+  margin-block-end: clamp(2.3rem, 5.8vw, 5rem);
+}
+
+.stage {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  grid-template-rows: 1fr auto;
+  block-size: var(--stage-height);
+  min-inline-size: 0;
+  padding: clamp(1.1rem, 3.6vw, 3.25rem);
+  overflow: clip;
+  border: 1px solid var(--line-glass);
+  border-radius: var(--radius);
+  background:
+    radial-gradient(ellipse at 64% 46%, var(--surface) 0%, transparent 64%),
+    var(--surface-subtle);
+}
+
+.art {
+  position: absolute;
+  z-index: -1;
+  inset: 0 0 0 25%;
+  pointer-events: none;
+}
+
+.still, .canvas {
+  position: absolute;
+  inset: 0;
+  display: block;
+  inline-size: 100%;
+  block-size: 100%;
+}
+.still { padding: clamp(0.5rem, 1vw, 1rem); }
+.canvas { visibility: hidden; }
+[data-frame-ready] .canvas { visibility: visible; }
+[data-frame-ready] .still { visibility: hidden; }
+
+.copy {
+  display: grid;
+  align-content: center;
+  justify-items: start;
+  gap: 0.65rem;
+  max-inline-size: 24%;
+}
+
+.eyebrow, .hint, .phaseName {
+  color: var(--accent);
+  font: 560 0.71rem/1.4 var(--mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.copy h2 {
+  max-inline-size: 9.4ch;
+  font-size: clamp(1.95rem, 3.55vw, 3.35rem);
+  font-weight: 590;
+  line-height: 0.99;
+  letter-spacing: -0.055em;
+}
+.description {
+  max-inline-size: 24ch;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+.hint {
+  visibility: hidden;
+  margin-block-start: 0.75rem;
+  color: var(--quiet);
+  text-transform: none;
+  letter-spacing: 0;
+}
+[data-renderer='webgl'] .hint { visibility: visible; }
+.hint span { color: var(--accent); }
+
+.footer {
+  display: grid;
+  justify-items: start;
+  inline-size: min(15rem, 24%);
+  gap: 0.25rem;
+}
+.phase { visibility: hidden; inline-size: 100%; }
+[data-renderer='webgl'] .phase { visibility: visible; }
+.phaseName { display: grid; margin-block-end: 0.45rem; }
+.phaseName > span { grid-area: 1 / 1; visibility: hidden; }
+[data-renderer='webgl'][data-phase='0'] [data-architecture-step='0'],
+[data-renderer='webgl'][data-phase='1'] [data-architecture-step='1'],
+[data-renderer='webgl'][data-phase='2'] [data-architecture-step='2'],
+[data-renderer='webgl'][data-phase='3'] [data-architecture-step='3'],
+[data-renderer='webgl'][data-phase='4'] [data-architecture-step='4'] { visibility: visible; }
+.meter, .meter::before {
+  display: block;
+  block-size: 1px;
+}
+.meter { background: var(--line-glass); }
+.meter::before {
+  content: '';
+  transform: scaleX(var(--scene-progress));
+  transform-origin: left;
+  background: var(--accent);
+}
+.interfaceLink {
+  display: inline-flex;
+  gap: 0.45rem;
+  align-items: center;
+  min-block-size: 2.75rem;
+  color: var(--accent);
+  font-size: 0.86rem;
+  font-weight: 560;
+  text-decoration-color: var(--accent-edge);
+}
+.interfaceLink:is(:hover, :focus-visible) { text-decoration-color: currentColor; }
+
+@media (prefers-reduced-motion: no-preference) and (min-height: 37rem) {
+  .track[data-renderer='webgl'] { min-block-size: calc(var(--stage-height) + var(--scene-run)); }
+  [data-renderer='webgl'] .stage {
+    position: sticky;
+    inset-block-start: calc(var(--header-height) + 0.65rem);
+  }
+}
+
+@media (max-width: 53.75rem) {
+  .track {
+    --stage-height: clamp(29.5rem, 70svh, 38rem);
+    --scene-run: clamp(38rem, 96svh, 58rem);
+  }
+  .copy { align-content: start; max-inline-size: none; gap: 0.3rem; }
+  .copy h2 { max-inline-size: none; }
+  .description { max-inline-size: 34ch; font-size: 0.8rem; }
+  .hint { margin-block-start: 0.1rem; }
+  .art { inset: 7.8rem 0 3.8rem; }
+  .footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    inline-size: 100%;
+    gap: 0.25rem 1rem;
+  }
+  .phase { inline-size: min(15rem, 45%); }
+}
+
+@media (max-width: 35rem) {
+  .track { --stage-height: clamp(28.75rem, 65svh, 34rem); }
+  .stage { padding: 0.9rem; }
+  .art { inset: 8.4rem 0 4.5rem; }
+  .footer { gap: 0 0.55rem; }
+  .phaseName { letter-spacing: 0.025em; }
+  .interfaceLink { font-size: 0.79rem; }
+}
+
+@media (forced-colors: active) {
+  .stage { border-color: CanvasText; }
+}

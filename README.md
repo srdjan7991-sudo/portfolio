@@ -1,6 +1,6 @@
 # Srdjan Pajic | Portfolio walkthrough
 
-I’m a frontend-focused software engineer working mainly with React and TypeScript. Browse my work on Mede Analytics and Kterio, try a sample report, or follow a browser request through the application.
+I’m a frontend-focused software engineer working mainly with React and TypeScript. Scroll through a layered software system, browse my work on Mede Analytics and Kterio, or follow a browser request through the application.
 
 [Open the portfolio](https://srdjan7991-sudo.github.io/portfolio/)
 
@@ -14,16 +14,17 @@ I’m a frontend-focused software engineer working mainly with React and TypeScr
 - [Education and Contact](#education-and-contact)
 - [Run locally](#run-locally)
 
-The numbered callouts tie each screenshot to the steps beneath it. Open a screenshot to read the interface at full size.
+Numbered callouts identify controls in the screenshots that include them. Open a screenshot to read the interface at full size.
 
 ## Opening screen and navigation
 
-![Portfolio opening screen with numbered callouts for navigation, display preferences, the two main links, and the architecture simulation.](docs/screenshots/hero--overview.webp)
+![Portfolio opening screen with the main links and Living Architecture’s separated 3D layers.](docs/screenshots/hero--overview.webp)
 
 1. Use the header links to jump to a section. On a phone, open **Menu** first.
 2. Switch between light and dark or between **EN** and **SR**. The portfolio remembers both preferences.
 3. **View selected work** takes you to the projects. **Get in touch** goes directly to Contact.
-4. In **Living application architecture**, choose **Refresh queue** or **Pin first task**. Follow the simulated request to the API and check the result in the review queue. Select **API**, **Service**, or **Data** to inspect its role and connections.
+4. Scroll through **Living Architecture** to assemble the layers and turn the top panel into an interface. Scroll back to reverse the sequence. With reduced motion or unavailable graphics, the scene is shown as a still illustration.
+5. Choose **Explore the interface** to go directly to the interactive queue. Choose **Refresh queue** or **Pin first task** to follow a simulated request. Select **API**, **Service**, or **Data** to inspect its role and connections.
 
 See the controls on a phone and follow a queue refresh from click to response. [Opening screen and navigation guide](docs/guide/using-the-portfolio.md)
 

@@ -87,6 +87,7 @@
 
 .living-heading { margin-block-end: 0.65rem; }
 .living-heading h2 {
+  scroll-margin-block-start: 0.8rem;
   font-size: clamp(1.15rem, 2vw, 1.6rem);
   letter-spacing: -0.045em;
   font-weight: 590;
